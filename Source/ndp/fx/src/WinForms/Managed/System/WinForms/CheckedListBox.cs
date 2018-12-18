@@ -595,7 +595,7 @@ namespace System.Windows.Forms {
                 CheckedItems.SetCheckedState(index, itemCheckEvent.NewValue);
 
                 // Send accessibility notifications for state change
-                if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                if (AccessibilityImprovements.Level1) {
                     AccessibilityNotifyClients(AccessibleEvents.StateChange, index);
                     AccessibilityNotifyClients(AccessibleEvents.NameChange, index);
                 }

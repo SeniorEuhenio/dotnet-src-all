@@ -45,6 +45,14 @@ namespace System.Windows.Input
         public ReadOnlyCollection<StylusPointProperty> StylusPointProperties;
         public int PressureIndex;
         public StylusDeviceInfo[] StylusDevicesInfo;
+
+        /// <summary>
+        /// The GIT key for a WISP tablet COM object.
+        /// </summary>
+        /// <SecurityNote>
+        /// Critical:   This data can be used to manipulate COM objects in the GIT.
+        /// </SecurityNote>
+        public UInt32 WispTabletKey { [SecurityCritical] get; [SecurityCritical] set; }
     }    
 }
 

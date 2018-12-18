@@ -5,8 +5,10 @@
 // File: FrameworkAppContextSwitches.cs
 //---------------------------------------------------------------------------
 
+using MS.Internal.PresentationFramework.Interop;
 using System;
 using System.Runtime.CompilerServices;
+using System.Windows;
 
 namespace MS.Internal
 {
@@ -53,21 +55,74 @@ namespace MS.Internal
             }
         }
 
+        internal const string DoNotUseFollowParentWhenBindingToADODataRelationSwitchName = "Switch.System.Windows.Data.DoNotUseFollowParentWhenBindingToADODataRelation";
+        private static int _doNotUseFollowParentWhenBindingToADODataRelation;
+        public static bool DoNotUseFollowParentWhenBindingToADODataRelation
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                return LocalAppContext.GetCachedSwitchValue(DoNotUseFollowParentWhenBindingToADODataRelationSwitchName, ref _doNotUseFollowParentWhenBindingToADODataRelation);
+            }
+        }
+
+        #region Accessibility Switches
+
         #region UseLegacyAccessibilityFeatures
 
         // Switch to disable new Accessibility features that may affect compat.
-        internal const string UseLegacyAccessibilityFeaturesSwitchName = "Switch.UseLegacyAccessibilityFeatures";
-        private static int _useLegacyAccessibilityFeatures;
         public static bool UseLegacyAccessibilityFeatures
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                return LocalAppContext.GetCachedSwitchValue(UseLegacyAccessibilityFeaturesSwitchName, ref _useLegacyAccessibilityFeatures);
+                return AccessibilitySwitches.UseLegacyAccessibilityFeatures;
             }
         }
 
         #endregion
+
+        #region UseLegacyAccessibilityFeatures2
+
+        // Switch to disable new Accessibility features that may affect compat.
+        public static bool UseLegacyAccessibilityFeatures2
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                return AccessibilitySwitches.UseLegacyAccessibilityFeatures2;
+            }
+        }
+
+        #endregion
+
+        #endregion
+
+        // DDVSO:405199
+        // Switch to enable non-adorner based rendering of TextSelection in TextBox and PasswordBox.
+        internal const string UseAdornerForTextboxSelectionRenderingSwitchName = "Switch.System.Windows.Controls.Text.UseAdornerForTextboxSelectionRendering";
+        private static int _useAdornerForTextboxSelectionRendering;
+        public static bool UseAdornerForTextboxSelectionRendering
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                return LocalAppContext.GetCachedSwitchValue(UseAdornerForTextboxSelectionRenderingSwitchName, ref _useAdornerForTextboxSelectionRendering);
+            }
+        }
+
+        // DDVSO:546550
+        // Switch to enable appending the local assembly version to the Uri being set for ResourceDictionary.Source via Baml2006ReaderInternal.
+        internal const string AppendLocalAssemblyVersionForSourceUriSwitchName = "Switch.System.Windows.Baml2006.AppendLocalAssemblyVersionForSourceUri";
+        private static int _AppendLocalAssemblyVersionForSourceUriSwitchName;
+        public static bool AppendLocalAssemblyVersionForSourceUri
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                return LocalAppContext.GetCachedSwitchValue(AppendLocalAssemblyVersionForSourceUriSwitchName, ref _AppendLocalAssemblyVersionForSourceUriSwitchName);
+            }
+        }
     }
 
 #pragma warning restore 436

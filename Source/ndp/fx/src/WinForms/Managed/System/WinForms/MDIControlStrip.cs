@@ -227,7 +227,7 @@ namespace System.Windows.Forms {
             // when the system menu item shortcut is evaluated - pop the dropdown          
             internal class SystemMenuItem : ToolStripMenuItem {
                    public SystemMenuItem(){
-                       if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                       if (AccessibilityImprovements.Level1) {
                            AccessibleName = SR.GetString(SR.MDIChildSystemMenuItemAccessibleName);
                        }
                    }

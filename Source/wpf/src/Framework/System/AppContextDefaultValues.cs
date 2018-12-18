@@ -35,9 +35,18 @@ namespace System
                         }
                         if (targetFrameworkVersion <= 40700)
                         {
-                            LocalAppContext.DefineSwitchDefault(FrameworkAppContextSwitches.UseLegacyAccessibilityFeaturesSwitchName, true);
                             LocalAppContext.DefineSwitchDefault(FrameworkAppContextSwitches.SelectionPropertiesCanLagBehindSelectionChangedEventSwitchName, true);
                         }
+                        if (targetFrameworkVersion <= 40701)
+                        {
+                            LocalAppContext.DefineSwitchDefault(FrameworkAppContextSwitches.DoNotUseFollowParentWhenBindingToADODataRelationSwitchName, true);
+                        }
+
+                        // DDVSO:405199
+                        // The standard behavior is to draw Text/PasswordBox selections via the adorner.
+                        // We want this to always be the case unless it is explicity changed, regardless of .NET target version.
+                        LocalAppContext.DefineSwitchDefault(FrameworkAppContextSwitches.UseAdornerForTextboxSelectionRenderingSwitchName, true);
+
                         break;
                     }
             }

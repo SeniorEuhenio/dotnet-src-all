@@ -415,6 +415,12 @@ namespace System.Windows.Media.Composition
         [FieldOffset(8)] internal UInt64 CopyCompletedEvent;
         };
         [StructLayout(LayoutKind.Explicit, Pack=1)]
+        internal struct MILCMD_PARTITION_NOTIFYPOLICYCHANGEFORNONINTERACTIVEMODE
+        {
+        [FieldOffset(0)] internal MILCMD Type;
+        [FieldOffset(4)] internal BOOL ShouldRenderEvenWhenNoDisplayDevicesAreAvailable;
+        };
+        [StructLayout(LayoutKind.Explicit, Pack=1)]
         internal struct MILCMD_AXISANGLEROTATION3D
         {
         [FieldOffset(0)] internal MILCMD Type;

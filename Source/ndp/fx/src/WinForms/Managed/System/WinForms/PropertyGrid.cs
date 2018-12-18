@@ -89,7 +89,7 @@ namespace System.Windows.Forms {
         private Object[]   currentObjects;
         
         private int                                 paintFrozen;
-        private Color                               lineColor = SystemInformation.HighContrast ? (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures ? SystemColors.ControlDarkDark : SystemColors.ControlDark )
+        private Color                               lineColor = SystemInformation.HighContrast ? (AccessibilityImprovements.Level1 ? SystemColors.ControlDarkDark : SystemColors.ControlDark )
                                                                 : SystemColors.InactiveBorder;
         internal bool                               developerOverride = false;
         internal Brush                              lineBrush = null;
@@ -719,7 +719,7 @@ namespace System.Windows.Forms {
                     SetToolStripRenderer();
                 }
 
-                SetHotCommandColors(value);
+                SetHotCommandColors(value && !AccessibilityImprovements.Level2);
             }
         }
 
@@ -2015,7 +2015,7 @@ namespace System.Windows.Forms {
             button.Click += eventHandler;
             button.ImageScaling = ToolStripItemImageScaling.SizeToFit;
 
-            if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+            if (AccessibilityImprovements.Level1) {
                 if (useCheckButtonRole) {
                     button.AccessibleRole = AccessibleRole.CheckButton;
                 }
@@ -3615,7 +3615,7 @@ namespace System.Windows.Forms {
                         else if (gridView.FocusInside) {
                             if (toolStrip.Visible) {
                                 toolStrip.FocusInternal();
-                                if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                                if (AccessibilityImprovements.Level1) {
                                     // we need to select first ToolStrip item, otherwise, ToolStrip container has the focus
                                     if (toolStrip.Items.Count > 0) {
                                         toolStrip.SelectNextToolStripItem(null, /*forward =*/ true);
@@ -4202,7 +4202,7 @@ namespace System.Windows.Forms {
         }
 
         private void SetToolStripRenderer() {
-            if (DrawFlatToolbar || (SystemInformation.HighContrast && !LocalAppContextSwitches.UseLegacyAccessibilityFeatures)) {
+            if (DrawFlatToolbar || (SystemInformation.HighContrast && AccessibilityImprovements.Level1)) {
                 // use an office look and feel with system colors 
                 ProfessionalColorTable colorTable = new ProfessionalColorTable();
                 colorTable.UseSystemColors = true;

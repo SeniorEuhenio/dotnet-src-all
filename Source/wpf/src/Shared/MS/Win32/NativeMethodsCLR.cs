@@ -24,6 +24,8 @@ namespace MS.Win32 {
     using MS.Internal.PresentationCore;
 #elif PRESENTATIONFRAMEWORK
     using MS.Internal.PresentationFramework;
+#elif UIAUTOMATIONTYPES
+    using MS.Internal.UIAutomationTypes;
 #elif DRT
     using MS.Internal.Drt;
 #else
@@ -1859,7 +1861,7 @@ namespace MS.Win32 {
         TTM_POP = (0x0400 + 28),
         TTM_ADJUSTRECT = (0x400 + 31),
         TTM_SETDELAYTIME = (0x0400+3),
-#if !DRT
+#if !DRT && !UIAUTOMATIONTYPES
         TTM_SETTITLEA           =((int)WindowMessage.WM_USER + 32),  // wParam = TTI_*, lParam = char* szTitle
         TTM_SETTITLEW           =((int)WindowMessage.WM_USER + 33), // wParam = TTI_*, lParam = wchar* szTitle
 #endif
@@ -2112,7 +2114,7 @@ namespace MS.Win32 {
         WA_CLICKACTIVE = 2;
 
         public const int WHEEL_DELTA = 120,
-#if !DRT
+#if !DRT && !UIAUTOMATIONTYPES
         WM_REFLECT = (int)WindowMessage.WM_USER + 0x1C00,
         WM_CHOOSEFONT_GETLOGFONT = (int)WindowMessage.WM_USER +1,
 #endif
@@ -3296,7 +3298,7 @@ namespace MS.Win32 {
         }
 #endif
 
-#if FRAMEWORK_NATIVEMETHODS || CORE_NATIVEMETHODS || BASE_NATIVEMETHODS || DRT_SEE_NATIVEMETHODS
+#if FRAMEWORK_NATIVEMETHODS || CORE_NATIVEMETHODS || BASE_NATIVEMETHODS || DRT_SEE_NATIVEMETHODS || UIAUTOMATIONTYPES
 
         [StructLayout(LayoutKind.Sequential)]
         public class SIZE {
@@ -3938,7 +3940,7 @@ namespace MS.Win32 {
         public const int CDN_SHAREVIOLATION = (CDN_FIRST - 0x0003);
         public const int CDN_FILEOK         = (CDN_FIRST - 0x0005);
 
-#if !DRT
+#if !DRT && !UIAUTOMATIONTYPES
         public const int CDM_FIRST          = (int)WindowMessage.WM_USER + 100;
 
         public const int CDM_GETSPEC        = (CDM_FIRST + 0x0000);

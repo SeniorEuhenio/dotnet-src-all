@@ -270,7 +270,7 @@ namespace System.Windows.Forms {
 
             public override AccessibleRole Role {
                 get {
-                    if (ownerItem.CheckOnClick && !LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                    if (ownerItem.CheckOnClick && AccessibilityImprovements.Level1) {
                         return AccessibleRole.CheckButton;
                     }
                     else {
@@ -285,7 +285,7 @@ namespace System.Windows.Forms {
                         return base.State | AccessibleStates.Checked;
                     }
 
-                    if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                    if (AccessibilityImprovements.Level1) {
                         // Disabled ToolStripButton, that is selected, must have focus state so that Narrator can announce it
                         if (!ownerItem.Enabled && ownerItem.Selected) {
                             return base.State | AccessibleStates.Focused;

@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------
 
 using MS.Internal;
+using System.Windows;
 
 namespace System
 {
@@ -38,6 +39,9 @@ namespace System
                         {
                             LocalAppContext.DefineSwitchDefault(BaseAppContextSwitches.SwitchUseSha1AsDefaultHashAlgorithmForDigitalSignatures, true);
                         }
+
+                        // Ensure we set all the accessibility switch defaults
+                        AccessibilitySwitches.SetSwitchDefaults(targetFrameworkVersion);
 
                         break;
                     }

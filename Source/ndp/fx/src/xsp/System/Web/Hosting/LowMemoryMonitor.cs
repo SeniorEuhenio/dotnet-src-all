@@ -74,9 +74,8 @@ namespace System.Web.Hosting {
     class LowPhysicalMemoryMonitor {
 
         const int HISTORY_COUNT = 6;
-        const int INTERVAL_30_SECONDS = 30 * 1000;
 
-        static int s_pollInterval;
+        static int s_configuredPollInterval = Int32.MaxValue;
 
         int _pressureHigh;      // high pressure level
         int _pressureLow;       // low pressure level - slow growth here
@@ -85,7 +84,7 @@ namespace System.Web.Hosting {
 
         private object _timerLock = new object();
         private Timer _timer;
-        private int _currentPollInterval = INTERVAL_30_SECONDS;
+        private int _currentPollInterval = Timeout.Infinite;
         private int _inMonitorThread = 0;
         private ApplicationManager _appManager;
 
@@ -198,8 +197,8 @@ namespace System.Web.Hosting {
             //    = total physical memory used / total physical memory used limit
             PerfCounters.SetCounter(AppPerfCounter.CACHE_PERCENT_MACH_MEM_LIMIT_USED_BASE, _pressureHigh);
 
-            // start timer with initial poll interval
-            _timer = new Timer(new TimerCallback(this.MonitorThread), null, Timeout.Infinite, _currentPollInterval);
+            // Create timer - poll interval is 'Infinite' until somebody calls Start/AdjustTimer()
+            _timer = new Timer(new TimerCallback(this.MonitorThread), null, _currentPollInterval, _currentPollInterval);
         }
 
         void InitHistory() {
@@ -216,8 +215,15 @@ namespace System.Web.Hosting {
         }
 
         void ReadConfig(CacheSection cacheSection) {
+            if (cacheSection == null) {
+                return;
+            }
+
+            // convert <cache privateBytesPollTime/> to milliseconds
+            s_configuredPollInterval = (int)cacheSection.PrivateBytesPollTime.TotalMilliseconds;
+
             // Read the percentagePhysicalMemoryUsedLimit set in config
-            int limit = (cacheSection != null) ? cacheSection.PercentagePhysicalMemoryUsedLimit : 0;
+            int limit = cacheSection.PercentagePhysicalMemoryUsedLimit;
             if (limit == 0) {
                 // use defaults
                 return;
@@ -225,9 +231,6 @@ namespace System.Web.Hosting {
 
             _pressureHigh = Math.Max(3, limit);
             _pressureLow = Math.Max(1, _pressureHigh - 9);
-
-            // convert <cache privateBytesPollTime/> to milliseconds
-            s_pollInterval = (int)Math.Min(cacheSection.PrivateBytesPollTime.TotalMilliseconds, (double)Int32.MaxValue);
 
 #if DBG
             Debug.Trace("CacheMemory", "LowMemoryMonitor.ReadConfig: _pressureHigh=" + _pressureHigh + 
@@ -272,6 +275,7 @@ namespace System.Web.Hosting {
                     return;
 
                 if (disable) {
+                    _currentPollInterval = Timeout.Infinite;
                     _timer.Change(Timeout.Infinite, Timeout.Infinite);
                     return;
                 }
@@ -281,29 +285,22 @@ namespace System.Web.Hosting {
                 // the value is initialized, since we wire up CacheInternal as the default cache from the get-go,
                 // even if it is later replaced.
 
+                // If there is no pressure, interval should be the value from config
+                int newPollInterval = s_configuredPollInterval;
+
                 // When above the high pressure mark, interval should be 5 seconds or less
                 if (PressureLast >= PressureHigh) {
-                    if (_currentPollInterval > CacheCommon.MEMORYSTATUS_INTERVAL_5_SECONDS) {
-                        _currentPollInterval = CacheCommon.MEMORYSTATUS_INTERVAL_5_SECONDS;
-                        _timer.Change(_currentPollInterval, _currentPollInterval);
-                    }
-                    return;
+                    newPollInterval = Math.Min(newPollInterval, CacheCommon.MEMORYSTATUS_INTERVAL_5_SECONDS);
                 }
 
                 // When above half the low pressure mark, interval should be 30 seconds or less
-                if (PressureLast > PressureLow / 2) {
-                    // DevDivBugs 104034: allow interval to fall back down when memory pressure goes away
-                    int newPollInterval = Math.Min(s_pollInterval, CacheCommon.MEMORYSTATUS_INTERVAL_30_SECONDS);
-                    if (_currentPollInterval != newPollInterval) {
-                        _currentPollInterval = newPollInterval;
-                        _timer.Change(_currentPollInterval, _currentPollInterval);
-                    }
-                    return;
+                else if (PressureLast > PressureLow / 2) {
+                    newPollInterval = Math.Min(newPollInterval, CacheCommon.MEMORYSTATUS_INTERVAL_30_SECONDS);
                 }
 
-                // there is no pressure, interval should be the value from config
-                if (_currentPollInterval != CacheSizeMonitor.PollInterval) {
-                    _currentPollInterval = CacheSizeMonitor.PollInterval;
+                if (newPollInterval != _currentPollInterval)
+                {
+                    _currentPollInterval = newPollInterval;
                     _timer.Change(_currentPollInterval, _currentPollInterval);
                 }
             }

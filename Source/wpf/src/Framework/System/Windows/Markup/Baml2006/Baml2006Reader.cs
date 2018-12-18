@@ -1588,7 +1588,7 @@ namespace System.Windows.Baml2006
 
             Read_RecordSize();
 
-            XamlMember property = GetProperty(_binaryReader.ReadInt16(), _context.CurrentFrame.XamlType);
+            XamlMember property = GetProperty(_binaryReader.ReadInt16(), _context.CurrentFrame.XamlType);          
             _xamlNodesWriter.WriteStartMember(property);
 
             object value = _binaryReader.ReadString();
@@ -1621,12 +1621,21 @@ namespace System.Windows.Baml2006
                 }
                 if (converter != null)
                 {
-                    value = new TypeConverterMarkupExtension(converter, value);
+                    value = CreateTypeConverterMarkupExtension(property, converter, value, _settings);
                 }
             }
 
             _xamlNodesWriter.WriteValue(value);
             _xamlNodesWriter.WriteEndMember();
+        }
+
+        // DDVSO 546550: When processing ResourceDictionary.Source we may find a Uri that references the
+        // local assembly, but if another version of the same assembly is loaded we may have trouble resolving
+        // to the correct one. Baml2006ReaderInternal has an override of this method that returns a custom markup
+        // extension that passes down the local assembly information to help in this case.
+        internal virtual object CreateTypeConverterMarkupExtension(XamlMember property, TypeConverter converter, object propertyValue, Baml2006ReaderSettings settings)
+        {
+            return new TypeConverterMarkupExtension(converter, propertyValue);
         }
 
         // (property, markup extension, value) including the well known WPF TemplateBinding, StaticResource or DynamicResource markup extensions

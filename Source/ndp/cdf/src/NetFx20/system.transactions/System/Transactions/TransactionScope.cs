@@ -1027,7 +1027,7 @@ namespace System.Transactions
 
         private void CommonInitialize()
         {
-            this.ContextKey = new ContextKey();
+            this.ContextKey = Guid.NewGuid().ToString();
             this.complete = false;
             this.dependentTransaction = null;
             this.disposed = false;
@@ -1444,8 +1444,8 @@ namespace System.Transactions
                 return this.interopOption;
             }
         }
-         
-        internal ContextKey ContextKey 
+
+        internal string ContextKey
         {
             get;
             private set;

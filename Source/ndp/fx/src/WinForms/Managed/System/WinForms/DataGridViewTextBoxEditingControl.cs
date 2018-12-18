@@ -34,6 +34,12 @@ namespace System.Windows.Forms
             this.TabStop = false;
         }
 
+        /// <include file='doc\DataGridViewTextBoxEditingControl.uex' path='docs/doc[@for="DataGridViewTextBoxEditingControl.CreateAccessibilityInstance"]/*' />
+        protected override AccessibleObject CreateAccessibilityInstance()
+        {
+            return AccessibilityImprovements.Level2 ? new DataGridViewEditingControlAccessibleObject(this) : base.CreateAccessibilityInstance();
+        }
+
         /// <include file='doc\DataGridViewTextBoxEditingControl.uex' path='docs/doc[@for="DataGridViewTextBoxEditingControl.IDataGridViewEditingControl.EditingControlDataGridView"]/*' />
         public virtual DataGridView EditingControlDataGridView
         {

@@ -89,6 +89,47 @@ namespace System.Security.Policy
 
             InitializeComponent();
             LoadResources();
+
+            if (AccessibilityImprovements.Level2)
+            {
+                // The outer pane
+                this.tableLayoutPanelOuter.AccessibleName = string.Empty;
+
+                // The "Do you want to install this application?" question pane and inner controls
+                this.tableLayoutPanelQuestion.AccessibleName = string.Empty;
+                this.lblQuestion.AccessibleName = this.lblQuestion.Text;
+                this.pictureBoxQuestion.AccessibleName = SR.GetString(SR.TrustManagerPromptUI_GlobeIcon);
+                this.pictureBoxQuestion.AccessibleRole = AccessibleRole.Graphic;
+
+                // The application information pane and inner controls
+                this.tableLayoutPanelInfo.AccessibleName = string.Empty;
+                this.lblName.AccessibleName = SR.GetString(SR.TrustManagerPromptUI_Name);
+                this.linkLblName.AccessibleName = this.linkLblName.Text;
+                this.lblFrom.AccessibleName = SR.GetString(SR.TrustManagerPromptUI_From);
+                this.linkLblFromUrl.AccessibleName = this.linkLblFromUrl.Text;
+                this.lblPublisher.AccessibleName = SR.GetString(SR.TrustManagerPromptUI_Publisher);
+                this.linkLblPublisher.AccessibleName = this.linkLblPublisher.Text;
+
+                // The buttons pane and inner controls
+                this.tableLayoutPanelButtons.AccessibleName = string.Empty;
+                this.btnInstall.AccessibleName = StripOutAccelerator(this.btnInstall.Text);
+                this.btnCancel.AccessibleName = StripOutAccelerator(this.btnCancel.Text);
+
+                // The security summary pane and inner controls
+                this.warningTextTableLayoutPanel.AccessibleName = string.Empty;
+                this.pictureBoxWarning.AccessibleName = this.pictureBoxWarning.AccessibleDescription;
+                this.pictureBoxWarning.AccessibleRole = AccessibleRole.Graphic;
+                this.linkLblMoreInformation.AccessibleName = this.linkLblMoreInformation.Text;
+
+                // The line separator
+                this.lineLabel.AccessibleName = string.Empty;
+
+                // Re-order panes to fix Narrator's Scan Mode navigation
+                this.tableLayoutPanelOuter.Controls.SetChildIndex(this.tableLayoutPanelQuestion, 0);
+                this.tableLayoutPanelOuter.Controls.SetChildIndex(this.tableLayoutPanelInfo, 1);
+                this.tableLayoutPanelOuter.Controls.SetChildIndex(this.tableLayoutPanelButtons, 2);
+                this.tableLayoutPanelOuter.Controls.SetChildIndex(this.warningTextTableLayoutPanel, 3);
+            }
         }
     
         protected override void Dispose(bool disposing)
@@ -312,7 +353,7 @@ namespace System.Security.Policy
             this.lineLabel.Name = "lineLabel";
             // 
             // TrustManagerPromptUI
-            // 
+            //
             this.AcceptButton = this.btnCancel;
             resources.ApplyResources(this, "$this");
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -323,6 +364,14 @@ namespace System.Security.Policy
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "TrustManagerPromptUI";
+
+            // Bug# 398538 - Explicitly setting RighToLeft property for RightToLeft cultures at runtime for TrustManager dialog.
+            if (SR.GetString(SR.RTL) != "RTL_False")
+            {
+                this.RightToLeft = RightToLeft.Yes;
+                this.RightToLeftLayout = true;
+            }
+
             this.VisibleChanged += new System.EventHandler(this.TrustManagerPromptUI_VisibleChanged);
             this.Load += new System.EventHandler(this.TrustManagerPromptUI_Load);
             this.tableLayoutPanelOuter.ResumeLayout(false);

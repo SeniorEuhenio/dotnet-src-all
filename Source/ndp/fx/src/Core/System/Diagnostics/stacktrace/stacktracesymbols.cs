@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -16,14 +16,14 @@ namespace System.Diagnostics
 {
     internal sealed class StackTraceSymbols : IDisposable
     {
-        private readonly Dictionary<IntPtr, MetadataReaderProvider> _metadataCache;
+        private readonly ConcurrentDictionary<IntPtr, MetadataReaderProvider> _metadataCache;
 
         /// <summary>
         /// Create an instance of this class.
         /// </summary>
         public StackTraceSymbols()
         {
-            _metadataCache = new Dictionary<IntPtr, MetadataReaderProvider>();
+            _metadataCache = new ConcurrentDictionary<IntPtr, MetadataReaderProvider>();
         }
 
         /// <summary>
@@ -33,7 +33,10 @@ namespace System.Diagnostics
         {
             foreach (MetadataReaderProvider provider in _metadataCache.Values)
             {
-                provider.Dispose();
+                if(provider != null)
+                {
+                    provider.Dispose();
+                }
             }
 
             _metadataCache.Clear();
@@ -57,11 +60,36 @@ namespace System.Diagnostics
             IntPtr inMemoryPdbAddress, int inMemoryPdbSize, int methodToken, int ilOffset,
             out string sourceFile, out int sourceLine, out int sourceColumn)
         {
+
+            new SecurityPermission(SecurityPermissionFlag.UnmanagedCode).Assert();
+
+            GetSourceLineInfoWithoutCasAssert(assemblyPath, loadedPeAddress, loadedPeSize,
+            inMemoryPdbAddress, inMemoryPdbSize, methodToken, ilOffset,
+            out sourceFile, out sourceLine, out sourceColumn);
+        }
+
+
+        /// <summary>
+        /// Returns the source file and line number information for the method. 
+        /// </summary>
+        /// <param name="assemblyPath">file path of the assembly or null</param>
+        /// <param name="loadedPeAddress">loaded PE image address or zero</param>
+        /// <param name="loadedPeSize">loaded PE image size</param>
+        /// <param name="inMemoryPdbAddress">in memory PDB address or zero</param>
+        /// <param name="inMemoryPdbSize">in memory PDB size</param>
+        /// <param name="methodToken">method token</param>
+        /// <param name="ilOffset">il offset of the stack frame</param>
+        /// <param name="sourceFile">source file return</param>
+        /// <param name="sourceLine">line number return</param>
+        /// <param name="sourceColumn">column return</param>
+        [SecuritySafeCritical]
+        public void GetSourceLineInfoWithoutCasAssert(string assemblyPath, IntPtr loadedPeAddress, int loadedPeSize,
+            IntPtr inMemoryPdbAddress, int inMemoryPdbSize, int methodToken, int ilOffset,
+            out string sourceFile, out int sourceLine, out int sourceColumn)
+        {
             sourceFile = null;
             sourceLine = 0;
             sourceColumn = 0;
-
-            new SecurityPermission(SecurityPermissionFlag.UnmanagedCode).Assert();
 
             try
             {
@@ -146,6 +174,10 @@ namespace System.Diagnostics
             MetadataReaderProvider provider;
             if (_metadataCache.TryGetValue(cacheKey, out provider))
             {
+                if (provider == null)
+                {
+                    return null;
+                }
                 return provider.GetMetadataReader();
             }
 
@@ -153,12 +185,13 @@ namespace System.Diagnostics
                 TryOpenReaderForInMemoryPdb(inMemoryPdbAddress, inMemoryPdbSize) :
                 TryOpenReaderFromAssemblyFile(assemblyPath, loadedPeAddress, loadedPeSize);
 
+            // This may fail as another thread might have beaten us to it, but it doesn't matter
+            _metadataCache.TryAdd(cacheKey, provider);
+
             if (provider == null)
             {
                 return null;
             }
-
-            _metadataCache.Add(cacheKey, provider);
 
             // The reader has already been open, so this doesn't throw:
             return provider.GetMetadataReader();

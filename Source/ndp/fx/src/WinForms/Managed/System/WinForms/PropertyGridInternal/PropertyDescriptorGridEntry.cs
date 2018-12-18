@@ -202,7 +202,7 @@ namespace System.Windows.Forms.PropertyGridInternal {
         }
 
 
-        protected virtual bool IsPropertyReadOnly {
+        internal virtual bool IsPropertyReadOnly {
             get {
                 return propertyInfo.IsReadOnly;
             }
@@ -1010,6 +1010,42 @@ namespace System.Windows.Forms.PropertyGridInternal {
                 targetBindingService = null;
                 targetComponent = null;
                 targetEventdesc = null;
+            }
+        }
+
+        /// <summary>
+        /// Creates a new AccessibleObject for this PropertyDescriptorGridEntry instance.
+        /// The AccessibleObject instance returned by this method supports IsEnabled UIA property.
+        /// However the new object is only available in applications that are recompiled to target 
+        /// .NET Framework 4.7.2 or opt in into this feature using a compatibility switch. 
+        /// </summary>
+        /// <returns>
+        /// AccessibleObject for this PropertyDescriptorGridEntry instance.
+        /// </returns>
+        protected override GridEntryAccessibleObject GetAccessibilityObject() {
+            if (AccessibilityImprovements.Level2) {
+                return new PropertyDescriptorGridEntryAccessibleObject(this);
+            }
+
+            return base.GetAccessibilityObject();
+        }
+
+        [ComVisible(true)]
+        protected class PropertyDescriptorGridEntryAccessibleObject : GridEntryAccessibleObject {
+
+            public PropertyDescriptorGridEntryAccessibleObject(PropertyDescriptorGridEntry owner) : base(owner) {
+            }
+
+            internal override bool IsIAccessibleExSupported() {
+                return true;
+            }
+
+            internal override object GetPropertyValue(int propertyID) {
+                if (propertyID == NativeMethods.UIA_IsEnabledPropertyId) {
+                    return !((PropertyDescriptorGridEntry)owner).IsPropertyReadOnly;
+                }
+
+                return base.GetPropertyValue(propertyID);
             }
         }
 

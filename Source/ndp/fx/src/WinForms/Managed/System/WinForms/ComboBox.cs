@@ -1527,7 +1527,7 @@ namespace System.Windows.Forms {
         /// <devdoc>
         /// </devdoc>
         protected override AccessibleObject CreateAccessibilityInstance() {
-            if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+            if (AccessibilityImprovements.Level1) {
                 return new ComboBoxExAccessibleObject(this);
             }
             else {
@@ -4506,21 +4506,17 @@ namespace System.Windows.Forms {
 
              private static bool isScalingInitialized = false;
              private static int OFFSET_2PIXELS = 2;
-             protected static int Offset2X = OFFSET_2PIXELS;
-             protected static int Offset2Y = OFFSET_2PIXELS;
+             protected static int Offset2Pixels = OFFSET_2PIXELS;
            
              public FlatComboAdapter(ComboBox comboBox, bool smallButton) {
-
-                 if (!isScalingInitialized) {
-                     if (DpiHelper.IsScalingRequired) {
-                         Offset2X = DpiHelper.LogicalToDeviceUnitsX(OFFSET_2PIXELS);
-                         Offset2Y = DpiHelper.LogicalToDeviceUnitsY(OFFSET_2PIXELS);
-                     }
+                 // adapter is re-created when combobox is resized, see IsValid method, thus we don't need to handle DPI changed explicitly 
+                 if ((!isScalingInitialized && DpiHelper.IsScalingRequired) || DpiHelper.EnableDpiChangedMessageHandling) {
+                     Offset2Pixels = comboBox.LogicalToDeviceUnits(OFFSET_2PIXELS);
                      isScalingInitialized = true;
                  }
 
                  clientRect = comboBox.ClientRectangle;
-                 int dropDownButtonWidth = System.Windows.Forms.SystemInformation.HorizontalScrollBarArrowWidth;
+                 int dropDownButtonWidth = SystemInformation.GetHorizontalScrollBarArrowWidthForDpi(comboBox.deviceDpi);
                  outerBorder = new Rectangle(clientRect.Location, new Size(clientRect.Width - 1, clientRect.Height - 1));
                  innerBorder = new Rectangle(outerBorder.X + 1, outerBorder.Y + 1, outerBorder.Width - dropDownButtonWidth - 2, outerBorder.Height - 2);
                  innerInnerBorder = new Rectangle(innerBorder.X + 1, innerBorder.Y + 1, innerBorder.Width - 2, innerBorder.Height - 2);
@@ -4648,9 +4644,9 @@ namespace System.Windows.Forms {
              
              protected virtual void DrawFlatComboDropDown(ComboBox comboBox, Graphics g, Rectangle dropDownRect) {
              
-                 g.FillRectangle(SystemBrushes.Control, dropDownRect);
-             
-                 Brush brush = (comboBox.Enabled) ? SystemBrushes.ControlText : SystemBrushes.ControlDark;
+                g.FillRectangle(SystemBrushes.Control, dropDownRect);
+
+                Brush brush = (comboBox.Enabled) ? SystemBrushes.ControlText : SystemBrushes.ControlDark;
              
                  Point middle = new Point(dropDownRect.Left + dropDownRect.Width / 2, dropDownRect.Top + dropDownRect.Height / 2);
                  if (origRightToLeft == RightToLeft.Yes) {
@@ -4663,9 +4659,9 @@ namespace System.Windows.Forms {
                  }
              
                  g.FillPolygon(brush, new Point[] {
-                     new Point(middle.X - Offset2X, middle.Y - 1),
-                     new Point(middle.X + Offset2X + 1, middle.Y - 1),
-                     new Point(middle.X, middle.Y + Offset2Y)
+                     new Point(middle.X - Offset2Pixels, middle.Y - 1),
+                     new Point(middle.X + Offset2Pixels + 1, middle.Y - 1),
+                     new Point(middle.X, middle.Y + Offset2Pixels)
                  });
              }
              

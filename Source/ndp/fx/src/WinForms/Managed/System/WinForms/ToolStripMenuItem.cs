@@ -825,7 +825,7 @@ namespace System.Windows.Forms {
              return cachedShortcutSize;
         }
 
-        private string GetShortcutText() {
+        internal string GetShortcutText() {
             if (cachedShortcutText == null) {
                 cachedShortcutText = ShortcutToText(this.ShortcutKeys, this.ShortcutKeyDisplayString);                 
             }
@@ -1227,6 +1227,9 @@ namespace System.Windows.Forms {
             internal override object GetPropertyValue(int propertyID) {
                 if (propertyID == NativeMethods.UIA_ControlTypePropertyId) {
                     return NativeMethods.UIA_MenuItemControlTypeId;
+                }
+                else if (AccessibilityImprovements.Level2 && propertyID == NativeMethods.UIA_AcceleratorKeyPropertyId) {
+                    return ownerItem.GetShortcutText();
                 }
                 else {
                     return base.GetPropertyValue(propertyID);

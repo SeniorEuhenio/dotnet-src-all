@@ -99,7 +99,7 @@ namespace System.Windows.Forms {
 		}
 
 		protected override void OnRenderItemCheck(ToolStripItemImageRenderEventArgs e) {
-            if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+            if (AccessibilityImprovements.Level1) {
                 // The ARGB values came directly from the bitmap. (See
                 // NetFXDev1\src\NDP\fx\src\Microsoft\Managed\Resources\System\Microsoft\checked.bmp).
                 // If the bitmap colors change this code will no longer work and will
@@ -151,7 +151,8 @@ namespace System.Windows.Forms {
 					g.DrawRectangle(SystemPens.ButtonHighlight, dropDownRect);
 				}
 
-				DrawArrow(new ToolStripArrowRenderEventArgs(g, item, dropDownRect, SystemColors.ControlText, ArrowDirection.Down));
+				Color arrowColor = AccessibilityImprovements.Level2 && item.Selected && !item.Pressed ? SystemColors.HighlightText : SystemColors.ControlText;
+				DrawArrow(new ToolStripArrowRenderEventArgs(g, item, dropDownRect, arrowColor, ArrowDirection.Down));
 			}
 		}
         
@@ -192,7 +193,10 @@ namespace System.Windows.Forms {
 
         protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e) {
 
-            if (e.TextColor != SystemColors.HighlightText && e.TextColor != SystemColors.ControlText) {
+            if (AccessibilityImprovements.Level2 && e.Item.Selected && (!e.Item.Pressed || e.Item is ToolStripButton)) {
+                e.DefaultTextColor = SystemColors.HighlightText;
+            }
+            else if (e.TextColor != SystemColors.HighlightText && e.TextColor != SystemColors.ControlText) {
                 // we'll change the DefaultTextColor, if someone wants to change this,manually set the TextColor property.
                 if (e.Item.Selected || e.Item.Pressed) {
                     e.DefaultTextColor = SystemColors.HighlightText;
@@ -205,7 +209,7 @@ namespace System.Windows.Forms {
 
             // VSO-399067 ToolstripButtons that are checked are rendered with a highlight
             // background. In that case, set the text color to highlight as well.
-            if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures &&
+            if (AccessibilityImprovements.Level1 &&
                 typeof(ToolStripButton).IsAssignableFrom(e.Item.GetType()) &&
                 ((ToolStripButton)e.Item).DisplayStyle != ToolStripItemDisplayStyle.Image &&
                 ((ToolStripButton)e.Item).Checked) {
@@ -391,7 +395,7 @@ namespace System.Windows.Forms {
                     if (button.CheckState == CheckState.Checked) {
                         g.FillRectangle(SystemBrushes.Highlight, bounds);
                     }
-                    if (button.Selected && !LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                    if (button.Selected && AccessibilityImprovements.Level1) {
                         g.DrawRectangle(SystemPens.Highlight, bounds.X, bounds.Y, bounds.Width - 1, bounds.Height - 1);
                     }
                     else {

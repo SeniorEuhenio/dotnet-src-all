@@ -97,7 +97,7 @@ namespace System.Windows.Forms.VisualStyles {
             return IsCombinationDefined(element.ClassName, element.Part);
         }
 
-        private static bool IsCombinationDefined(string className, int part) {
+        internal static bool IsCombinationDefined(string className, int part) {
             bool returnVal = false;
 
             if (!IsSupported) {

@@ -502,6 +502,21 @@ namespace System.Windows.Forms {
             }
         }
 
+        /// <include file='doc\SystemInformation.uex' path='docs/doc[@for="SystemInformation.VerticalScrollBarWidth"]/*' />
+        /// <devdoc>
+        ///    <para>
+        ///       Gets the width of the horizontal scroll bar arrow bitmap in pixels.
+        ///    </para>
+        /// </devdoc>
+        public static int GetHorizontalScrollBarArrowWidthForDpi(int dpi) {
+            if (DpiHelper.EnableDpiChangedMessageHandling) {
+                return UnsafeNativeMethods.GetSystemMetricsForDpi(NativeMethods.SM_CXHSCROLL, (uint)dpi);
+            }
+            else {
+                return UnsafeNativeMethods.GetSystemMetrics(NativeMethods.SM_CXHSCROLL);
+            }
+        }
+
         /// <include file='doc\SystemInformation.uex' path='docs/doc[@for="SystemInformation.DebugOS"]/*' />
         /// <devdoc>
         ///    <para>

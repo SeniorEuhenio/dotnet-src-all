@@ -248,6 +248,10 @@ namespace System.Windows.Forms
         private const int DATAGRIDVIEWOPER_inBeginEdit                   = 0x00200000;
         private const int DATAGRIDVIEWOPER_inEndEdit                     = 0x00400000;
         private const int DATAGRIDVIEWOPER_resizingOperationAboutToStart = 0x00800000;
+        private const int DATAGRIDVIEWOPER_trackKeyboardColResize        = 0x01000000;
+        private const int DATAGRIDVIEWOPER_mouseOperationMask            = DATAGRIDVIEWOPER_trackColResize | DATAGRIDVIEWOPER_trackRowResize | 
+            DATAGRIDVIEWOPER_trackColRelocation | DATAGRIDVIEWOPER_trackColHeadersResize | DATAGRIDVIEWOPER_trackRowHeadersResize;
+        private const int DATAGRIDVIEWOPER_keyboardOperationMask         = DATAGRIDVIEWOPER_trackKeyboardColResize;
 
         private static Size DragSize = SystemInformation.DragSize;
 
@@ -259,6 +263,8 @@ namespace System.Windows.Forms
         private const string DATAGRIDVIEW_htmlPrefix = "Version:1.0\r\nStartHTML:00000097\r\nEndHTML:{0}\r\nStartFragment:00000133\r\nEndFragment:{1}\r\n";
         private const string DATAGRIDVIEW_htmlStartFragment = "<HTML>\r\n<BODY>\r\n<!--StartFragment-->";
         private const string DATAGRIDVIEW_htmlEndFragment = "\r\n<!--EndFragment-->\r\n</BODY>\r\n</HTML>";
+
+        private const int FOCUS_RECT_OFFSET = 2;
 
         private System.Collections.Specialized.BitVector32 dataGridViewState1;  // see DATAGRIDVIEWSTATE1_ consts above
         private System.Collections.Specialized.BitVector32 dataGridViewState2;  // see DATAGRIDVIEWSTATE2_ consts above
@@ -378,6 +384,9 @@ namespace System.Windows.Forms
         private int inBulkPaintCount;
         private int inBulkLayoutCount;
         private int inPerformLayoutCount;
+
+        private int keyboardResizeStep;
+        private Rectangle resizeClipRectangle;
 
         private System.Windows.Forms.Timer vertScrollTimer, horizScrollTimer;
 

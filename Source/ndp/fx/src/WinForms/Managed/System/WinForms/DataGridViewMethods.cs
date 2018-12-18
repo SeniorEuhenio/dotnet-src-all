@@ -27,6 +27,7 @@ namespace System.Windows.Forms
     using System.Collections.Specialized;
     using System.Windows.Forms.Internal;
     using System.Runtime.Versioning;
+    using Runtime.CompilerServices;
 
     /// <include file='doc\DataGridView.uex' path='docs/doc[@for="DataGridView"]/*' />
     public partial class DataGridView
@@ -2446,6 +2447,11 @@ namespace System.Windows.Forms
 
         private void BeginColumnHeadersResize(int mouseY, int mouseBarOffset)
         {
+            if (this.IsKeyboardOperationActive())
+            {
+                return;
+            }
+
             Rectangle clip = Rectangle.Union(this.layout.ColumnHeaders, this.layout.Data);
             if (this.layout.TopLeftHeader.Width > 0)
             {
@@ -2464,6 +2470,11 @@ namespace System.Windows.Forms
 
         private void BeginColumnRelocation(int mouseX, int index) 
         {
+            if (this.IsKeyboardOperationActive())
+            {
+                return;
+            }
+
             Rectangle cursorClip = this.layout.ColumnHeaders;
             int frozenWidth = this.Columns.GetColumnsWidth(DataGridViewElementStates.Visible | DataGridViewElementStates.Frozen);
             int scrollingWidth = this.Columns.GetColumnsWidth(DataGridViewElementStates.Visible) - frozenWidth;
@@ -2499,16 +2510,57 @@ namespace System.Windows.Forms
             this.lastHeaderShadow = mouseX;
             Invalidate(this.layout.ColumnHeaders);
         }
-        
-        private void BeginColumnResize(int mouseX, int mouseBarOffset, int index) 
+
+        private void BeginColumnResize(int x, int columnIndex)
+        {
+            this.trackColAnchor = x;
+            this.trackColumn = columnIndex;
+
+            this.currentColSplitBar = x;
+            Invalidate(CalcColResizeFeedbackRect(this.currentColSplitBar));
+        }
+
+        private void BeginMouseColumnResize(int mouseX, int mouseBarOffset, int index) 
+        {
+            if (this.IsKeyboardOperationActive())
+            {
+                return;
+            }
+
+            this.dataGridViewOper[DATAGRIDVIEWOPER_trackColResize] = true;
+            this.mouseBarOffset = mouseBarOffset;
+            this.resizeClipRectangle = GetResizeClipRectangle(index);
+            CaptureMouse(this.resizeClipRectangle);
+
+            BeginColumnResize(mouseX, index);
+        }
+
+        private void BeginKeyboardColumnResize(int columnIndex)
+        {
+            if (this.IsMouseOperationActive())
+            {
+                return;
+            }
+
+            this.dataGridViewOper[DATAGRIDVIEWOPER_trackKeyboardColResize] = true;
+            this.mouseBarOffset = 0;
+            this.resizeClipRectangle = GetResizeClipRectangle(columnIndex);
+            this.keyboardResizeStep = this.ScaleToCurrentDpi(this.RightToLeftInternal ? -1 : 1);
+            int x = GetColumnXFromIndex(columnIndex);
+            x += this.RightToLeftInternal ? -this.Columns[columnIndex].Width : this.Columns[columnIndex].Width;
+
+            BeginColumnResize(x, columnIndex);
+        }
+
+        private Rectangle GetResizeClipRectangle(int columnIndex)
         {
             Rectangle clip = Rectangle.Union(this.layout.ColumnHeaders, this.layout.Data);
-            int leftEdge = GetColumnXFromIndex(index);
+            int leftEdge = GetColumnXFromIndex(columnIndex);
             if (this.RightToLeftInternal)
             {
-                clip.X = this.layout.Data.X - mouseBarOffset - 1;
-                clip.Width = leftEdge - this.Columns[index].MinimumThickness - this.layout.Data.X + 3;
-                int overflowWidth = leftEdge - mouseBarOffset - clip.Left - DataGridViewBand.maxBandThickness + 1;
+                clip.X = this.layout.Data.X - this.mouseBarOffset - 1;
+                clip.Width = leftEdge - this.Columns[columnIndex].MinimumThickness - this.layout.Data.X + 3;
+                int overflowWidth = leftEdge - this.mouseBarOffset - clip.Left - DataGridViewBand.maxBandThickness + 1;
                 if (overflowWidth > 0)
                 {
                     clip.X += overflowWidth;
@@ -2517,26 +2569,18 @@ namespace System.Windows.Forms
             }
             else
             {
-                clip.X = leftEdge + this.Columns[index].MinimumThickness - mouseBarOffset - 1;
+                clip.X = leftEdge + this.Columns[columnIndex].MinimumThickness - this.mouseBarOffset - 1;
                 clip.Width = this.layout.Data.Right - leftEdge - 1;
-                int overflowWidth = clip.Right + mouseBarOffset - leftEdge - DataGridViewBand.maxBandThickness;
+                int overflowWidth = clip.Right + this.mouseBarOffset - leftEdge - DataGridViewBand.maxBandThickness;
                 if (overflowWidth > 0)
                 {
                     clip.Width -= overflowWidth;
                 }
             }
-            CaptureMouse(clip);
 
-            this.dataGridViewOper[DATAGRIDVIEWOPER_trackColResize] = true;
-            this.trackColAnchor = mouseX;
-            this.trackColumn = index;
-
-            this.mouseBarOffset = mouseBarOffset;
-            Debug.Assert(this.lastColSplitBar == -1);
-            this.currentColSplitBar = mouseX;
-            Invalidate(CalcColResizeFeedbackRect(this.currentColSplitBar));
+            return clip;
         }
-        
+
         /// <include file='doc\DataGridView.uex' path='docs/doc[@for="DataGridView.BeginEdit"]/*' />
         public virtual bool BeginEdit(bool selectAll)
         {
@@ -2717,6 +2761,11 @@ namespace System.Windows.Forms
 
         private void BeginRowHeadersResize(int mouseX, int mouseBarOffset)
         {
+            if (this.IsKeyboardOperationActive())
+            {
+                return;
+            }
+
             Rectangle clip = Rectangle.Union(this.layout.RowHeaders, this.layout.Data);
             if (this.layout.TopLeftHeader.Width > 0)
             {
@@ -2745,6 +2794,11 @@ namespace System.Windows.Forms
 
         private void BeginRowResize(int mouseY, int mouseBarOffset, int index)
         {
+            if (this.IsKeyboardOperationActive())
+            {
+                return;
+            }
+
             Rectangle clip = Rectangle.Union(this.layout.RowHeaders, this.layout.Data);
             int topEdge = GetRowYFromIndex(index);
             clip.Y = topEdge + this.Rows.SharedRow(index).GetMinimumHeight(index) - mouseBarOffset - 1;
@@ -3384,12 +3438,20 @@ namespace System.Windows.Forms
                         break;
                     }
 
-                    case DataGridViewSelectionMode.FullRowSelect:
+                    case DataGridViewSelectionMode.FullRowSelect: 
                     case DataGridViewSelectionMode.RowHeaderSelect:
                     {
                         while(this.selectedBandIndexes.Count > 0)
                         {
                             SetSelectedRowCore(this.selectedBandIndexes.HeadInt, false);
+                        }
+                        
+                        // Force repainting of the current collumn's header cell to remove highlighting
+                        if (this.ptCurrentCell.X != -1 && 
+                            this.SelectionMode == DataGridViewSelectionMode.FullRowSelect && 
+                            AccessibilityImprovements.Level2)
+                        { 
+                            InvalidateCellPrivate(this.ptCurrentCell.X, -1);
                         }
                         break;
                     }
@@ -6052,39 +6114,38 @@ namespace System.Windows.Forms
             }
         }
 
-        private void EndColumnResize(MouseEventArgs e) 
+        private void EndColumnResize(MouseEventArgs e)
         {
-            try 
+            try
             {
-                if (this.currentColSplitBar != -1)
-                {
-                    Invalidate(CalcColResizeFeedbackRect(this.currentColSplitBar), true);
-                    this.lastColSplitBar = this.currentColSplitBar = -1;
-                }
-
-                int x, delta ;
-                if (this.RightToLeftInternal)
-                {
-                    x = Math.Max(e.X + this.mouseBarOffset, this.layout.Data.X);
-                    delta = GetColumnXFromIndex(this.trackColumn) - this.Columns[this.trackColumn].Thickness - x + 1;
-                }
-                else
-                {
-                    x = Math.Min(e.X + this.mouseBarOffset, this.layout.Data.Right - 1);
-                    delta = x - (GetColumnXFromIndex(this.trackColumn) + this.Columns[this.trackColumn].Thickness) + 1;
-                }
-
-                if (this.trackColAnchor != x && delta != 0)
-                {
-                    int proposed = this.Columns[this.trackColumn].Thickness + delta;
-                    Debug.Assert(proposed >= this.Columns[this.trackColumn].MinimumThickness);
-                    Debug.Assert(proposed <= DataGridViewBand.maxBandThickness);
-                    this.Columns[this.trackColumn].Thickness = proposed;
-                }
+                EndColumnResize(e.X);
             }
-            finally 
+            finally
             {
                 RealeaseMouse();
+            }
+        }
+
+        private void EndColumnResize(int x)
+        {
+            int newX, delta;
+            if (this.RightToLeftInternal)
+            {
+                newX = Math.Max(x + this.mouseBarOffset, this.layout.Data.X);
+                delta = GetColumnXFromIndex(this.trackColumn) - this.Columns[this.trackColumn].Thickness - newX + 1;
+            }
+            else
+            {
+                newX = Math.Min(x + this.mouseBarOffset, this.layout.Data.Right - 1);
+                delta = newX - (GetColumnXFromIndex(this.trackColumn) + this.Columns[this.trackColumn].Thickness) + 1;
+            }
+
+            if (this.trackColAnchor != newX && delta != 0)
+            {
+                int proposed = this.Columns[this.trackColumn].Thickness + delta;
+                Debug.Assert(proposed >= this.Columns[this.trackColumn].MinimumThickness);
+                Debug.Assert(proposed <= DataGridViewBand.maxBandThickness);
+                this.Columns[this.trackColumn].Thickness = proposed;
             }
         }
 
@@ -10224,6 +10285,7 @@ namespace System.Windows.Forms
                 case Keys.D0:
                 case Keys.NumPad0:
                 case Keys.F2:
+                case Keys.F3:
                 {
                     return true;
                 }
@@ -10591,10 +10653,10 @@ namespace System.Windows.Forms
             Invalidate(Rectangle.Union(this.layout.TopLeftHeader, this.layout.ColumnHeaders));
         }
 
-        private void MoveRowHeadersOrColumnResize(MouseEventArgs e) 
+        private void MoveRowHeadersOrColumnResize(int x)
         {
             this.lastColSplitBar = this.currentColSplitBar;
-            this.currentColSplitBar = e.X;
+            this.currentColSplitBar = x;
             Rectangle lastSplitBarRect = CalcColResizeFeedbackRect(this.lastColSplitBar);
             if (this.editingControl != null &&
                 !this.dataGridViewState1[DATAGRIDVIEWSTATE1_editingControlHidden] &&
@@ -12259,7 +12321,7 @@ namespace System.Windows.Forms
                             Debug.Assert(this.Columns[columnIndex].Resizable == DataGridViewTriState.True);
                             if (e.Clicks == 1)
                             {
-                                BeginColumnResize(ptGridCoord.X, hti.mouseBarOffset, columnIndex);
+                                BeginMouseColumnResize(ptGridCoord.X, hti.mouseBarOffset, columnIndex);
                             }
                             break;
                         }
@@ -12934,11 +12996,7 @@ namespace System.Windows.Forms
             }
 
             if (!this.dataGridViewState1[DATAGRIDVIEWSTATE1_scrolledSinceMouseDown] &&
-                !this.dataGridViewOper[DATAGRIDVIEWOPER_trackColResize] &&
-                !this.dataGridViewOper[DATAGRIDVIEWOPER_trackRowResize] &&
-                !this.dataGridViewOper[DATAGRIDVIEWOPER_trackColRelocation] &&
-                !this.dataGridViewOper[DATAGRIDVIEWOPER_trackColHeadersResize] &&
-                !this.dataGridViewOper[DATAGRIDVIEWOPER_trackRowHeadersResize] &&
+                !this.IsMouseOperationActive() &&
                 this.AllowUserToOrderColumns &&
                 this.SelectionMode != DataGridViewSelectionMode.FullColumnSelect &&
                 this.SelectionMode != DataGridViewSelectionMode.ColumnHeaderSelect &&
@@ -15462,6 +15520,12 @@ namespace System.Windows.Forms
                     return;
                 }
                 OnCellEnter(ref dataGridViewCell, this.ptCurrentCell.X, this.ptCurrentCell.Y);
+
+                // Force repainting of the current collumn's header cell to highlight it
+                if (this.SelectionMode == DataGridViewSelectionMode.FullRowSelect && AccessibilityImprovements.Level2)
+                {
+                    InvalidateCellPrivate(this.ptCurrentCell.X, -1);
+                }
             }
             else if (!this.dataGridViewOper[DATAGRIDVIEWOPER_inMouseDown])
             {
@@ -15492,6 +15556,12 @@ namespace System.Windows.Forms
                     // In any other case Invalidate the current cell so the dataGridView repaints the focus around the current cell
                     InvalidateCellPrivate(this.ptCurrentCell.X /*columnIndex*/, this.ptCurrentCell.Y /*rowIndex*/);
                 }
+            }
+            
+            // Draw focus rectangle around the grid
+            if (this.IsGridFocusRectangleEnabled())
+            {
+                this.InvalidateRectangleEdges(this.GetGridFocusRectangle());
             }
         }
 
@@ -16079,6 +16149,7 @@ namespace System.Windows.Forms
                     case Keys.Delete:
                     case Keys.Down:
                     case Keys.F2:
+                    case Keys.F3:
                     case Keys.End:
                     case Keys.Enter:
                     case Keys.Escape:
@@ -16133,6 +16204,13 @@ namespace System.Windows.Forms
             base.OnKeyUp(e);
             if (e.Handled)
             {
+                return;
+            }
+
+            if (this.dataGridViewOper[DATAGRIDVIEWOPER_trackKeyboardColResize] && (e.KeyData & Keys.Alt) != Keys.Alt && AccessibilityImprovements.Level2)
+            {
+                this.EndColumnResize(this.currentColSplitBar);
+                this.ResetKeyboardTrackingState();
                 return;
             }
 
@@ -16196,6 +16274,12 @@ namespace System.Windows.Forms
                 {
                     InvalidateCellPrivate(this.ptCurrentCell.X /*columnIndex*/, this.ptCurrentCell.Y /*rowIndex*/);
                 }
+            }
+
+            // Erase focus rectangle around the grid
+            if (this.IsGridFocusRectangleEnabled())
+            {
+                this.InvalidateRectangleEdges(this.GetGridFocusRectangle());
             }
         }
 
@@ -16517,7 +16601,7 @@ namespace System.Windows.Forms
             // We need to give UI feedback when the user is resizing a column
             if (this.dataGridViewOper[DATAGRIDVIEWOPER_trackColResize]) 
             {
-                MoveRowHeadersOrColumnResize(e);
+                MoveRowHeadersOrColumnResize(e.X);
             }
             else if (this.dataGridViewOper[DATAGRIDVIEWOPER_trackRowResize])
             {
@@ -16533,7 +16617,7 @@ namespace System.Windows.Forms
             }
             else if (this.dataGridViewOper[DATAGRIDVIEWOPER_trackRowHeadersResize]) 
             {
-                MoveRowHeadersOrColumnResize(e);
+                MoveRowHeadersOrColumnResize(e.X);
             }
 
             if (this.dataGridViewOper[DATAGRIDVIEWOPER_trackColResize] ||
@@ -16690,11 +16774,7 @@ namespace System.Windows.Forms
 
                 HitTestInfo hti = HitTest(e.X, e.Y);
 
-                if (!this.dataGridViewOper[DATAGRIDVIEWOPER_trackColResize] &&
-                    !this.dataGridViewOper[DATAGRIDVIEWOPER_trackRowResize] &&
-                    !this.dataGridViewOper[DATAGRIDVIEWOPER_trackColRelocation] &&
-                    !this.dataGridViewOper[DATAGRIDVIEWOPER_trackColHeadersResize] &&
-                    !this.dataGridViewOper[DATAGRIDVIEWOPER_trackRowHeadersResize])
+                if (!this.IsMouseOperationActive())
                 {
                     if (hti.Type != DataGridViewHitTestType.None &&
                         hti.Type != DataGridViewHitTestType.HorizontalScrollBar &&
@@ -17011,42 +17091,20 @@ namespace System.Windows.Forms
         {
             try 
             {
+                // We can't paint if we are disposed.
+                if (this.dataGridViewOper[DATAGRIDVIEWOPER_inDispose] || this.IsDisposed) 
+                {
+                    return;
+                }
+
                 if (this.layout.dirty)
                 {
                     PerformLayoutPrivate(false /*useRowShortcut*/, true /*computeVisibleRows*/, false /*invalidInAdjustFillingColumns*/, false /*repositionEditingControl*/);
                 }
 
                 Graphics g = e.Graphics;
-                bool singleVerticalBorderAdded = false, singleHorizontalBorderAdded = false;
                 Rectangle clipRect = e.ClipRectangle;
-                Rectangle gridRect = this.layout.Data;
-                if (this.layout.RowHeadersVisible)
-                {
-                    gridRect = Rectangle.Union(gridRect, this.layout.RowHeaders);
-                }
-                else if (this.SingleVerticalBorderAdded)
-                {
-                    singleVerticalBorderAdded = true;
-                    if (!this.RightToLeftInternal)
-                    {
-                        gridRect.X--;
-                    }
-                    gridRect.Width++;
-                }
-
-                if (this.layout.ColumnHeadersVisible)
-                {
-                    gridRect = Rectangle.Union(gridRect, this.layout.ColumnHeaders);
-                }
-                else if (this.SingleHorizontalBorderAdded)
-                {
-                    singleHorizontalBorderAdded = true;
-                    if (gridRect.Y == this.layout.Data.Y)
-                    {
-                        gridRect.Y--;
-                        gridRect.Height++;
-                    }
-                }
+                Rectangle gridRect = this.GetGridRectangle();
 
                 if (this.currentRowSplitBar != -1)
                 {
@@ -17063,7 +17121,7 @@ namespace System.Windows.Forms
                     {
                         g.SetClip(gridRect);
                         PaintBackground(g, clipRect, gridRect);
-                        PaintGrid(g, gridRect, clipRect, singleVerticalBorderAdded, singleHorizontalBorderAdded);
+                        PaintGrid(g, gridRect, clipRect, this.SingleVerticalBorderAdded, this.SingleHorizontalBorderAdded);
                         g.Clip = clipRegion;
                     }
                 }
@@ -17072,6 +17130,19 @@ namespace System.Windows.Forms
                 if (clipRect.IntersectsWith(this.layout.ResizeBoxRect))
                 {
                     g.FillRectangle(SystemBrushes.Control, this.layout.ResizeBoxRect);
+                }
+
+                // Draw focus rectangle around the grid
+                if (this.Focused && this.IsGridFocusRectangleEnabled())
+                {
+                    if (SystemInformation.HighContrast)
+                    {
+                        ControlPaint.DrawHighContrastFocusRectangle(g, this.GetGridFocusRectangle(), SystemColors.ActiveCaptionText);
+                    }
+                    else
+                    {
+                        ControlPaint.DrawFocusRectangle(g, this.GetGridFocusRectangle());
+                    }
                 }
 
                 base.OnPaint(e); // raise paint event
@@ -17086,6 +17157,117 @@ namespace System.Windows.Forms
                     throw;
                 }
             }
+        }
+
+        // Determines if a focus rectangle may be drawn along the perimeter of the DataGridView control
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool IsGridFocusRectangleEnabled()
+        {
+            return this.ShowFocusCues && this.CurrentCell == null && AccessibilityImprovements.Level2;
+        }
+
+        // Creates a rectangle by merging row headers, column headers 
+        // and cells rectangles (from layout data)
+        private Rectangle GetGridRectangle()
+        {
+            Rectangle gridRect = this.layout.Data;
+            if (this.layout.RowHeadersVisible)
+            {
+                gridRect = Rectangle.Union(gridRect, this.layout.RowHeaders);
+            }
+            else if (this.SingleVerticalBorderAdded)
+            {
+                if (!this.RightToLeftInternal)
+                {
+                    gridRect.X--;
+                }
+                gridRect.Width++;
+            }
+
+            if (this.layout.ColumnHeadersVisible)
+            {
+                gridRect = Rectangle.Union(gridRect, this.layout.ColumnHeaders);
+            }
+            else if (this.SingleHorizontalBorderAdded)
+            {
+                if (gridRect.Y == this.layout.Data.Y)
+                {
+                    gridRect.Y--;
+                    gridRect.Height++;
+                }
+            }
+
+            return gridRect;
+        }
+
+        // Creates a grid focus rectangle
+        private Rectangle GetGridFocusRectangle()
+        {
+            Rectangle focusRect = this.GetGridRectangle();
+            focusRect.Inflate(1 - FOCUS_RECT_OFFSET, 1 - FOCUS_RECT_OFFSET);
+            return focusRect;
+        }
+
+        private void InvalidateGridFocusOnScroll(int change, ScrollOrientation orientation)
+        {
+            if (change == 0)
+            {
+                return;
+            }
+
+            Rectangle focusRect = GetGridFocusRectangle();
+
+            if (orientation == ScrollOrientation.HorizontalScroll)
+            {
+                // Scroll right
+                if (change > 0)
+                {
+                    focusRect.Width -= change;
+                }
+                // Scroll left
+                else
+                {
+                    focusRect.X -= change;
+                    focusRect.Width += change;
+                }
+            }
+            else
+            {
+                // Scroll down
+                if (change > 0)
+                {
+                    focusRect.Height -= change;
+                }
+                // Scroll up
+                else
+                {
+                    focusRect.Y -= change;
+                    focusRect.Height += change;
+                }
+            }
+
+            this.InvalidateRectangleEdges(focusRect);
+        }
+
+        private void InvalidateRectangleEdges(Rectangle rect)
+        {
+            // Left edge
+            Rectangle edge = rect;
+            edge.Width = 1;
+            this.Invalidate(edge);
+
+            // Right edge
+            edge.X += rect.Width - 1;
+            this.Invalidate(edge);
+
+            // Top edge
+            edge = rect;
+            edge.Height = 1;
+            this.Invalidate(edge);
+
+            // Bottom edge
+            edge.Y += rect.Height - 1;
+            this.Invalidate(edge);
         }
 
         // See VSWhidbey 527459 & 526373.
@@ -17677,6 +17859,7 @@ namespace System.Windows.Forms
             Rectangle right;
             Rectangle bottom;
             Rectangle oldClientRectangle = this.layout.ClientRectangle;
+            Rectangle oldGridFocusRectangle = this.GetGridFocusRectangle();
 
             right = new Rectangle(oldClientRectangle.X + oldClientRectangle.Width - borderWidth,
                 oldClientRectangle.Y,
@@ -17694,6 +17877,9 @@ namespace System.Windows.Forms
             }
 
             Rectangle newClientRectangle = this.normalClientRectangle;
+            Rectangle newGridFocusRectangle = this.DisplayRectangle;
+            newGridFocusRectangle.Inflate(1 - borderWidth - FOCUS_RECT_OFFSET, 1 - borderWidth - FOCUS_RECT_OFFSET);
+
             if (newClientRectangle.Width != oldClientRectangle.Width) 
             {
                 Invalidate(right);
@@ -17711,6 +17897,24 @@ namespace System.Windows.Forms
                     newClientRectangle.Width,
                     borderWidth);
                 Invalidate(bottom);
+            }
+
+            // Invalidate grid focus rectangle
+            if (this.Focused && this.IsGridFocusRectangleEnabled() && oldGridFocusRectangle != newGridFocusRectangle)
+            {
+                right = new Rectangle(oldGridFocusRectangle.X + oldGridFocusRectangle.Width - 1,
+                    oldGridFocusRectangle.Y,
+                    1,
+                    oldGridFocusRectangle.Height);
+                Invalidate(right);
+
+                bottom = new Rectangle(oldGridFocusRectangle.X,
+                    oldGridFocusRectangle.Y + oldGridFocusRectangle.Height - 1,
+                    oldGridFocusRectangle.Width,
+                    1);
+                Invalidate(bottom);
+
+                InvalidateRectangleEdges(newGridFocusRectangle);
             }
 
             //also, invalidate the ResizeBoxRect
@@ -19165,6 +19369,10 @@ namespace System.Windows.Forms
             ScrollEventArgs se = new ScrollEventArgs(scrollEventType, oldValue, newValue, orientation);
             OnScroll(se);
             RefreshByCurrentPos(oldValue, newValue);
+            if (this.Focused && this.IsGridFocusRectangleEnabled())
+            {
+                InvalidateGridFocusOnScroll(newValue - oldValue, orientation);
+            }
             if (ScrollOrientation.VerticalScroll == orientation)
             {
                 if (se.NewValue != newValue)
@@ -19872,7 +20080,9 @@ namespace System.Windows.Forms
             }
             else if (this.currentColSplitBar != -1)
             {
-                Debug.Assert(this.dataGridViewOper[DATAGRIDVIEWOPER_trackRowHeadersResize] || this.dataGridViewOper[DATAGRIDVIEWOPER_trackColResize]);
+                Debug.Assert(this.dataGridViewOper[DATAGRIDVIEWOPER_trackRowHeadersResize] || 
+                    this.dataGridViewOper[DATAGRIDVIEWOPER_trackColResize] || 
+                    this.dataGridViewOper[DATAGRIDVIEWOPER_trackKeyboardColResize]);
                 DrawColSplitBar(this.currentColSplitBar);
             }
         }
@@ -21702,11 +21912,7 @@ namespace System.Windows.Forms
         {
             if (this.IsEscapeKeyEffective)
             {
-                if (this.dataGridViewOper[DATAGRIDVIEWOPER_trackColResize] ||
-                    this.dataGridViewOper[DATAGRIDVIEWOPER_trackRowResize] ||
-                    this.dataGridViewOper[DATAGRIDVIEWOPER_trackColHeadersResize] ||
-                    this.dataGridViewOper[DATAGRIDVIEWOPER_trackRowHeadersResize] ||
-                    this.dataGridViewOper[DATAGRIDVIEWOPER_trackColRelocation])
+                if (this.IsMouseOperationActive())
                 {
                     ResetTrackingState();
                 }
@@ -21742,6 +21948,32 @@ namespace System.Windows.Forms
                     bool success = ScrollIntoView(this.ptCurrentCell.X, this.ptCurrentCell.Y, false);
                     Debug.Assert(success);
                     BeginEditInternal(this.EditMode == DataGridViewEditMode.EditOnF2 /*selectAll*/);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <include file='doc\DataGridView.uex' path='docs/doc[@for="DataGridView.ProcessF3Key"]/*' />
+        /// <devdoc>
+        ///     Sorts the current column.
+        ///     'UseLegacyAccessibilityFeatures2' accessibility switch 
+        ///     should be set to false to enable the feature.
+        /// </devdoc>
+        [
+            SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode),
+        ]
+        protected bool ProcessF3Key(Keys keyData)
+        {
+            if (this.ptCurrentCell.X != -1 && AccessibilityImprovements.Level2)
+            {
+                DataGridViewColumn dataGridViewColumn = Columns[this.ptCurrentCell.X];
+                if (dataGridViewColumn != null && dataGridViewColumn.SortMode == DataGridViewColumnSortMode.Automatic)
+                {
+                    ListSortDirection listSortDirection = this.SortedColumn == dataGridViewColumn && this.SortOrder == SortOrder.Ascending ?
+                        ListSortDirection.Descending : ListSortDirection.Ascending;
+
+                    this.Sort(dataGridViewColumn, listSortDirection);
                     return true;
                 }
             }
@@ -22150,6 +22382,7 @@ namespace System.Windows.Forms
                     case Keys.Enter:
                     case Keys.Escape:
                     case Keys.F2:
+                    case Keys.F3:
                     case Keys.Home:
                     case Keys.Left:
                     case Keys.Next:
@@ -22199,6 +22432,36 @@ namespace System.Windows.Forms
             return base.ProcessKeyPreview(ref m);
         }
 
+        private bool? ProcessColumnResize(Keys keyData, int step)
+        {
+            if (AccessibilityImprovements.Level2 && (keyData & Keys.Alt) == Keys.Alt && this.AllowUserToResizeColumns && this.ptCurrentCell.X != -1)
+            {
+                if (this.currentColSplitBar == -1)
+                {
+                    DataGridViewColumn dataGridViewColumn = Columns[this.ptCurrentCell.X];
+                    if (dataGridViewColumn != null && dataGridViewColumn.Resizable == DataGridViewTriState.True &&
+                        (dataGridViewColumn.InheritedAutoSizeMode == DataGridViewAutoSizeColumnMode.None || dataGridViewColumn.InheritedAutoSizeMode == DataGridViewAutoSizeColumnMode.Fill))
+                    {
+                        BeginKeyboardColumnResize(this.ptCurrentCell.X);
+                        return true;
+                    }
+                    return false;
+                }
+                else
+                {
+                    int x = this.currentColSplitBar + step;
+                    if (this.dataGridViewOper[DATAGRIDVIEWOPER_trackKeyboardColResize] && this.resizeClipRectangle.Contains(x, this.resizeClipRectangle.Top))
+                    {
+                        MoveRowHeadersOrColumnResize(x);
+                        return true;
+                    }
+                    return false;
+                }
+            }
+
+            return null;
+        }
+
         /// <include file='doc\DataGridView.uex' path='docs/doc[@for="DataGridView.ProcessLeftKey"]/*' />
         [
             SecurityPermission(SecurityAction.LinkDemand, Flags=SecurityPermissionFlag.UnmanagedCode)
@@ -22217,6 +22480,12 @@ namespace System.Windows.Forms
 
         private bool ProcessLeftKeyPrivate(Keys keyData)
         {
+            bool? resizeResult = this.ProcessColumnResize(keyData, -this.keyboardResizeStep);
+            if (resizeResult.HasValue)
+            {
+                return resizeResult.Value;
+            }
+
             bool success;
             DataGridViewColumn dataGridViewColumn = this.Columns.GetFirstColumn(DataGridViewElementStates.Visible);
             int firstVisibleColumnIndex = (dataGridViewColumn == null) ? -1 : dataGridViewColumn.Index;
@@ -23449,6 +23718,12 @@ namespace System.Windows.Forms
 
         private bool ProcessRightKeyPrivate(Keys keyData)
         {
+            bool? resizeResult = this.ProcessColumnResize(keyData, this.keyboardResizeStep);
+            if (resizeResult.HasValue)
+            {
+                return resizeResult.Value;
+            }
+
             bool success;
             DataGridViewColumn dataGridViewColumn = this.Columns.GetLastColumn(DataGridViewElementStates.Visible,
                 DataGridViewElementStates.None);
@@ -24394,6 +24669,10 @@ namespace System.Windows.Forms
                 case Keys.F2:
                 {
                     return ProcessF2Key(e.KeyData);
+                }
+                case Keys.F3:
+                {
+                    return ProcessF3Key(e.KeyData);
                 }
                 case Keys.Home:
                 {
@@ -25653,6 +25932,10 @@ namespace System.Windows.Forms
         /// </devdoc>
         private void ResetTrackingState()
         {
+            if (this.IsKeyboardOperationActive())
+            {
+                return;
+            }
             if (this.horizScrollTimer != null && this.horizScrollTimer.Enabled)
             {
                 this.horizScrollTimer.Enabled = false;
@@ -25662,11 +25945,7 @@ namespace System.Windows.Forms
                 this.vertScrollTimer.Enabled = false;
             }
 
-            this.dataGridViewOper[DATAGRIDVIEWOPER_trackColResize] = false;
-            this.dataGridViewOper[DATAGRIDVIEWOPER_trackRowResize] = false;
-            this.dataGridViewOper[DATAGRIDVIEWOPER_trackColRelocation] = false;
-            this.dataGridViewOper[DATAGRIDVIEWOPER_trackColHeadersResize] = false;
-            this.dataGridViewOper[DATAGRIDVIEWOPER_trackRowHeadersResize] = false;
+            this.dataGridViewOper[DATAGRIDVIEWOPER_mouseOperationMask] = false;
             this.dataGridViewOper[DATAGRIDVIEWOPER_trackColSelect] = false;
             this.dataGridViewOper[DATAGRIDVIEWOPER_trackRowSelect] = false;
             this.dataGridViewOper[DATAGRIDVIEWOPER_trackCellSelect] = false;
@@ -25693,6 +25972,34 @@ namespace System.Windows.Forms
                 Invalidate(Rectangle.Union(this.layout.TopLeftHeader, this.layout.ColumnHeaders));
             }
             RealeaseMouse();
+        }
+
+        // Re-initializes all state that is related to tracking keyboard operations
+        private void ResetKeyboardTrackingState()
+        {
+            if (this.IsMouseOperationActive())
+            {
+                return;
+            }
+            this.dataGridViewOper[DATAGRIDVIEWOPER_keyboardOperationMask] = false;
+            this.trackColumn = -1;
+            if (this.currentColSplitBar != -1)
+            {
+                Invalidate(CalcColResizeFeedbackRect(this.currentColSplitBar), true);
+                this.lastColSplitBar = this.currentColSplitBar = -1;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool IsMouseOperationActive()
+        {
+            return (this.dataGridViewOper.Data & DATAGRIDVIEWOPER_mouseOperationMask) != 0;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool IsKeyboardOperationActive()
+        {
+            return (this.dataGridViewOper.Data & DATAGRIDVIEWOPER_keyboardOperationMask) != 0;
         }
 
         /// <devdoc>
@@ -26632,6 +26939,18 @@ namespace System.Windows.Forms
                                 {
                                     OnRowEnter(ref dataGridViewCellTmp, columnIndex, rowIndex, true /*canCreateNewRow*/, false /*validationFailureOccurred*/);
                                 }
+                            }
+
+                            // Force repainting of the current and previous collumns` header cells to update highlighting
+                            if (oldCurrentCellX != columnIndex &&
+                                this.SelectionMode == DataGridViewSelectionMode.FullRowSelect &&
+                                AccessibilityImprovements.Level2)
+                            {
+                                if (oldCurrentCellX >= 0)
+                                {
+                                    InvalidateCellPrivate(oldCurrentCellX, -1);
+                                }
+                                InvalidateCellPrivate(columnIndex, -1);
                             }
 
                             if (this.dataGridViewState2[DATAGRIDVIEWSTATE2_rowsCollectionClearedInSetCell])

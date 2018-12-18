@@ -8,6 +8,7 @@
 
 using MS.Internal.PresentationCore.WindowsRuntime;
 using System;
+using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -68,6 +69,14 @@ namespace MS.Internal.WindowsRuntime
                 try
                 {
                     s_WinRTType = Type.GetType(s_TypeName);
+
+                    // DDVSO:504055
+                    // If we cannot get a new activation factory, then we cannot support
+                    // this platform.  As such, null out the type to guard instantiations.
+                    if (GetWinRtActivationFactory(forceInitialization: true) == null)
+                    {
+                        s_WinRTType = null;
+                    }
                 }
                 catch
                 {
@@ -212,7 +221,7 @@ namespace MS.Internal.WindowsRuntime
             /// </summary>
             /// <param name="forceInitialization">If true, will create a new IActivationFactory.  If false will
             /// only create a new IActivationFactory if there is no valid cached instance available.</param>
-            /// <returns>An IActivationFactory of InputPane</returns>
+            /// <returns>An IActivationFactory of InputPane or null if it fails to instantiate.</returns>
             /// <SecurityNote>
             ///     Critical
             ///         Accesses COM RCW IActivationFactory and function WindowsRuntimeMarshal.GetActivationFactory
@@ -222,7 +231,22 @@ namespace MS.Internal.WindowsRuntime
             {
                 if (forceInitialization || _winRtActivationFactory == null)
                 {
-                    _winRtActivationFactory = WindowsRuntimeMarshal.GetActivationFactory(s_WinRTType);
+                    try
+                    {
+                        _winRtActivationFactory = WindowsRuntimeMarshal.GetActivationFactory(s_WinRTType);
+                    }
+                    catch (Exception e) when (e is TypeLoadException || e is FileNotFoundException)
+                    {
+                        // DDVSO:504055
+                        // Catch the set of exceptions that are considered activation exceptions as per the public
+                        // contract on WindowsRuntimeMarshal.GetActivationFactory.
+                        // <see cref="https://msdn.microsoft.com/en-us/library/system.runtime.interopservices.windowsruntime.windowsruntimemarshal.getactivationfactory(v=vs.110).aspx"/>
+                        // On some Windows SKUs, notably ServerCore, a failing static dependency in InputPane seems to cause a
+                        // FileNotFoundException during acquisition of the activation factory. We explicitly catch this exception 
+                        // here to alleviate this issue.  This is not an ideal solution to the platform bug, but keeps WPF applications 
+                        // from being exposed to the issue.
+                        _winRtActivationFactory = null;
+                    }
                 }
 
                 return _winRtActivationFactory;

@@ -3043,7 +3043,7 @@ example usage
         ///
         ///     There are five functions on a control that are safe to call from any
         ///     thread:  GetInvokeRequired, Invoke, BeginInvoke, EndInvoke and
-        ///     CreateGraphics.  For all other metohd calls, you should use one of the
+        ///     CreateGraphics.  For all other method calls, you should use one of the
         ///     invoke methods.
         /// </devdoc>
         [
@@ -4185,7 +4185,7 @@ example usage
                             // if we're in the hidden state, we need to manufacture an update message so everyone knows it.
                             //
                             int actionMask = (NativeMethods.UISF_HIDEACCEL | 
-                                (LocalAppContextSwitches.UseLegacyAccessibilityFeatures ? NativeMethods.UISF_HIDEFOCUS : 0)) << 16;
+                                (AccessibilityImprovements.Level1 ? 0 : NativeMethods.UISF_HIDEFOCUS)) << 16;
                             uiCuesState |= UISTATE_KEYBOARD_CUES_HIDDEN;
 
                             // The side effect of this initial state is that adding new controls may clear the accelerator
@@ -5541,7 +5541,7 @@ example usage
         ///
         ///     There are five functions on a control that are safe to call from any
         ///     thread:  GetInvokeRequired, Invoke, BeginInvoke, EndInvoke and CreateGraphics.
-        ///     For all other metohd calls, you should use one of the invoke methods to marshal
+        ///     For all other method calls, you should use one of the invoke methods to marshal
         ///     the call to the control's thread.
         /// </devdoc>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
@@ -5563,7 +5563,7 @@ example usage
         ///
         ///     There are five functions on a control that are safe to call from any
         ///     thread:  GetInvokeRequired, Invoke, BeginInvoke, EndInvoke and CreateGraphics.
-        ///     For all other metohd calls, you should use one of the invoke methods to marshal
+        ///     For all other method calls, you should use one of the invoke methods to marshal
         ///     the call to the control's thread.
         /// </devdoc>
         [EditorBrowsable(EditorBrowsableState.Advanced)]        
@@ -7324,7 +7324,7 @@ example usage
         ///
         ///     There are five functions on a control that are safe to call from any
         ///     thread:  GetInvokeRequired, Invoke, BeginInvoke, EndInvoke and CreateGraphics.
-        ///     For all other metohd calls, you should use one of the invoke methods to marshal
+        ///     For all other method calls, you should use one of the invoke methods to marshal
         ///     the call to the control's thread.
         /// </devdoc>
         public Object Invoke(Delegate method) {
@@ -7343,7 +7343,7 @@ example usage
         ///
         ///     There are five functions on a control that are safe to call from any
         ///     thread:  GetInvokeRequired, Invoke, BeginInvoke, EndInvoke and CreateGraphics.
-        ///     For all other metohd calls, you should use one of the invoke methods to marshal
+        ///     For all other method calls, you should use one of the invoke methods to marshal
         ///     the call to the control's thread.
         /// </devdoc>
         public Object Invoke(Delegate method, params Object[] args) {
@@ -12546,6 +12546,15 @@ example usage
         ///     reflect it's index.
         /// </devdoc>
         private void UpdateChildControlIndex(Control ctl) {
+            // VSO 411856
+            // Don't reorder the child control array for tab controls. Implemented as a special case
+            // in order to keep the method private.
+            if (!LocalAppContextSwitches.AllowUpdateChildControlIndexForTabControls) {
+                if (this.GetType().IsAssignableFrom(typeof(TabControl))) {
+                    return;
+                }
+            }
+
             int newIndex = 0;
             int curIndex = this.Controls.GetChildIndex(ctl);
             IntPtr hWnd = ctl.InternalHandle;

@@ -1260,7 +1260,7 @@ namespace System.Windows.Forms {
                 set {
                     bool valueChanged = (value != base.Text);
                     base.Text = value;      
-                    if (valueChanged && !LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                    if (valueChanged && AccessibilityImprovements.Level1) {
                             AccessibilityNotifyClients(AccessibleEvents.NameChange, -1);
                     }
                 }

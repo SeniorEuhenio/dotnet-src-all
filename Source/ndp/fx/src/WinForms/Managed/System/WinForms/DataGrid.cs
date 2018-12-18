@@ -9050,14 +9050,14 @@
                         return (DataGrid)Owner;
                     }
                 }
-    
-                private int ColumnCount {
+
+                private int ColumnCountPrivate {
                     get {
                         return ((DataGrid)Owner).myGridTable.GridColumnStyles.Count;
                     }
                 }
-    
-                private int RowCount {
+
+                private int RowCountPrivate {
                     get {
                         return ((DataGrid)Owner).dataGridRows.Length;
                     }
@@ -9097,8 +9097,8 @@
                 public override AccessibleObject GetChild(int index) {
                     DataGrid dataGrid = (DataGrid)Owner;
     
-                    int cols = ColumnCount;
-                    int rows = RowCount;
+                    int cols = ColumnCountPrivate;
+                    int rows = RowCountPrivate;
     
                     if (dataGrid.dataGridRows == null) {
                         dataGrid.CreateDataGridRows();
@@ -9152,7 +9152,7 @@
                 }
     
                 public override int GetChildCount() {
-                    int n = 1 + ColumnCount + ((DataGrid)Owner).DataGridRowsLength;
+                    int n = 1 + ColumnCountPrivate + ((DataGrid)Owner).DataGridRowsLength;
                     if (DataGrid.horizScrollBar.Visible) {
                         n++;
                     }
@@ -9177,7 +9177,7 @@
                     }
 
                     DataGridCell cell = DataGrid.CurrentCell;
-                    return GetChild(1 + ColumnCount + cell.RowNumber).GetChild(cell.ColumnNumber);
+                    return GetChild(1 + ColumnCountPrivate + cell.RowNumber).GetChild(cell.ColumnNumber);
                 }
              
                 public override AccessibleObject HitTest(int x, int y) {
@@ -9186,9 +9186,9 @@
     
                     switch (hti.Type) {
                         case HitTestType.RowHeader:
-                            return GetChild(1 + ColumnCount + hti.Row);
+                            return GetChild(1 + ColumnCountPrivate + hti.Row);
                         case HitTestType.Cell:
-                            return GetChild(1 + ColumnCount + hti.Row).GetChild(hti.Column);
+                            return GetChild(1 + ColumnCountPrivate + hti.Row).GetChild(hti.Column);
                         case HitTestType.ColumnHeader:
                             return GetChild(1 + hti.Column);
                         case HitTestType.ParentRows:

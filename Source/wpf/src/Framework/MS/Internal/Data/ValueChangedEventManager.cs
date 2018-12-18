@@ -351,7 +351,26 @@ namespace MS.Internal.Data
 
             public bool IsEmpty
             {
-                get { return _listeners.IsEmpty; }
+                get
+                {
+                    bool result = _listeners.IsEmpty;
+                    if (!result && HasIgnorableListeners)
+                    {
+                        // if all the remaining listeners are "ignorable",
+                        // treat the list as empty
+                        result = true;
+                        for (int i=0, n=_listeners.Count; i<n; ++i)
+                        {
+                            Listener listener = _listeners.GetListener(i);
+                            if (!IsIgnorable(listener.Target))
+                            {
+                                result = false;
+                                break;
+                            }
+                        }
+                    }
+                    return result;
+                }
             }
 
             // add a listener
@@ -365,6 +384,10 @@ namespace MS.Internal.Data
                 if (handler != null)
                 {
                     _listeners.AddHandler(handler);
+                    if (!HasIgnorableListeners && IsIgnorable(handler.Target))
+                    {
+                        HasIgnorableListeners = true;
+                    }
                 }
                 else
                 {
@@ -390,7 +413,7 @@ namespace MS.Internal.Data
                 }
 
                 // when the last listener goes away, remove the callback
-                if (_listeners.IsEmpty)
+                if (IsEmpty)
                 {
                     StopListening();
                 }
@@ -434,6 +457,22 @@ namespace MS.Internal.Data
                 {
                     _listeners.EndUse();
                 }
+            }
+
+            // Some listeners are used only for internal bookkeeping.  These
+            // shouldn't count as real listeners for the purpose of deciding
+            // if anyone is still listening to the change event;  otherwise
+            // we'd never release the event and we'd have a memory leak (DDVSO 297912).
+            // Call such listeners "ignorable";  the add, remove, and purge logic has
+            // special cases for ignorable listeners.  Ignorable listeners are
+            // rare, so we optimize for their absence.
+
+            private bool HasIgnorableListeners { get; set; }
+
+            private bool IsIgnorable(object target)
+            {
+                // ValueTable listens for changes from malfeasant ADO properties
+                return (target is MS.Internal.Data.ValueTable);
             }
 
             PropertyDescriptor          _pd;

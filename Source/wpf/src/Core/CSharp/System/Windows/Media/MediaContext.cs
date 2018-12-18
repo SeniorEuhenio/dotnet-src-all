@@ -1,4 +1,4 @@
-﻿//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //
 // <copyright file="MediaContext.cs" company="Microsoft">
 //    Copyright (C) Microsoft Corporation.  All rights reserved.
@@ -143,6 +143,64 @@ namespace System.Windows.Media
 
             return number;
         }
+
+        #region Compat support for rendering in a Non-interactive Window Station
+
+        /// <summary>
+        /// General case: 
+        ///     True if our window station is interactive (WinSta0), otherwise false. 
+        ///     In addition to this, two compatibility switches are provided to opt-in 
+        ///     or opt-out of this behavior
+        ///     
+        /// Compatibility switches
+        ///     i. <see cref=" MS.Internal.CoreAppContextSwitches.ShouldRenderEvenWhenNoDisplayDevicesAreAvailable"/> 
+        ///     ii. <see cref="MS.Internal.CoreAppContextSwitches.ShouldNotRenderInNonInteractiveWindowStation"/>
+        /// 
+        /// How this will work:
+        ///     Desktop/Interactive Window Stations:
+        ///         Rendering will be throttled back/stopped when no display devices are available. For e.g., when a TS 
+        ///         session is in WTSDisconnected state, the OS may not provide any display devices in response to our enumeration.
+        ///         If an application would like to continue rendering in the absence of display devices (accepting that 
+        ///         it can lead to a CPU spike), it can set <see cref=" MS.Internal.CoreAppContextSwitches.ShouldRenderEvenWhenNoDisplayDevicesAreAvailable"/> 
+        ///         to true.
+        ///     Service/Non-interactive Window Stations
+        ///         Rendering will continue by default, irrespective of the presence of display devices.Unless the WPF
+        ///         API's being used are shortlived (like rendering to a bitmap), it can lead to a CPU spike. 
+        ///         If an application running inside a service would like to receive the 'default' WPF behavior, 
+        ///         i.e., no rendering in the absence of display devices, then it should set
+        ///         <see cref="MS.Internal.CoreAppContextSwitches.ShouldNotRenderInNonInteractiveWindowStation"/> to true
+        ///     In pseudocode, 
+        ///         IsNonInteractiveWindowStation = !Environment.UserInteractive
+        ///         IF DisplayDevicesNotFound() THEN
+        ///             IF IsNonInteractiveWindowStation THEN 
+        ///                 // We are inside a SCM service
+        ///                 // Default = True, AppContext switch can override it to False
+        ///                 ShouldRender = !CoreAppContextSwitches.ShouldNotRenderInNonInteractiveWindowStation
+        ///             ELSE 
+        ///                 // Desktop/interactive mode, including WTSDisconnected scenarios
+        ///                 // Default = False, AppContext switch can override it to True
+        ///                 ShouldRender = CoreAppContextSwitches.ShouldRenderEvenWhenNoDisplayDevicesAreAvailable
+        ///             END IF
+        ///         END IF
+        ///     
+        /// </summary>
+        /// <remarks>
+        /// i. <see cref=">Environment.UserInteractive"/> calls into Window Station related
+        /// Win32 API's to identify whether the current Window Station has WSF_VISIBLE 
+        /// flag set. 
+        /// 
+        /// ii. Field is internal to allow <see cref="HwndTarget"/> to consume its value
+        /// 
+        /// iii. This field is named to reflect the general use-case, namely to force rendering 
+        /// when inside a SCM service. 
+        /// </remarks>
+        internal static bool ShouldRenderEvenWhenNoDisplayDevicesAreAvailable { get; } =
+            !Environment.UserInteractive ? // IF DisplayDevicesNotAvailable && IsNonInteractiveWindowStation/IsService...  
+                !CoreAppContextSwitches.ShouldNotRenderInNonInteractiveWindowStation :      // THEN render by default, allow ShouldNotRender AppContext override 
+                CoreAppContextSwitches.ShouldRenderEvenWhenNoDisplayDevicesAreAvailable;   // ELSE do not render by default, allow ShouldRender AppContext override
+
+
+        #endregion
 
         /// <summary>
         /// The MediaContext lives in the Dispatcher and is the MediaSystem's class that keeps
@@ -1175,6 +1233,16 @@ namespace System.Windows.Media
         internal void CreateChannels()
         {
             _channelManager.CreateChannels();
+
+            // Notify renderer how it should behave when no valid displays are available, 
+            // or when this process is running in a non-interactive Window Station, or when 
+            // an application has opted into behavior that requests WPF to continue rendering
+            // even when no valid displays are detected.
+            // 
+            // Do this immediately after creating channels. 
+            DUCE.NotifyPolicyChangeForNonInteractiveMode(
+                    ShouldRenderEvenWhenNoDisplayDevicesAreAvailable,
+                    Channel);
 
             HookNotifications();
 

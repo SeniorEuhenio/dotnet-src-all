@@ -12,8 +12,8 @@ namespace MS.Internal.WindowsBase.Interop
 namespace System.Windows.Interop
 #elif PRESENTATIONFRAMEWORK
 namespace MS.Internal.PresentationFramework.Interop
-#elif REACHFRAMEWORK
-namespace MS.Internal.ReachFramework.Interop
+#elif UIAUTOMATIONTYPES
+namespace MS.Internal.UIAutomationTypes.Interop
 #else
 namespace Microsoft.Internal.Interop
 #endif

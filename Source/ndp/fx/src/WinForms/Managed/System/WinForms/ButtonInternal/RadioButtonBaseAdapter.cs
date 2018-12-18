@@ -64,7 +64,7 @@ namespace System.Windows.Forms.ButtonInternal {
             
             if (!Control.Enabled) {
                 // if we are not in HighContrast mode OR we opted into the legacy behavior
-                if (!SystemInformation.HighContrast || LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                if (!SystemInformation.HighContrast || !AccessibilityImprovements.Level1) {
                     border = ControlPaint.ContrastControlDark;
                 }
                 // otherwise we are in HighContrast mode 
@@ -193,6 +193,16 @@ namespace System.Windows.Forms.ButtonInternal {
         }
 
         #endregion
+
+        protected void AdjustFocusRectangle(LayoutData layout) {
+            if (AccessibilityImprovements.Level2 && String.IsNullOrEmpty(Control.Text)) {
+                // When a RadioButton has no text, AutoSize sets the size to zero 
+                // and thus there's no place around which to draw the focus rectangle.
+                // So, when AutoSize == true we want the focus rectangle to be rendered around the circle area.
+                // Otherwise, it should encircle all the available space next to the box (like it's done in WPF and ComCtl32).
+                layout.focus = Control.AutoSize ? layout.checkBounds : layout.field;
+            }
+        }
 
         internal override LayoutOptions CommonLayout() {
             LayoutOptions layout = base.CommonLayout();

@@ -1140,6 +1140,26 @@ namespace System.Windows.Forms
             {
                 return 0;
             }
+
+            internal override bool IsIAccessibleExSupported()
+            {
+                if (AccessibilityImprovements.Level2)
+                {
+                    return true;
+                }
+
+                return base.IsIAccessibleExSupported();
+            }
+
+            internal override object GetPropertyValue(int propertyID)
+            {
+                if (propertyID == NativeMethods.UIA_ControlTypePropertyId)
+                {
+                    return NativeMethods.UIA_ButtonControlTypeId;
+                }
+
+                return base.GetPropertyValue(propertyID);
+            }
         }
     }
 }

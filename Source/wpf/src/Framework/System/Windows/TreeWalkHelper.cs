@@ -385,6 +385,22 @@ namespace System.Windows
                         oldEntry.BaseValueSourceInternal = BaseValueSourceInternal.Inherited;
                     }
                 }
+                else if (info.IsAddOperation &&
+                    (isForceInheritedProperty || oldEntry.BaseValueSourceInternal <= BaseValueSourceInternal.Inherited))
+                {
+                    // before calling UpdateEffectiveValue on the root of the changed subtree,
+                    // see if the property now has a higher-precedence value because
+                    // a resource reference now resolves.  If so, don't invalidate (DDVSO 208745)
+                    EffectiveValueEntry currentEntry = d.GetValueEntry(
+                        d.LookupEntry(dp.GlobalIndex),
+                        dp,
+                        fMetadata,
+                        RequestFlags.DeferredReferences);
+                    if (currentEntry.BaseValueSourceInternal > BaseValueSourceInternal.Inherited)
+                    {
+                        oldEntry = currentEntry;
+                    }
+                }
 
                 OperationType operationType = info.IsAddOperation ? OperationType.AddChild : OperationType.RemoveChild;
                 if (BaseValueSourceInternal.Inherited >= oldEntry.BaseValueSourceInternal)

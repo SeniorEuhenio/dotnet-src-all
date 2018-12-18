@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{d68c9cd2-5f94-44e2-8bb3-bb69de4aaa78}</ProjectGuid>
+    <ProjectGuid>{ad2183b4-dae3-40ea-ae6e-7ce65c121f9c}</ProjectGuid>
     <OutputPath>.</OutputPath>
     <OutputType>Library</OutputType>
     <AssemblyName>System.Xaml.Hosting</AssemblyName>
@@ -20,47 +20,47 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\clr\src\bcl\mscorlib.csproj">
-      <Project>{ebdb53d6-cdc9-4e8f-899c-3658de860eb9}</Project>
+      <Project>{74ef8966-be63-49d5-84bc-6c2cb0724069}</Project>
       <Name>mscorlib</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\System.csproj">
-      <Project>{1bceb590-6227-45f2-983f-c8c699f0a0cc}</Project>
+      <Project>{df88a904-fb7a-40a0-8bc0-4e757ca35923}</Project>
       <Name>System</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\Configuration\System.Configuration.csproj">
-      <Project>{1d81f876-a336-4378-9522-42f2df7bd631}</Project>
+      <Project>{563c9efb-3f3c-4866-a6b0-325e40057312}</Project>
       <Name>System.Configuration</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\Core\System.Core.csproj">
-      <Project>{8d30e349-67ca-4bab-b9e2-78ca3e5d647b}</Project>
+      <Project>{a7837c2f-d859-47c5-9575-cda85eb40aee}</Project>
       <Name>System.Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\data\System.Data.csproj">
-      <Project>{1e090811-ec55-45c5-a12d-4cf1bcd8b809}</Project>
+      <Project>{d2315572-b0d2-417a-ab3b-42ec44092138}</Project>
       <Name>System.Data</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\System.Drawing.csproj">
-      <Project>{24dd0ff1-137c-4176-add6-d5776f12b728}</Project>
+      <Project>{8f0fc5b8-9479-461b-b086-05f16b8f04e8}</Project>
       <Name>System.Drawing</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\clr\src\managedlibraries\security\System.Security.csproj">
-      <Project>{17897730-d58a-41fd-846f-a569d1b57edd}</Project>
+      <Project>{e3e69a14-5289-49a3-beb3-1504d2c91c9d}</Project>
       <Name>System.Security</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\System.ServiceModel.Internals\System.ServiceModel.Internals.csproj">
-      <Project>{05d337f2-34c4-40ea-8ffe-3828db606ead}</Project>
+      <Project>{818221e0-c161-409c-9b1b-171c6ec54b27}</Project>
       <Name>System.ServiceModel.Internals</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\xsp\system\Web\System.Web.csproj">
-      <Project>{f4813eeb-8ce0-4a64-9f0b-6e2ba6cbd877}</Project>
+      <Project>{0a6d8928-8522-4575-a7c8-3e1294a78956}</Project>
       <Name>System.Web</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\NetFx20\System.Web.Services\System.Web.Services.csproj">
-      <Project>{694147d7-60ae-4b27-975d-e8be9afb1b74}</Project>
+      <Project>{64b83cc4-5945-4d75-a033-3dbc31d68316}</Project>
       <Name>System.Web.Services</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\Xml\System.Xml.csproj">
-      <Project>{4c1feb2d-272e-4b5d-8b9e-fbded9b9eb69}</Project>
+      <Project>{44ffba6a-a240-4b9c-a1ef-f44bd42f8b8f}</Project>
       <Name>System.Xml</Name>
     </ProjectReference>
   </ItemGroup>

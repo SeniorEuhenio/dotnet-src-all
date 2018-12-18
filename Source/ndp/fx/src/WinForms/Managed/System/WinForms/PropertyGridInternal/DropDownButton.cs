@@ -30,7 +30,8 @@ namespace System.Windows.Forms.PropertyGridInternal {
 
         // VSWhidbey 375220 - when the holder is open, we don't fire clicks
         //
-        public bool IgnoreMouse {
+        public bool IgnoreMouse {
+
             get {
                 return ignoreMouse;
             }
@@ -43,7 +44,7 @@ namespace System.Windows.Forms.PropertyGridInternal {
             set {
                 if (useComboBoxTheme != value) {
                     useComboBoxTheme = value;
-                    if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                    if (AccessibilityImprovements.Level1) {
                         SetAccessibleName();
                     }
                     Invalidate();
@@ -89,7 +90,7 @@ namespace System.Windows.Forms.PropertyGridInternal {
                 }
                 ComboBoxRenderer.DrawDropDownButton(pevent.Graphics, dropDownButtonRect, cbState);
 
-                if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                if (AccessibilityImprovements.Level1) {
                     // Redraw focus cues
                     // For consistency with other PropertyGrid buttons, i.e. those opening system dialogs ("..."), that always show visual cues when focused,
                     // we need to do the same for this custom button, painted as ComboBox control part (drop-down).
@@ -102,7 +103,7 @@ namespace System.Windows.Forms.PropertyGridInternal {
         }
 
         private void SetAccessibleName() {
-            if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures && useComboBoxTheme) {
+            if (AccessibilityImprovements.Level1 && useComboBoxTheme) {
                 this.AccessibleName = SR.GetString(SR.PropertyGridDropDownButtonComboBoxAccessibleName);
             }
             else {

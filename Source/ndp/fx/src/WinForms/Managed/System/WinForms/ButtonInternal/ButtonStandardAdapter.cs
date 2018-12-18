@@ -81,7 +81,7 @@ namespace System.Windows.Forms.ButtonInternal {
             //only paint if the user said not to use the themed backcolor.
             if (!Control.UseVisualStyleBackColor) {
                 bool painted = false;
-                bool isHighContrastHighlighted = IsHighContrastHighlighted(up);
+                bool isHighContrastHighlighted = up && IsHighContrastHighlighted();
                 Color color = isHighContrastHighlighted ? SystemColors.Highlight : Control.BackColor;
 
                 // Note: PaintEvent.HDC == 0 if GDI+ has used the HDC -- it wouldn't be safe for us
@@ -119,11 +119,6 @@ namespace System.Windows.Forms.ButtonInternal {
             if (Control.BackgroundImage != null && !DisplayInformation.HighContrast) {
                 ControlPaint.DrawBackgroundImage(e.Graphics, Control.BackgroundImage, Color.Transparent, Control.BackgroundImageLayout, Control.ClientRectangle, bounds, Control.DisplayRectangle.Location, Control.RightToLeft);
             }
-        }
-
-        private bool IsHighContrastHighlighted(bool up) {
-            return !LocalAppContextSwitches.UseLegacyAccessibilityFeatures && SystemInformation.HighContrast && up && Application.RenderWithVisualStyles &&
-                (Control.Focused || Control.MouseIsOver || (Control.IsDefault && Control.Enabled));
         }
 
         void PaintWorker(PaintEventArgs e, bool up, CheckState state) {
@@ -179,10 +174,21 @@ namespace System.Windows.Forms.ButtonInternal {
                 layout.focus.Inflate(1, 1);
             }
 
-            Color foreColor = IsHighContrastHighlighted(up) ? 
-                SystemColors.HighlightText :
-                colors.windowText;
-            PaintField(e, layout, colors, foreColor, true);
+            if (up & IsHighContrastHighlighted2()) {
+                var highlightTextColor = SystemColors.HighlightText;
+                PaintField(e, layout, colors, highlightTextColor, false);
+
+                if (Control.Focused && Control.ShowFocusCues) {
+                    // drawing focus rectangle of HighlightText color
+                    ControlPaint.DrawHighContrastFocusRectangle(g, layout.focus, highlightTextColor);
+                }
+            }
+            else if (up & IsHighContrastHighlighted()) {
+                PaintField(e, layout, colors, SystemColors.HighlightText, true);
+            }
+            else {
+                PaintField(e, layout, colors, colors.windowText, true);
+            }
 
             if (!Application.RenderWithVisualStyles) {
                 Rectangle r = Control.ClientRectangle;

@@ -8473,6 +8473,99 @@ namespace System.Windows.Forms {
             }
         }
 
+        [Flags] 
+        public enum RowOrColumnMajor {
+            RowOrColumnMajor_RowMajor = 0,
+            RowOrColumnMajor_ColumnMajor = 1,
+            RowOrColumnMajor_Indeterminate = 2
+        }
+
+        [SecurityCritical(SecurityCriticalScope.Everything)]
+        [ComImport()]
+        [ComVisible(true)]
+        [Guid("9c860395-97b3-490a-b52a-858cc22af166")]
+        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        [CLSCompliant(false)]
+        public interface ITableProvider {
+            [return: MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_UNKNOWN)]
+            object[] /*IRawElementProviderSimple[]*/ GetRowHeaders();
+
+            [return: MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_UNKNOWN)]
+            object[] /*IRawElementProviderSimple[]*/ GetColumnHeaders();
+
+            RowOrColumnMajor RowOrColumnMajor {
+                get;
+            }
+        }
+
+        [SecurityCritical(SecurityCriticalScope.Everything)]
+        [ComImport()]
+        [ComVisible(true)]
+        [Guid("b9734fa6-771f-4d78-9c90-2517999349cd")]
+        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        [CLSCompliant(false)]
+        public interface ITableItemProvider {
+            [return: MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_UNKNOWN)]
+            object[] /*IRawElementProviderSimple[]*/ GetRowHeaderItems();
+
+            [return: MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_UNKNOWN)]
+            object[] /*IRawElementProviderSimple[]*/ GetColumnHeaderItems();
+        }
+
+        [SecurityCritical(SecurityCriticalScope.Everything)]
+        [ComImport()]
+        [ComVisible(true)]
+        [Guid("b17d6187-0907-464b-a168-0ef17a1572b1")]
+        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        [CLSCompliant(false)] 
+        public interface IGridProvider {
+            [return: MarshalAs(UnmanagedType.IUnknown)]
+            object /*IRawElementProviderSimple*/ GetItem(int row, int column);
+
+            int RowCount {
+                [return: MarshalAs(UnmanagedType.I4)]
+                get;
+            }
+
+            int ColumnCount {
+                [return: MarshalAs(UnmanagedType.I4)]
+                get;
+            }
+        }
+
+        [SecurityCritical(SecurityCriticalScope.Everything)]
+        [ComImport()]
+        [ComVisible(true)]
+        [Guid("d02541f1-fb81-4d64-ae32-f520f8a6dbd1")]
+        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        [CLSCompliant(false)] 
+        public interface IGridItemProvider {
+            int Row {
+                [return: MarshalAs(UnmanagedType.I4)]
+                get;
+            }
+
+            int Column {
+                [return: MarshalAs(UnmanagedType.I4)]
+                get;
+            }
+
+            int RowSpan {
+                [return: MarshalAs(UnmanagedType.I4)]
+                get;
+            }
+
+            int ColumnSpan {
+                [return: MarshalAs(UnmanagedType.I4)]
+                get;
+            }
+
+            object /*IRawElementProviderSimple*/ ContainingGrid {
+                [return: MarshalAs(UnmanagedType.IUnknown)]
+                get;
+            }
+        }
+
         public static IntPtr LoadLibraryFromSystemPathIfAvailable(string libraryName) {
             IntPtr module = IntPtr.Zero;
 

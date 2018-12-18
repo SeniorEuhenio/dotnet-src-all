@@ -24,6 +24,41 @@ namespace System
             }
         }
 
+        private static int _dontEnableStrictRFC3986ReservedCharacterSets;
+        internal const string DontEnableStrictRFC3986ReservedCharacterSetsName = @"Switch.System.Uri.DontEnableStrictRFC3986ReservedCharacterSets";
+
+        public static bool DontEnableStrictRFC3986ReservedCharacterSets
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                return LocalAppContext.GetCachedSwitchValue(DontEnableStrictRFC3986ReservedCharacterSetsName, ref _dontEnableStrictRFC3986ReservedCharacterSets);
+            }
+        }
+
+        private static int _dontKeepUnicodeBidiFormattingCharacters;
+        internal const string DontKeepUnicodeBidiFormattingCharactersName = @"Switch.System.Uri.DontKeepUnicodeBidiFormattingCharacters";
+
+        public static bool DontKeepUnicodeBidiFormattingCharacters
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                return LocalAppContext.GetCachedSwitchValue(DontKeepUnicodeBidiFormattingCharactersName, ref _dontKeepUnicodeBidiFormattingCharacters);
+            }
+        }
+
+        private static int _disableTempFileCollectionDirectoryFeature;
+        internal const string DisableTempFileCollectionDirectoryFeatureName = @"Switch.System.DisableTempFileCollectionDirectoryFeature";
+
+        public static bool DisableTempFileCollectionDirectoryFeature
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                return LocalAppContext.GetCachedSwitchValue(DisableTempFileCollectionDirectoryFeatureName, ref _disableTempFileCollectionDirectoryFeature);
+            }
+        }
         #endregion
 
         #region System.Net quirks
@@ -100,7 +135,6 @@ namespace System
         }
         #endregion
 
-
         private static int _doNotCatchSerialStreamThreadExceptions;
         internal const string DoNotCatchSerialStreamThreadExceptionsName = @"Switch.System.IO.Ports.DoNotCatchSerialStreamThreadExceptions";
 
@@ -110,6 +144,30 @@ namespace System
             get
             {
                 return LocalAppContext.GetCachedSwitchValue(DoNotCatchSerialStreamThreadExceptionsName, ref _doNotCatchSerialStreamThreadExceptions);
+            }
+        }
+
+        private static int _doNotValidateX509KeyStorageFlags;
+        internal const string DoNotValidateX509KeyStorageFlagsName = @"Switch.System.Security.Cryptography.X509Cerificates.X509Certificate2Collection.DoNotValidateX509KeyStorageFlags";
+
+        public static bool DoNotValidateX509KeyStorageFlags
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                return LocalAppContext.GetCachedSwitchValue(DoNotValidateX509KeyStorageFlagsName, ref _doNotValidateX509KeyStorageFlags);
+            }
+        }
+
+        private static int _doNotUseNativeZipLibraryForDecompression;
+        internal const string DoNotUseNativeZipLibraryForDecompressionName = @"Switch.System.IO.Compression.DoNotUseNativeZipLibraryForDecompression";
+
+        public static bool DoNotUseNativeZipLibraryForDecompression
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                return LocalAppContext.GetCachedSwitchValue(DoNotUseNativeZipLibraryForDecompressionName, ref _doNotUseNativeZipLibraryForDecompression);
             }
         }
     }

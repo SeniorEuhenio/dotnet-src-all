@@ -44,6 +44,13 @@ namespace System
                             LocalAppContext.DefineSwitchDefault(LocalAppContextSwitches.DoNotCatchSerialStreamThreadExceptionsName, true);
                         }
 
+                        if (version <= 40701)
+                        {
+                            LocalAppContext.DefineSwitchDefault(LocalAppContextSwitches.DontEnableStrictRFC3986ReservedCharacterSetsName, true);
+                            LocalAppContext.DefineSwitchDefault(LocalAppContextSwitches.DontKeepUnicodeBidiFormattingCharactersName, true);
+                            LocalAppContext.DefineSwitchDefault(LocalAppContextSwitches.DoNotUseNativeZipLibraryForDecompressionName, true);
+                        }
+
                         break;
                     }
                 case "WindowsPhone":

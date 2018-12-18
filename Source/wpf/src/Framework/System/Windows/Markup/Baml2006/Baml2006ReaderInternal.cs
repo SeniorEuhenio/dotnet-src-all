@@ -42,5 +42,21 @@ namespace System.Windows.Baml2006
         {
             return asm.FullName;
         }
+
+        // DDVSO 546550: When processing ResourceDictionary.Source we may find a Uri that references the
+        // local assembly, but if another version of the same assembly is loaded we may have trouble resolving
+        // to the correct one. this method returns a custom markup extension that passes down the local assembly 
+        // information to help in this case.
+        internal override object CreateTypeConverterMarkupExtension(XamlMember property, TypeConverter converter, object propertyValue, Baml2006ReaderSettings settings)
+        {
+            if (FrameworkAppContextSwitches.AppendLocalAssemblyVersionForSourceUri &&
+                property.DeclaringType.UnderlyingType == typeof(System.Windows.ResourceDictionary) &&
+                property.Name.Equals("Source"))
+            {
+                return new SourceUriTypeConverterMarkupExtension(converter, propertyValue, settings.LocalAssembly);
+            }
+
+            return base.CreateTypeConverterMarkupExtension(property, converter, propertyValue, settings);
+        }
     }
 }

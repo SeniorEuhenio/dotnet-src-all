@@ -2734,6 +2734,39 @@ namespace System.Windows.Media.Composition
             }
         }
 
+        /// <summary>
+        /// See <see cref="MediaContext.ShouldRenderEvenWhenNoDisplayDevicesAreAvailable"/> for 
+        /// details.
+        /// </summary>
+        /// <SecurityNote>
+        ///     Critical: This code accesses an unsafe code block
+        ///     Safe:     Operation is ok to call, sending a pointer to a channel is safe, 
+        ///               and this does not return any Critical data to the caller
+        /// </SecurityNote>
+        [SecuritySafeCritical]
+        internal static void NotifyPolicyChangeForNonInteractiveMode(
+            bool forceRender, 
+            Channel channel
+            )
+        {
+            var command = new DUCE.MILCMD_PARTITION_NOTIFYPOLICYCHANGEFORNONINTERACTIVEMODE
+            {
+                Type = MILCMD.MilCmdPartitionNotifyPolicyChangeForNonInteractiveMode,
+                ShouldRenderEvenWhenNoDisplayDevicesAreAvailable = (forceRender ? 1u : 0u)
+            };
+
+            unsafe
+            {
+                channel.SendCommand(
+                    (byte*)&command, 
+                    sizeof(DUCE.MILCMD_PARTITION_NOTIFYPOLICYCHANGEFORNONINTERACTIVEMODE), 
+                    sendInSeparateBatch: false
+                    );
+            }
+
+            // Caller should close and commit
+        }
+
         internal static class ETWEvent
         {
             /// <SecurityNote>

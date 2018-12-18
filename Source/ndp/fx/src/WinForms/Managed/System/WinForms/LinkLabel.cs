@@ -469,11 +469,7 @@ namespace System.Windows.Forms {
             get {
                 if (visitedLinkColor.IsEmpty) {
                     if (SystemInformation.HighContrast) {
-                        int r = ((int)SystemColors.Window.R + (int)SystemColors.WindowText.R + 1) / 2;
-                        int g = SystemColors.WindowText.G;
-                        int b = ((int)SystemColors.Window.B + (int)SystemColors.WindowText.B + 1) / 2;
-
-                        return Color.FromArgb(r, g, b);
+                        return LinkUtilities.GetVisitedLinkColor();
                     }
                     return IEVisitedLinkColor;
                 }
@@ -2745,7 +2741,7 @@ namespace System.Windows.Forms {
                     int charStart = LinkLabel.ConvertToCharIndex(link.Start, text);
                     int charEnd = LinkLabel.ConvertToCharIndex(link.Start + link.Length, text);
                     string name = text.Substring(charStart, charEnd - charStart);
-                    if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures && link.Owner.UseMnemonic) {
+                    if (AccessibilityImprovements.Level1 && link.Owner.UseMnemonic) {
                         // return the same value as the tooltip shows.
                         name = WindowsFormsUtils.TextWithoutMnemonics(name);
                     } 
@@ -2788,14 +2784,12 @@ namespace System.Windows.Forms {
             public override string Value {
                 [SecurityPermission(SecurityAction.Demand, Flags = SecurityPermissionFlag.UnmanagedCode)]
                 get {
-                    if (LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
-                        return Name;
-                    }
-                    else {                  
+                    if (AccessibilityImprovements.Level1) {
                         // Narrator announces Link's text twice, once as a Name property and once as a Value, thus removing value.
                         // Value is optional for this role (Link).
                         return string.Empty;
-                    }
+                    } 
+                    return Name;
                 }
             }
 

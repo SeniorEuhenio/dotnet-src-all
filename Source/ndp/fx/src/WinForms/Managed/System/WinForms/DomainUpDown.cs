@@ -302,19 +302,25 @@ namespace System.Windows.Forms {
 
                 // Found a match, so select this value
                 //
-                SelectIndex(matchIndex);
+                if (!LocalAppContextSwitches.UseLegacyDomainUpDownControlScrolling) {
+                    domainIndex = matchIndex;
+                }
+                else {
+                    SelectIndex(matchIndex);
+                    return;
+                }
             }
 
             // Otherwise, get the next string in the domain list
             //
-            else {
-                if (domainIndex < domainItems.Count - 1) {
-                    SelectIndex(domainIndex + 1);
-                }
-                else if (Wrap) {
-                    SelectIndex(0);
-                }
-            }            
+            
+            if (domainIndex < domainItems.Count - 1) {
+                SelectIndex(domainIndex + 1);
+            }
+            else if (Wrap) {
+                SelectIndex(0);
+            }
+                        
         }
 
         /// <include file='doc\DomainUpDown.uex' path='docs/doc[@for="DomainUpDown.MatchIndex"]/*' />
@@ -542,7 +548,9 @@ namespace System.Windows.Forms {
             if (domainItems.Count <= 0) {
                 return;
             }
-            if (domainIndex == -1) {
+
+            // legacy behaviour. we do not want to void operation if domainIndex was -1 in latest runtime.
+            if (domainIndex == -1 && LocalAppContextSwitches.UseLegacyDomainUpDownControlScrolling) {
                 return;
             }
 
@@ -554,18 +562,25 @@ namespace System.Windows.Forms {
             if (matchIndex != -1) {
 
                 // Found a match, so set the domain index accordingly
-                SelectIndex(matchIndex);
+                //In legacy (.NET framework 4.7.1 and below), we were just updating selected index but no actualy change in the spinner.
+                //with new runtime, we update the selected index and perform spinner action.
+                 if(!LocalAppContextSwitches.UseLegacyDomainUpDownControlScrolling) {
+                     domainIndex = matchIndex;                                      
+                 }
+                 else {
+                     SelectIndex(matchIndex);
+                     return;
+                 }
             }
 
-            // Otherwise, get the previous string in the domain list
-            else {
-                if (domainIndex > 0) {
-                    SelectIndex(domainIndex - 1);
-                }
-                else if (Wrap) {
-                    SelectIndex(domainItems.Count - 1);
-                }
+            // Otherwise, get the previous string in the domain list            
+
+            if (domainIndex > 0) {
+                SelectIndex(domainIndex - 1);
             }
+            else if (Wrap) {
+                SelectIndex(domainItems.Count - 1);
+            }            
         }
        
         /// <include file='doc\DomainUpDown.uex' path='docs/doc[@for="DomainUpDown.UpdateEditText"]/*' />
@@ -738,7 +753,7 @@ namespace System.Windows.Forms {
                         return role;
                     }
                     else {
-                        if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                        if (AccessibilityImprovements.Level1) {
                             return AccessibleRole.SpinButton;
                         }
                         else {
@@ -750,7 +765,7 @@ namespace System.Windows.Forms {
 
             public override string Name {
                 get {
-                    if (base.Name == null && !LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                    if (base.Name == null && AccessibilityImprovements.Level1) {
                         return Owner.GetType().Name;
                     }
                     else {

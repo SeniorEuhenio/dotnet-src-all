@@ -1563,12 +1563,14 @@ typedef enum CorOpenFlags
     // ofManifestMetadata = 0x00000008,     // Open scope on ngen image, return the manifest metadata instead of the IL metadata
     ofNoTypeLib         =   0x00000080,     // Don't OpenScope on a typelib.
     ofNoTransform       =   0x00001000,     // Disable automatic transforms of .winmd files.
+    ofCheckIntegrity    =   0x00000800,     // Only open the scope if it passes a code integrity check. Only applies on 
+                                            // machines with Device Guard enabled and operating system versions that support this.
 
     // Internal bits
     ofReserved1         =   0x00000100,     // Reserved for internal use.
     ofReserved2         =   0x00000200,     // Reserved for internal use.
     ofReserved3         =   0x00000400,     // Reserved for internal use.
-    ofReserved          =   0xffffef40      // All the reserved bits.
+    ofReserved          =   0xffffe740      // All the reserved bits.
 
 } CorOpenFlags;
 

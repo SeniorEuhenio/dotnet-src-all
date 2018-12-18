@@ -39,6 +39,57 @@ namespace System.Security.Policy
             this.Font = SystemFonts.MessageBoxFont;
             lblMachineAccess.Font = lblPublisher.Font = lblInstallation.Font = lblLocation.Font = new Font(lblMachineAccess.Font, FontStyle.Bold);
             FillContent(options, publisherName);
+
+            if (AccessibilityImprovements.Level2)
+            {
+                // The form
+                this.AccessibleName = this.Text;
+
+                // The outer panel
+                this.tableLayoutPanel.AccessibleName = string.Empty;
+
+                // Publisher
+                this.pictureBoxPublisher.AccessibleName = this.pictureBoxPublisher.AccessibleDescription;
+                this.pictureBoxPublisher.AccessibleRole = AccessibleRole.Graphic;
+                this.lblPublisher.AccessibleName = this.lblPublisher.Text;
+                this.lblPublisherContent.AccessibleName = this.lblPublisherContent.Text;
+
+                // Machine Access
+                this.pictureBoxMachineAccess.AccessibleName = this.pictureBoxMachineAccess.AccessibleDescription;
+                this.pictureBoxMachineAccess.AccessibleRole = AccessibleRole.Graphic;
+                this.lblMachineAccess.AccessibleName = this.lblMachineAccess.Text;
+                this.lblMachineAccessContent.AccessibleName = this.lblMachineAccessContent.Text;
+
+                // Installation
+                this.pictureBoxInstallation.AccessibleName = this.pictureBoxInstallation.AccessibleDescription;
+                this.pictureBoxInstallation.AccessibleRole = AccessibleRole.Graphic;
+                this.lblInstallation.AccessibleName = this.lblInstallation.Text;
+                this.lblInstallationContent.AccessibleName = this.lblInstallationContent.Text;
+
+                // Location
+                this.pictureBoxLocation.AccessibleName = this.pictureBoxLocation.AccessibleDescription;
+                this.pictureBoxLocation.AccessibleRole = AccessibleRole.Graphic;
+                this.lblLocation.AccessibleName = this.lblLocation.Text;
+                this.lblLocationContent.AccessibleName = this.lblLocationContent.Text;
+
+                // Close button
+                this.btnClose.AccessibleName = this.btnClose.Text;
+
+                // Re-order controls to fix Narrator's Scan Mode navigation
+                this.tableLayoutPanel.Controls.SetChildIndex(this.pictureBoxPublisher, 0);
+                this.tableLayoutPanel.Controls.SetChildIndex(this.lblPublisher, 1);
+                this.tableLayoutPanel.Controls.SetChildIndex(this.lblPublisherContent, 2);
+                this.tableLayoutPanel.Controls.SetChildIndex(this.pictureBoxMachineAccess, 3);
+                this.tableLayoutPanel.Controls.SetChildIndex(this.lblMachineAccess, 4);
+                this.tableLayoutPanel.Controls.SetChildIndex(this.lblMachineAccessContent, 5);
+                this.tableLayoutPanel.Controls.SetChildIndex(this.pictureBoxInstallation, 6);
+                this.tableLayoutPanel.Controls.SetChildIndex(this.lblInstallation, 7);
+                this.tableLayoutPanel.Controls.SetChildIndex(this.lblInstallationContent, 8);
+                this.tableLayoutPanel.Controls.SetChildIndex(this.pictureBoxLocation, 9);
+                this.tableLayoutPanel.Controls.SetChildIndex(this.lblLocation, 10);
+                this.tableLayoutPanel.Controls.SetChildIndex(this.lblLocationContent, 11);
+                this.tableLayoutPanel.Controls.SetChildIndex(this.btnClose, 12);
+            }
         }
 
         protected override void Dispose(bool disposing)

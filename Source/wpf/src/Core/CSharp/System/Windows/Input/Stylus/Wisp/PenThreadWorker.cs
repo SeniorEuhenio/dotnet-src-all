@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Collections;
 using System.Runtime.InteropServices;
+using System.Windows.Interop;
 using System.Windows.Threading;
 using System.Windows.Media;
 using System.Threading;
@@ -54,8 +55,17 @@ namespace System.Windows.Input
         [SecurityCritical]
         IPimcContext2 []       _pimcContexts = new IPimcContext2[0];
 
+        /// <summary>
+        /// A list of all WISP context COM object GIT keys that are locked via this thread.
+        /// </summary>
         /// <SecurityNote>
-        ///     SecurityCritical - This is got under an elevation and is hence critical.
+        /// Critical - Marked critical to prevent inadvertant code from modifying this.
+        /// </SecurityNote>
+        [SecurityCritical]
+        UInt32[] _wispContextKeys = new UInt32[0];
+
+        /// <SecurityNote>
+         ///     SecurityCritical - This is got under an elevation and is hence critical.
         /// </SecurityNote>
         private SecurityCriticalData<IntPtr>   _pimcResetHandle;
         private volatile bool                  __disposed;
@@ -81,7 +91,7 @@ namespace System.Windows.Input
         // over to the worker thread to be executed synchronously.
         //
         /////////////////////////////////////////////////////////////////////
-        
+
         // Base class for all worker operations
         private abstract class WorkerOperation
         {
@@ -257,7 +267,9 @@ namespace System.Windows.Input
                     // should be lossless cast because both COM server and client are expected
                     // to be of same bitness (they are in the same process).
                     result.CommHandle = new SecurityCriticalDataClass<IntPtr>((IntPtr.Size == 4 ? new IntPtr((int)commHandle) : new IntPtr(commHandle)));
-                    
+
+                    result.WispContextKey = MS.Win32.Penimc.UnsafeNativeMethods.QueryWispContextKey(pimcContext);
+
                     _result = result;
                 }
                 catch ( System.Runtime.InteropServices.COMException )
@@ -290,13 +302,101 @@ namespace System.Windows.Input
             ///     Critical - Critical data got under an elevation and is hence critical.
             /// </SecurityNote>
             [SecurityCritical]
-            IntPtr       _hwnd;
+            IntPtr _hwnd;
             /// <SecurityNote>
             ///     Critical - Critical data got under an elevation and is hence critical.
             /// </SecurityNote>
             [SecurityCritical]
-            IPimcTablet2  _pimcTablet;
+            IPimcTablet2 _pimcTablet;
             PenContextInfo _result;
+        }
+
+        /// <summary>
+        /// Class to handle acquiring WISP/PenIMC tablet locks on the PenThread.
+        /// </summary>
+        private class WorkerOperationAcquireTabletLocks : WorkerOperation
+        {
+            /// <SecurityNote>
+            ///     Critical - Critical data got under an elevation and is hence critical.
+            /// </SecurityNote>
+            [SecurityCritical]
+            internal WorkerOperationAcquireTabletLocks(IPimcTablet2 tablet, UInt32 wispTabletKey)
+            {
+                _tablet = tablet;
+                _wispTabletKey = wispTabletKey;
+            }
+
+            internal bool Result { get; private set; }
+
+            /// <summary>
+            /// Releases the lock on the PenThread.
+            /// </summary>
+            /// <SecurityNote>
+            ///     Critical: - Calls MS.Win32.Penimc.UnsafeNativeMethods.UnlockWispObjectFromGit
+            /// </SecurityNote>
+            [SecurityCritical]
+            protected override void OnDoWork()
+            {
+                MS.Win32.Penimc.UnsafeNativeMethods.AcquireTabletExternalLock(_tablet);
+                MS.Win32.Penimc.UnsafeNativeMethods.CheckedLockWispObjectFromGit(_wispTabletKey);
+                Result = true;
+            }
+
+            /// <summary>
+            /// The PenIMC tablet
+            /// </summary>
+            [SecurityCritical]
+            IPimcTablet2 _tablet;
+
+            /// <summary>
+            /// The GIT key for the WISP COM object.
+            /// </summary>
+            [SecurityCritical]
+            UInt32 _wispTabletKey;
+        }
+
+        /// <summary>
+        /// Class to handle releasing WISP/PenIMC tablet locks on the PenThread.
+        /// </summary>
+        private class WorkerOperationReleaseTabletLocks : WorkerOperation
+        {
+            /// <SecurityNote>
+            ///     Critical - Critical data got under an elevation and is hence critical.
+            /// </SecurityNote>
+            [SecurityCritical]
+            internal WorkerOperationReleaseTabletLocks(IPimcTablet2 tablet, UInt32 wispTabletKey)
+            {
+                _tablet = tablet;
+                _wispTabletKey = wispTabletKey;
+            }
+
+            internal bool Result { get; private set; }
+
+            /// <summary>
+            /// Releases the lock on the PenThread.
+            /// </summary>
+            /// <SecurityNote>
+            ///     Critical: - Calls MS.Win32.Penimc.UnsafeNativeMethods.UnlockWispObjectFromGit
+            /// </SecurityNote>
+            [SecurityCritical]
+            protected override void OnDoWork()
+            {
+                MS.Win32.Penimc.UnsafeNativeMethods.CheckedUnlockWispObjectFromGit(_wispTabletKey);
+                MS.Win32.Penimc.UnsafeNativeMethods.ReleaseTabletExternalLock(_tablet);
+                Result = true;
+            }
+
+            /// <summary>
+            /// The PenIMC tablet
+            /// </summary>
+            [SecurityCritical]
+            IPimcTablet2 _tablet;
+            
+            /// <summary>
+            /// The GIT key for the WISP COM object.
+            /// </summary>
+            [SecurityCritical]
+            UInt32 _wispTabletKey;
         }
 
         // Class that handles refreshing the cursor devices for a particular tablet device.        
@@ -539,7 +639,6 @@ namespace System.Windows.Input
             bool _result;
         }
 
-
         // Class that handles getting the current rect for a tablet device.
         private class WorkerOperationRemoveContext : WorkerOperation
         {
@@ -761,6 +860,66 @@ namespace System.Windows.Input
             createContextOperation.DoneEvent.Close();
 
             return createContextOperation.Result;
+        }
+
+        /// <summary>
+        /// Instantiates a worker to acquire a WISP/PenIMC tablet object's lock on the PenThread and waits on the operation.
+        /// </summary>
+        /// <param name="gitKey">The GIT key for the WISP COM object.</param>
+        /// <returns>True if successful, false otherwise.</returns>
+        /// <SecurityNote>
+        /// Critical - Calls SecurityCritical code (MS.Win32.Penimc.UnsafeNativeMethods.RaiseResetEvent),
+        ///             Accesses SecurityCriticalData _pimcResetHandle.
+        /// </SecurityNote>
+        [SecurityCritical]
+        internal bool WorkerAcquireTabletLocks(IPimcTablet2 tablet, UInt32 wispTabletKey)
+        {
+            WorkerOperationAcquireTabletLocks acquireOperation =
+                new WorkerOperationAcquireTabletLocks(tablet, wispTabletKey);
+
+            lock (_workerOperationLock)
+            {
+                _workerOperation.Add(acquireOperation);
+            }
+
+            // Kick thread to do this work.
+            MS.Win32.Penimc.UnsafeNativeMethods.RaiseResetEvent(_pimcResetHandle.Value);
+
+            // Wait for this work to be completed.
+            acquireOperation.DoneEvent.WaitOne();
+            acquireOperation.DoneEvent.Close();
+
+            return acquireOperation.Result;
+        }
+
+        /// <summary>
+        /// Instantiates a worker to release a WISP/PenIMC tablet object's lock on the PenThread and waits on the operation.
+        /// </summary>
+        /// <param name="gitKey">The GIT key for the WISP COM object.</param>
+        /// <returns>True if successful, false otherwise.</returns>
+        /// <SecurityNote>
+        /// Critical - Calls SecurityCritical code (MS.Win32.Penimc.UnsafeNativeMethods.RaiseResetEvent),
+        ///             Accesses SecurityCriticalData _pimcResetHandle.
+        /// </SecurityNote>
+        [SecurityCritical]
+        internal bool WorkerReleaseTabletLocks(IPimcTablet2 tablet, UInt32 wispTabletKey)
+        {
+            WorkerOperationReleaseTabletLocks releaseOperation = 
+                new WorkerOperationReleaseTabletLocks(tablet, wispTabletKey);
+
+            lock (_workerOperationLock)
+            {
+                _workerOperation.Add(releaseOperation);
+            }
+
+            // Kick thread to do this work.
+            MS.Win32.Penimc.UnsafeNativeMethods.RaiseResetEvent(_pimcResetHandle.Value);
+
+            // Wait for this work to be completed.
+            releaseOperation.DoneEvent.WaitOne();
+            releaseOperation.DoneEvent.Close();
+
+            return releaseOperation.Result;
         }
 
         /// <SecurityNote>
@@ -1027,7 +1186,18 @@ namespace System.Windows.Input
             //                  COM will set up message pumping which will cause reentrancy here.
             InitializeSupportedStylusPointProperties(pimcTablet, tabletInfo);
             tabletInfo.StylusDevicesInfo = GetStylusDevicesInfo(pimcTablet);
-            
+
+            // DDVSO:514949
+            // Obtain the WispTabletKey for future use in locking the WISP tablet.
+            tabletInfo.WispTabletKey = MS.Win32.Penimc.UnsafeNativeMethods.QueryWispTabletKey(pimcTablet);
+
+            // DDVSO:514949
+            // If the manager has not already been created and locked, we will lock it here.  This is the first opportunity
+            // we will have to lock the manager as it will have been created on the thread to instantiate the first tablet.
+            MS.Win32.Penimc.UnsafeNativeMethods.SetWispManagerKey(pimcTablet);
+
+            MS.Win32.Penimc.UnsafeNativeMethods.LockWispManager();
+
             return tabletInfo;
         }
 
@@ -1174,11 +1344,16 @@ namespace System.Windows.Input
             {
                 penContextRefs.Add(penContext); // add the new one to our list.
 
+                // DDVSO:514949
+                // Lock the WISP Context to protect against COM rundown
+                MS.Win32.Penimc.UnsafeNativeMethods.CheckedLockWispObjectFromGit(penContext.WispContextKey);
+
                 // Now build up the handle array and PimcContext ref array.
                 _pimcContexts = new IPimcContext2[penContextRefs.Count];
                 _penContexts = new WeakReference[penContextRefs.Count];
                 _handles = new IntPtr[penContextRefs.Count];
-                
+                _wispContextKeys = new UInt32[penContextRefs.Count];
+
                 for (i=0; i < penContextRefs.Count; i++)
                 {
                     PenContext pc = penContextRefs[i];
@@ -1187,6 +1362,7 @@ namespace System.Windows.Input
                     _handles[i] = pc.CommHandle; // Add to array.
                     _pimcContexts[i] = pc._pimcContext.Value;
                     _penContexts[i] = new WeakReference(pc);
+                    _wispContextKeys[i] = pc.WispContextKey;
                     pc = null;
                 }
 
@@ -1235,7 +1411,8 @@ namespace System.Windows.Input
             _pimcContexts = new IPimcContext2[penContextRefs.Count];
             _penContexts = new WeakReference[penContextRefs.Count];
             _handles = new IntPtr[penContextRefs.Count];
-            
+            _wispContextKeys = new UInt32[penContextRefs.Count];
+
             for (i=0; i < penContextRefs.Count; i++)
             {
                 PenContext pc = penContextRefs[i];
@@ -1244,6 +1421,7 @@ namespace System.Windows.Input
                 _handles[i] = pc.CommHandle; // Add to array.
                 _pimcContexts[i] = pc._pimcContext.Value;
                 _penContexts[i] = new WeakReference(pc);
+                _wispContextKeys[i] = pc.WispContextKey;
                 pc = null;
             }
 
@@ -1251,12 +1429,32 @@ namespace System.Windows.Input
             penContextRefs.Clear(); // Make sure we remove refs!
             penContextRefs = null;
 
-            // DDVSO:167197
-            // Release the PenIMC object only when we are assured that the
-            // context was removed from the list of waiting handles.
             if (removed)
             {
-                Marshal.ReleaseComObject(penContext._pimcContext.Value);
+                // DDVSO:514949
+                // Unlock the WISP Context balancing the call in AddPenContext
+                MS.Win32.Penimc.UnsafeNativeMethods.CheckedUnlockWispObjectFromGit(penContext.WispContextKey);
+
+                // DDVSO:514949
+                // Since we are no longer using this PenContext, ensure it's released in the
+                // native layer.
+                // This is needed due to a COM rundown issue in the OS(OSGVSO:10779198).  If 
+                // the COM proxy that the IPimcContext RCW holds is disconnected, the RCW will 
+                // release the references to the underlying CPimcContext.  WPF will then use the
+                // raw pointer to this object without realizing it has been destructed, leading
+                // to AVs.
+                penContext._pimcContext.Value.ShutdownComm();
+
+                // DDVSO:167197
+                // Release the PenIMC object only when we are assured that the
+                // context was removed from the list of waiting handles.
+                // DDVSO:474737
+                // Restrict COM releases to Win7 as this can cause issues with later versions
+                // of PenIMC and WISP due to using a context after it is released.
+                if (!OSVersionHelper.IsOsWindows8OrGreater)
+                {
+                    Marshal.ReleaseComObject(penContext._pimcContext.Value);
+                }
             }
 
             return removed;
@@ -1396,6 +1594,21 @@ namespace System.Windows.Input
 
                 // We've been disposed or hit thread abort.  Release this handle before exiting.
                 MS.Win32.Penimc.UnsafeNativeMethods.DestroyResetEvent(_pimcResetHandle.Value);
+
+                // DDVSO:514949
+                // Release the manager locks, both PenIMC and WISP here to balance lock calls.
+                MS.Win32.Penimc.UnsafeNativeMethods.UnlockWispManager();
+                MS.Win32.Penimc.UnsafeNativeMethods.ReleaseManagerExternalLock();
+
+                for (int i = 0; i < _pimcContexts.Length; i++)
+                {
+                    // DDVSO:514949
+                    // Unlock the WISP Context, balancing the call in AddPenContext.
+                    MS.Win32.Penimc.UnsafeNativeMethods.CheckedUnlockWispObjectFromGit(_wispContextKeys[i]);
+
+                    // Ensure that all native references are released.
+                    _pimcContexts[i].ShutdownComm();
+                }
 
                 // Make sure the _pimcResetHandle is still valid after Dispose is called and before
                 // our thread exits.

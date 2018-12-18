@@ -539,8 +539,8 @@ namespace System.Windows.Forms {
 
         internal class ToolStripComboBoxControl : ComboBox {
                private ToolStripComboBox owner = null;
-               
-               public ToolStripComboBoxControl() {
+
+            public ToolStripComboBoxControl() {
                    this.FlatStyle = FlatStyle.Popup;
                    SetStyle(ControlStyles.ResizeRedraw | ControlStyles.OptimizedDoubleBuffer, true);
                }
@@ -641,15 +641,26 @@ namespace System.Windows.Forms {
                             }
                         }
                         
-                        Brush brush = (comboBox.Enabled) ? SystemBrushes.ControlText : SystemBrushes.GrayText;
+                        Brush brush;
+                        if (comboBox.Enabled) {
+                            if (AccessibilityImprovements.Level2 && SystemInformation.HighContrast && (comboBox.ContainsFocus || comboBox.MouseIsOver) && ToolStripManager.VisualStylesEnabled) {
+                                brush = SystemBrushes.HighlightText;
+                            }
+                            else {
+                                brush = SystemBrushes.ControlText;
+                            }
+                        }
+                        else {
+                            brush = SystemBrushes.GrayText;
+                        }
                         Point middle = new Point(dropDownRect.Left + dropDownRect.Width / 2, dropDownRect.Top + dropDownRect.Height / 2);
                         
                         // if the width is odd - favor pushing it over one pixel right.
                         middle.X += (dropDownRect.Width % 2);
                         g.FillPolygon(brush, new Point[] {
-                            new Point(middle.X - FlatComboAdapter.Offset2X, middle.Y - 1), 
-                            new Point(middle.X + FlatComboAdapter.Offset2X + 1, middle.Y - 1), 
-                            new Point(middle.X, middle.Y + FlatComboAdapter.Offset2Y)
+                            new Point(middle.X - FlatComboAdapter.Offset2Pixels, middle.Y - 1), 
+                            new Point(middle.X + FlatComboAdapter.Offset2Pixels + 1, middle.Y - 1), 
+                            new Point(middle.X, middle.Y + FlatComboAdapter.Offset2Pixels)
                         });
 
                     }

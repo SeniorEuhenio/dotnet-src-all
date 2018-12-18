@@ -398,7 +398,7 @@ namespace System.Windows.Forms {
         }
 
         protected override AccessibleObject CreateAccessibilityInstance() {
-            if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+            if (AccessibilityImprovements.Level1) {
                 return new ToolStripSplitButtonExAccessibleObject(this);
             }
             else {

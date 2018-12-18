@@ -3398,7 +3398,7 @@ namespace System.Windows.Forms {
             // 
             if (keyData == Keys.Enter || (state[stateSupportsSpaceKey] && keyData == Keys.Space)) {
                 FireEvent(ToolStripItemEventType.Click);
-                if (ParentInternal != null && !ParentInternal.IsDropDown) {
+                if (ParentInternal != null && !ParentInternal.IsDropDown && !(AccessibilityImprovements.Level2 && !Enabled)) {
                     ParentInternal.RestoreFocusInternal();
                 }
                 return true;
@@ -3957,7 +3957,7 @@ namespace System.Windows.Forms {
             
             internal override int[] RuntimeId {
                 get {
-                    if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                    if (AccessibilityImprovements.Level1) {
                         if (runtimeId == null) {
                             // we need to provide a unique ID
                             // others are implementing this in the same manner
@@ -3978,7 +3978,7 @@ namespace System.Windows.Forms {
 
             internal override object GetPropertyValue(int propertyID) {
 
-                if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                if (AccessibilityImprovements.Level1) {
                     if (propertyID == NativeMethods.UIA_NamePropertyId) {
                         return Name;
                     }
@@ -4048,14 +4048,21 @@ namespace System.Windows.Forms {
                     
                     
                     if (!ownerItem.Enabled) {
+
+                        if (AccessibilityImprovements.Level2) {
+                            if (ownerItem.Selected && ownerItem is ToolStripMenuItem) {
+                                return AccessibleStates.Unavailable | additionalState | AccessibleStates.Focused;
+                            }
+                        }
+
                         // VSO 436154 - Disabled menu items that are selected must have focus
                         // state so that Narrator can announce them.
-                        if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                        if (AccessibilityImprovements.Level1) {
                             if (ownerItem.Selected && ownerItem is ToolStripMenuItem) {
                                 return AccessibleStates.Focused;
                             }
                         }
-                        
+
                         return AccessibleStates.Unavailable | additionalState;
                     }
                     

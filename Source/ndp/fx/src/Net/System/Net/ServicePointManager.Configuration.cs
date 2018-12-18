@@ -61,6 +61,11 @@ namespace System.Net
 
         private static bool LoadDisableSendAuxRecordConfiguration(bool disable)
         {
+            if (LocalAppContextSwitches.DontEnableSchSendAuxRecord)
+            {
+                return true;
+            }
+
             int schSendAuxRecordKeyValue;
             schSendAuxRecordKeyValue = RegistryConfiguration.AppConfigReadInt(RegistryLocalSendAuxRecordName, 1);
             if (schSendAuxRecordKeyValue == 0)

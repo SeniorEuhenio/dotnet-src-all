@@ -18,6 +18,8 @@ namespace System.Windows.Forms
         /// <include file='doc\DataGridViewAccessibleObject.uex' path='docs/doc[@for="DataGridView.DataGridViewAccessibleObject"]/*' />
         protected class DataGridViewAccessibleObject : ControlAccessibleObject
         {
+            private int[] runtimeId = null; // Used by UIAutomation
+
             DataGridView owner;
             DataGridViewTopRowAccessibleObject topRowAccessibilityObject = null;
             DataGridViewSelectedCellsAccessibleObject selectedCellsAccessibilityObject = null;
@@ -246,6 +248,127 @@ namespace System.Windows.Forms
                 this.NotifyClients(AccessibleEvents.Reorder);
             }
             */
+
+            internal override int[] RuntimeId
+            {
+                get
+                {
+                    if (runtimeId == null)
+                    {
+                        runtimeId = new int[2];
+                        runtimeId[0] = 0x2a; // first item is static - 0x2a
+                        runtimeId[1] = this.GetHashCode();
+                    }
+
+                    return runtimeId;
+                }
+            }
+
+            internal override bool IsIAccessibleExSupported()
+            {
+                if (AccessibilityImprovements.Level2)
+                {
+                    return true;
+                }
+
+                return base.IsIAccessibleExSupported();
+            }
+
+            internal override object GetPropertyValue(int propertyID)
+            {
+                if (propertyID == NativeMethods.UIA_IsTablePatternAvailablePropertyId)
+                {
+                    return IsPatternSupported(NativeMethods.UIA_TablePatternId);
+                }
+                else if (propertyID == NativeMethods.UIA_IsGridPatternAvailablePropertyId)
+                {
+                    return IsPatternSupported(NativeMethods.UIA_GridPatternId);
+                }
+
+                return base.GetPropertyValue(propertyID);
+            }
+
+            internal override bool IsPatternSupported(int patternId)
+            {
+                if (patternId == NativeMethods.UIA_TablePatternId || 
+                    patternId == NativeMethods.UIA_GridPatternId)
+                {
+                    return true;
+                }
+
+                return base.IsPatternSupported(patternId);
+            }
+
+            [SecurityPermission(SecurityAction.Demand, Flags = SecurityPermissionFlag.UnmanagedCode)]
+            internal override UnsafeNativeMethods.IRawElementProviderSimple[] GetRowHeaders()
+            {
+                if (!this.owner.RowHeadersVisible)
+                {
+                    return null;
+                }
+
+                UnsafeNativeMethods.IRawElementProviderSimple[] result = new UnsafeNativeMethods.IRawElementProviderSimple[this.owner.Rows.Count];
+                for (int i = 0; i < this.owner.Rows.Count; i++)
+                {
+                    result[i] = this.owner.Rows[i].HeaderCell.AccessibilityObject;
+                }
+                return result;
+            }
+
+            [SecurityPermission(SecurityAction.Demand, Flags = SecurityPermissionFlag.UnmanagedCode)]
+            internal override UnsafeNativeMethods.IRawElementProviderSimple[] GetColumnHeaders()
+            {
+                if (!this.owner.ColumnHeadersVisible)
+                {
+                    return null;
+                }
+
+                UnsafeNativeMethods.IRawElementProviderSimple[] result = new UnsafeNativeMethods.IRawElementProviderSimple[this.owner.Columns.Count];
+                for (int i = 0; i < this.owner.Columns.Count; i++)
+                {
+                    result[i] = this.owner.Columns[i].HeaderCell.AccessibilityObject;
+                }
+                return result;
+            }
+
+            internal override UnsafeNativeMethods.RowOrColumnMajor RowOrColumnMajor
+            {
+                [SecurityPermission(SecurityAction.Demand, Flags = SecurityPermissionFlag.UnmanagedCode)]
+                get
+                {
+                    return UnsafeNativeMethods.RowOrColumnMajor.RowOrColumnMajor_RowMajor;
+                }
+            }
+
+            [SecurityPermission(SecurityAction.Demand, Flags = SecurityPermissionFlag.UnmanagedCode)]
+            internal override UnsafeNativeMethods.IRawElementProviderSimple GetItem(int row, int column)
+            {
+                if (row >= 0 && row < this.owner.Rows.Count &&
+                    column >= 0 && column < this.owner.Columns.Count)
+                {
+                    return this.owner.Rows[row].Cells[column].AccessibilityObject;
+                }
+
+                return null;
+            }
+
+            internal override int RowCount
+            {
+                [SecurityPermission(SecurityAction.Demand, Flags = SecurityPermissionFlag.UnmanagedCode)]
+                get
+                {
+                    return this.owner.RowCount;
+                }
+            }
+
+            internal override int ColumnCount
+            {
+                [SecurityPermission(SecurityAction.Demand, Flags = SecurityPermissionFlag.UnmanagedCode)]
+                get
+                {
+                    return this.owner.ColumnCount;
+                }
+            }
         }
     }
 }

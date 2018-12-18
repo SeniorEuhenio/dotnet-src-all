@@ -277,13 +277,22 @@ using Microsoft.Win32;
            }
        }
 
-       private static void InitializeRenderer(int state) {
-           if (visualStyleRenderer == null) {
-               visualStyleRenderer = new VisualStyleRenderer(RadioElement.ClassName, RadioElement.Part, state);
-           }
-           else {
-               visualStyleRenderer.SetParameters(RadioElement.ClassName, RadioElement.Part, state);
-           }
-       }
+        private static void InitializeRenderer(int state) {
+            RadioButtonState radioButtonState = (RadioButtonState)state;
+            int part = RadioElement.Part;
+            if (AccessibilityImprovements.Level2
+                && SystemInformation.HighContrast 
+                && (radioButtonState == RadioButtonState.CheckedDisabled || radioButtonState == RadioButtonState.UncheckedDisabled)
+                && VisualStyleRenderer.IsCombinationDefined(RadioElement.ClassName, VisualStyleElement.Button.RadioButton.HighContrastDisabledPart)) {
+                    part = VisualStyleElement.Button.RadioButton.HighContrastDisabledPart;
+            }
+
+            if (visualStyleRenderer == null) {
+                visualStyleRenderer = new VisualStyleRenderer(RadioElement.ClassName, part, state);
+            }
+            else {
+                visualStyleRenderer.SetParameters(RadioElement.ClassName, part, state);
+            }
+        }
     }
 }

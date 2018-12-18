@@ -398,7 +398,7 @@ namespace System.Windows.Controls.Primitives
                 }
                 else if (undoManager.LastUnit is IParentUndoUnit)
                 {
-                    ((IParentUndoUnit)undoManager.LastUnit).OnNextAdd();  // 
+                    ((IParentUndoUnit)undoManager.LastUnit).OnNextAdd();  // TODO: Should IParentUndoUnit have a Lock() instead, now that Undo is internal?
                 }
             }
         }
@@ -822,6 +822,18 @@ namespace System.Windows.Controls.Primitives
             set { SetValue(SelectionBrushProperty, value); }
         }
 
+        internal const double AdornerSelectionOpacityDefaultValue = 0.4;
+        internal const double NonAdornerSelectionOpacityDefaultValue = 1;
+
+        /// <summary>
+        /// The default to use for SelectionOpacity.
+        /// When using the adorner layer to draw selections, we need it to be translucent so that the underlying text
+        /// can be seen.  When the selection is drawn as a background to the text, there is no need for this so the
+        /// selection can be fully opaque.
+        /// </summary>
+        private static double SelectionOpacityDefaultValue =
+            (FrameworkAppContextSwitches.UseAdornerForTextboxSelectionRendering) ? AdornerSelectionOpacityDefaultValue : NonAdornerSelectionOpacityDefaultValue;
+
         /// <summary>
         /// Opacity used for drawing the selection.
         /// </summary>
@@ -830,7 +842,8 @@ namespace System.Windows.Controls.Primitives
         /// </remarks>
         public static readonly DependencyProperty SelectionOpacityProperty =
             DependencyProperty.Register("SelectionOpacity", typeof(double), typeof(TextBoxBase),
-                new FrameworkPropertyMetadata(0.4, new PropertyChangedCallback(UpdateCaretElement)));
+                new FrameworkPropertyMetadata(SelectionOpacityDefaultValue,
+                    new PropertyChangedCallback(UpdateCaretElement)));
 
         /// <summary>
         /// <see cref="SelectionOpacityProperty"/>
@@ -1890,7 +1903,7 @@ namespace System.Windows.Controls.Primitives
             ITextView textView = (ITextView)((IServiceProvider)_renderScope).GetService(typeof(ITextView));
 
             this.TextContainer.TextView = textView;
-            _textEditor.TextView = textView; // 
+            _textEditor.TextView = textView; // REVIEW:benwest: this is redundant!  TextEditor already has a ref to TextContainer!
 
             if (this.ScrollViewer != null)
             {
@@ -2199,6 +2212,16 @@ namespace System.Windows.Controls.Primitives
                     }
 
                     caretElement.InvalidateVisual();
+                }
+
+                // DDVSO:405199
+                // If the TextBox is rendering its own selection we need to invalidate arrange here
+                // in order to ensure the selection is updated.
+                var textBoxView = textBoxBase?.RenderScope as TextBoxView;
+
+                if ((textBoxView as ITextView)?.RendersOwnSelection == true)
+                {
+                    textBoxView.InvalidateArrange();
                 }
             }
         }

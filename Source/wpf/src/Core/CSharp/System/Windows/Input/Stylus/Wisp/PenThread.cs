@@ -122,6 +122,34 @@ namespace System.Windows.Input
             return _penThreadWorker.WorkerCreateContext(hwnd, pimcTablet);
         }
 
+        /// <summary>
+        /// Acquires a WISP/PenIMC tablet object's external lock on the PenThread.
+        /// </summary>
+        /// <param name="gitKey">The GIT key for the object.</param>
+        /// <returns>True if successful, false otherwise.</returns>
+        /// <SecurityNote>
+        ///     Critical - Calls PenThreadWorker.WorkerAcquireTabletLocks.
+        /// </SecurityNote>
+        [SecurityCritical]
+        internal bool WorkerAcquireTabletLocks(IPimcTablet2 tablet, UInt32 wispTabletKey)
+        {
+            return _penThreadWorker.WorkerAcquireTabletLocks(tablet, wispTabletKey);
+        }
+
+        /// <summary>
+        /// Releases a WISP/PenIMC tablet object's external lock on the PenThread.
+        /// </summary>
+        /// <param name="gitKey">The GIT key for the object.</param>
+        /// <returns>True if successful, false otherwise.</returns>
+        /// <SecurityNote>
+        ///     Critical - Calls PenThreadWorker.WorkerReleaseTabletLocks.
+        /// </SecurityNote>
+        [SecurityCritical]
+        internal bool WorkerReleaseTabletLocks(IPimcTablet2 tablet, UInt32 wispTabletKey)
+        {
+            return _penThreadWorker.WorkerReleaseTabletLocks(tablet, wispTabletKey);
+        }
+
         /// <SecurityNote>
         /// Critical - Calls SecurityCritical code PenThreadWorker.WorkerRefreshCursorInfo.
         ///             Called by PenThreadPool.WorkerRefreshCursorInfo.

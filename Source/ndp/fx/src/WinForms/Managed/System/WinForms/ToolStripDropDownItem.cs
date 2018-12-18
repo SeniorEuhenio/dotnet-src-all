@@ -417,7 +417,7 @@ namespace System.Windows.Forms {
         
            if (this.dropDown != null && this.dropDown.Visible) {
                DropDown.Visible = false;
-               if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+               if (AccessibilityImprovements.Level1) {
                    AccessibilityNotifyClients(AccessibleEvents.StateChange);
                    AccessibilityNotifyClients(AccessibleEvents.NameChange);
                }
@@ -689,7 +689,7 @@ namespace System.Windows.Forms {
                 this.dropDown.Show();
                 this.Invalidate();
 
-                if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                if (AccessibilityImprovements.Level1) {
                     AccessibilityNotifyClients(AccessibleEvents.StateChange);
                     AccessibilityNotifyClients(AccessibleEvents.NameChange);
                 }
@@ -742,7 +742,7 @@ namespace System.Windows.Forms {
         }
 
         internal override bool IsIAccessibleExSupported() {
-            if (owner!= null && !LocalAppContextSwitches.UseLegacyAccessibilityFeatures ) {
+            if (owner!= null && AccessibilityImprovements.Level1 ) {
                 return true;
             }
             else {

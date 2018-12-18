@@ -1882,20 +1882,33 @@ namespace System.Windows.Interop
                         // Previously input was never properly undelegated as the COM references were
                         // not properly clearing from WISP.  Fixes to those issues in WISP and WPF have
                         // exposed this issue. 
-                        //
-                        // Dispose the HwndStylusInputProvider BEFORE we destroy the HWND.
-                        // This us because the stylus provider has an async channel and
-                        // they don't want to process data after the HWND is destroyed.
-                        if (_stylus != null)
-                        {
-                            _stylus.Value.Dispose();
-                            _stylus = null;
-                        }
+                        DisposeStylusInputProvider();
                     }
                     break;
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Disposes the HwndStylusInputProvider to shutdown stylus/touch input.
+        /// </summary>
+        /// <SecurityNote>
+        ///     Critical:  Accesses critical data _stylus
+        ///                Calls IStylusInputProvider.Dispose
+        /// </SecurityNote>
+        [SecurityCritical]
+        private void DisposeStylusInputProvider()
+        {
+            // Dispose the HwndStylusInputProvider BEFORE we destroy the HWND.
+            // This is because the stylus provider has an async channel and
+            // they don't want to process data after the HWND is destroyed.
+            if (_stylus != null)
+            {
+                SecurityCriticalDataClass<IStylusInputProvider> stylus = _stylus;
+                _stylus = null;
+                stylus.Value.Dispose();
+            }
         }
 
 #region IKeyboardInputSink
@@ -2901,7 +2914,15 @@ namespace System.Windows.Interop
                             _hwndWrapper.Disposed -= new EventHandler(OnHwndDisposed);
 
                             if (!_inRealHwndDispose)
+                            {
+                                // DDVSO:460192
+                                // Disposing the stylus provider can only be done here when 
+                                // we're not actually in an Hwnd WM_NCDESTROY scenario as 
+                                // we're then guaranteed that the HWND is still alive.
+                                DisposeStylusInputProvider();
+
                                 _hwndWrapper.Dispose();
+                            }
 
                             // Don't null out _hwndWrapper after the Dispose().
                             // Dispose() will start destroying the Window but we

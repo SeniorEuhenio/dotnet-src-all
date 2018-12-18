@@ -327,13 +327,33 @@ using Microsoft.Win32;
            }
        }
 
-       private static void InitializeRenderer(int state) {
-           if (visualStyleRenderer == null) {
-               visualStyleRenderer = new VisualStyleRenderer(CheckBoxElement.ClassName, CheckBoxElement.Part, state);
-           }
-           else {
-               visualStyleRenderer.SetParameters(CheckBoxElement.ClassName, CheckBoxElement.Part, state);
-           }
-       }
+        private static bool IsDisabled(CheckBoxState state) {
+            switch (state) {
+                case CheckBoxState.CheckedDisabled:
+                case CheckBoxState.UncheckedDisabled:
+                case CheckBoxState.MixedDisabled:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        private static void InitializeRenderer(int state) {
+            int part = CheckBoxElement.Part;
+            if (AccessibilityImprovements.Level2
+                && SystemInformation.HighContrast
+                && IsDisabled((CheckBoxState)state)
+                && VisualStyleRenderer.IsCombinationDefined(CheckBoxElement.ClassName, VisualStyleElement.Button.CheckBox.HighContrastDisabledPart)) {
+                    part = VisualStyleElement.Button.CheckBox.HighContrastDisabledPart;
+            }
+
+            if (visualStyleRenderer == null) {
+               visualStyleRenderer = new VisualStyleRenderer(CheckBoxElement.ClassName, part, state);
+            }
+            else {
+               visualStyleRenderer.SetParameters(CheckBoxElement.ClassName, part, state);
+            }
+        }
     }
 }

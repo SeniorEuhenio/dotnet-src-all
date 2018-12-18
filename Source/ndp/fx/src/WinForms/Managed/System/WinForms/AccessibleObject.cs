@@ -37,6 +37,10 @@ namespace System.Windows.Forms {
                                     UnsafeNativeMethods.IValueProvider,
                                     UnsafeNativeMethods.IExpandCollapseProvider,
                                     UnsafeNativeMethods.IToggleProvider,
+                                    UnsafeNativeMethods.ITableProvider,
+                                    UnsafeNativeMethods.ITableItemProvider,
+                                    UnsafeNativeMethods.IGridProvider,
+                                    UnsafeNativeMethods.IGridItemProvider,
                                     UnsafeNativeMethods.IEnumVariant,
                                     UnsafeNativeMethods.IOleWindow {
 
@@ -565,6 +569,90 @@ namespace System.Windows.Forms {
             }
         }
 
+        //
+        // Overridable methods for ITableProvider pattern interface
+        //
+
+        internal virtual UnsafeNativeMethods.IRawElementProviderSimple[] GetRowHeaders() {
+            return null;
+        }
+
+        internal virtual UnsafeNativeMethods.IRawElementProviderSimple[] GetColumnHeaders() {
+            return null;
+        }
+
+        internal virtual UnsafeNativeMethods.RowOrColumnMajor RowOrColumnMajor {
+            get {
+                return UnsafeNativeMethods.RowOrColumnMajor.RowOrColumnMajor_RowMajor;
+            }
+        }
+
+        //
+        // Overridable methods for ITableItemProvider pattern interface
+        //
+
+        internal virtual UnsafeNativeMethods.IRawElementProviderSimple[] GetRowHeaderItems() {
+            return null;
+        }
+
+        internal virtual UnsafeNativeMethods.IRawElementProviderSimple[] GetColumnHeaderItems() {
+            return null;
+        }
+
+        //
+        // Overridable methods for IGridProvider pattern interface
+        //
+
+        internal virtual UnsafeNativeMethods.IRawElementProviderSimple GetItem(int row, int column) {
+            return null;
+        }
+
+        internal virtual int RowCount {
+            get {
+                return -1;
+            }
+        }
+
+        internal virtual int ColumnCount {
+            get {
+                return -1;
+            }
+        }
+
+        //
+        // Overridable methods for IGridItemProvider pattern interface
+        //
+        
+        internal virtual int Row {
+            get {
+                return -1;
+            }
+        }
+
+        internal virtual int Column {
+            get {
+                return -1;
+            }
+        }
+
+        internal virtual int RowSpan {
+            get {
+                return 1;
+            }
+        }
+
+        internal virtual int ColumnSpan {
+            get {
+                return 1;
+            }
+        }
+
+        internal virtual UnsafeNativeMethods.IRawElementProviderSimple ContainingGrid {
+            get {
+                return null;
+            }
+        }
+
         // Overridable methods for IValueProvider pattern interface
 
         internal virtual bool IsReadOnly {
@@ -601,6 +689,7 @@ namespace System.Windows.Forms {
             return null;
         }
 
+        // This method is never called
         int UnsafeNativeMethods.IAccessibleEx.GetIAccessiblePair(out object ppAcc, out int pidChild) {
 
             // No need to implement this for patterns and properties
@@ -700,6 +789,89 @@ namespace System.Windows.Forms {
             }
         }
 
+        //
+        // ITableProvider implementation
+        //
+
+        object[] UnsafeNativeMethods.ITableProvider.GetRowHeaders() {
+            return GetRowHeaders();
+        }
+
+        object[] UnsafeNativeMethods.ITableProvider.GetColumnHeaders() {
+            return GetColumnHeaders();
+        }
+
+        UnsafeNativeMethods.RowOrColumnMajor UnsafeNativeMethods.ITableProvider.RowOrColumnMajor {
+            get {
+                return RowOrColumnMajor;
+            }
+        }
+
+        //
+        // ITableItemProvider implementation
+        //
+
+        object[] UnsafeNativeMethods.ITableItemProvider.GetRowHeaderItems() {
+            return GetRowHeaderItems();
+        }
+
+        object[] UnsafeNativeMethods.ITableItemProvider.GetColumnHeaderItems() {
+            return GetColumnHeaderItems();
+        }
+
+        //
+        // IGridProvider implementation
+        //
+
+        object UnsafeNativeMethods.IGridProvider.GetItem(int row, int column) {
+            return GetItem(row, column);
+        }
+
+        int UnsafeNativeMethods.IGridProvider.RowCount {
+            get {
+                return RowCount;
+            }
+        }
+
+        int UnsafeNativeMethods.IGridProvider.ColumnCount {
+            get {
+                return ColumnCount;
+            }
+        }
+
+        //
+        // IGridItemProvider implementation
+        //
+        
+        int UnsafeNativeMethods.IGridItemProvider.Row {
+            get {
+                return Row;
+            }
+        }
+
+        int UnsafeNativeMethods.IGridItemProvider.Column {
+            get {
+                return Column;
+            }
+        }
+
+        int UnsafeNativeMethods.IGridItemProvider.RowSpan {
+            get {
+                return RowSpan;
+            }
+        }
+
+        int UnsafeNativeMethods.IGridItemProvider.ColumnSpan {
+            get {
+                return ColumnSpan;
+            }
+        }
+
+        object UnsafeNativeMethods.IGridItemProvider.ContainingGrid {
+            get {
+                return ContainingGrid;
+            }
+        }
 
         /// <include file='doc\AccessibleObject.uex' path='docs/doc[@for="AccessibleObject.IAccessible.accDoDefaultAction"]/*' />
         /// <internalonly/>
@@ -2301,6 +2473,10 @@ namespace System.Windows.Forms {
                                     UnsafeNativeMethods.IValueProvider,
                                     UnsafeNativeMethods.IExpandCollapseProvider,
                                     UnsafeNativeMethods.IToggleProvider,
+                                    UnsafeNativeMethods.ITableProvider,
+                                    UnsafeNativeMethods.ITableItemProvider,
+                                    UnsafeNativeMethods.IGridProvider,
+                                    UnsafeNativeMethods.IGridItemProvider,
                                     UnsafeNativeMethods.IEnumVariant,
                                     UnsafeNativeMethods.IOleWindow {
 
@@ -2317,6 +2493,10 @@ namespace System.Windows.Forms {
         private UnsafeNativeMethods.IValueProvider publicIValueProvider;                          // AccessibleObject as IValueProvider
         private UnsafeNativeMethods.IExpandCollapseProvider publicIExpandCollapseProvider;        // AccessibleObject as IExpandCollapseProvider
         private UnsafeNativeMethods.IToggleProvider publicIToggleProvider;                        // AccessibleObject as IToggleProvider
+        private UnsafeNativeMethods.ITableProvider publicITableProvider;                          // AccessibleObject as ITableProvider
+        private UnsafeNativeMethods.ITableItemProvider publicITableItemProvider;                  // AccessibleObject as ITableItemProvider
+        private UnsafeNativeMethods.IGridProvider publicIGridProvider;                            // AccessibleObject as IGridProvider
+        private UnsafeNativeMethods.IGridItemProvider publicIGridItemProvider;                    // AccessibleObject as IGridItemProvider
 
         /// <summary>
         ///     Create a new wrapper. Protect this with UnmanagedCode Permission
@@ -2336,6 +2516,10 @@ namespace System.Windows.Forms {
             publicIValueProvider = (UnsafeNativeMethods.IValueProvider) accessibleImplemention;
             publicIExpandCollapseProvider = (UnsafeNativeMethods.IExpandCollapseProvider) accessibleImplemention;
             publicIToggleProvider = (UnsafeNativeMethods.IToggleProvider)accessibleImplemention;
+            publicITableProvider = (UnsafeNativeMethods.ITableProvider)accessibleImplemention;
+            publicITableItemProvider = (UnsafeNativeMethods.ITableItemProvider)accessibleImplemention;
+            publicIGridProvider = (UnsafeNativeMethods.IGridProvider)accessibleImplemention;
+            publicIGridItemProvider = (UnsafeNativeMethods.IGridItemProvider)accessibleImplemention;
             // Note: Deliberately not holding onto AccessibleObject to enforce all access through the interfaces
         }
 
@@ -2350,6 +2534,18 @@ namespace System.Windows.Forms {
             else {
                 return accObject;
             }
+        }
+
+        /// <summary>
+        ///     Wraps AccessibleObject elements of a given array into InternalAccessibleObjects
+        /// </summary>
+        private object[] AsArrayOfNativeAccessibles(object[] accObjectArray) {
+            if (accObjectArray != null && accObjectArray.Length > 0) {
+                for (int i = 0; i < accObjectArray.Length; i++) {
+                    accObjectArray[i] = AsNativeAccessible(accObjectArray[i]);
+                }
+            }
+            return accObjectArray;
         }
 
         //
@@ -2584,8 +2780,11 @@ namespace System.Windows.Forms {
         int UnsafeNativeMethods.IAccessibleEx.GetIAccessiblePair(out object ppAcc, out int pidChild) {
 
             IntSecurity.UnmanagedCode.Assert();
-            return publicIAccessibleEx.GetIAccessiblePair(out ppAcc, out pidChild);
 
+            // We always want to return the internal accessible object
+            ppAcc = this;
+            pidChild = NativeMethods.CHILDID_SELF;
+            return NativeMethods.S_OK;
         }
 
         int[] UnsafeNativeMethods.IAccessibleEx.GetRuntimeId() {
@@ -2634,6 +2833,18 @@ namespace System.Windows.Forms {
                 }
                 else if (patternId == NativeMethods.UIA_TogglePatternId) {
                     return (UnsafeNativeMethods.IToggleProvider)this;
+                }
+                else if (patternId == NativeMethods.UIA_TablePatternId) {
+                    return (UnsafeNativeMethods.ITableProvider)this;
+                }
+                else if (patternId == NativeMethods.UIA_TableItemPatternId) {
+                    return (UnsafeNativeMethods.ITableItemProvider)this;
+                }
+                else if (patternId == NativeMethods.UIA_GridPatternId) {
+                    return (UnsafeNativeMethods.IGridProvider)this;
+                }
+                else if (patternId == NativeMethods.UIA_GridItemPatternId) {
+                    return (UnsafeNativeMethods.IGridItemProvider)this;
                 }
                 else {
                     return null;
@@ -2706,6 +2917,103 @@ namespace System.Windows.Forms {
             get {
                 IntSecurity.UnmanagedCode.Assert();
                 return publicIToggleProvider.ToggleState;
+            }
+        }
+
+        //
+        // ITableProvider implementation
+        //
+
+        object[] UnsafeNativeMethods.ITableProvider.GetRowHeaders() {
+            IntSecurity.UnmanagedCode.Assert();
+            return AsArrayOfNativeAccessibles(publicITableProvider.GetRowHeaders());
+        }
+
+        object[] UnsafeNativeMethods.ITableProvider.GetColumnHeaders() {
+            IntSecurity.UnmanagedCode.Assert();
+            return AsArrayOfNativeAccessibles(publicITableProvider.GetColumnHeaders());
+        }
+
+        UnsafeNativeMethods.RowOrColumnMajor UnsafeNativeMethods.ITableProvider.RowOrColumnMajor {
+            get {
+                IntSecurity.UnmanagedCode.Assert();
+                return publicITableProvider.RowOrColumnMajor;
+            }
+        }
+
+        //
+        // ITableItemProvider implementation
+        //
+
+        object[] UnsafeNativeMethods.ITableItemProvider.GetRowHeaderItems() {
+            IntSecurity.UnmanagedCode.Assert();
+            return AsArrayOfNativeAccessibles(publicITableItemProvider.GetRowHeaderItems());
+        }
+
+        object[] UnsafeNativeMethods.ITableItemProvider.GetColumnHeaderItems() {
+            IntSecurity.UnmanagedCode.Assert();
+            return AsArrayOfNativeAccessibles(publicITableItemProvider.GetColumnHeaderItems());
+        }
+
+        //
+        // IGridProvider implementation
+        //
+
+        object UnsafeNativeMethods.IGridProvider.GetItem(int row, int column) {
+            IntSecurity.UnmanagedCode.Assert();
+            return AsNativeAccessible(publicIGridProvider.GetItem(row, column));
+        }
+
+        int UnsafeNativeMethods.IGridProvider.RowCount {
+            get {
+                IntSecurity.UnmanagedCode.Assert();
+                return publicIGridProvider.RowCount;
+            }
+        }
+
+        int UnsafeNativeMethods.IGridProvider.ColumnCount {
+            get {
+                IntSecurity.UnmanagedCode.Assert();
+                return publicIGridProvider.ColumnCount;
+            }
+        }
+
+        //
+        // IGridItemProvider implementation
+        //
+                
+        int UnsafeNativeMethods.IGridItemProvider.Row {
+            get {
+                IntSecurity.UnmanagedCode.Assert();
+                return publicIGridItemProvider.Row;
+            }
+        }
+
+        int UnsafeNativeMethods.IGridItemProvider.Column {
+            get {
+                IntSecurity.UnmanagedCode.Assert();
+                return publicIGridItemProvider.Column;
+            }
+        }
+
+        int UnsafeNativeMethods.IGridItemProvider.RowSpan {
+            get {
+                IntSecurity.UnmanagedCode.Assert();
+                return publicIGridItemProvider.RowSpan;
+            }
+        }
+
+        int UnsafeNativeMethods.IGridItemProvider.ColumnSpan {
+            get {
+                IntSecurity.UnmanagedCode.Assert();
+                return publicIGridItemProvider.ColumnSpan;
+            }
+        }
+
+        object UnsafeNativeMethods.IGridItemProvider.ContainingGrid {
+            get {
+                IntSecurity.UnmanagedCode.Assert();
+                return AsNativeAccessible(publicIGridItemProvider.ContainingGrid);
             }
         }
 

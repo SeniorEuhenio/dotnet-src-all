@@ -21,7 +21,7 @@ namespace MS.Win32
     using MS.Internal.Interop;
 
  // DRTs cannot access MS.Internal
-#if !DRT
+#if !DRT && !UIAUTOMATIONTYPES
     using HR = MS.Internal.Interop.HRESULT;
 #endif
 
@@ -33,6 +33,8 @@ namespace MS.Win32
     using MS.Internal.PresentationCore;
 #elif PRESENTATIONFRAMEWORK
     using MS.Internal.PresentationFramework;
+#elif UIAUTOMATIONTYPES
+    using MS.Internal.UIAutomationTypes;
 #elif DRT
     using MS.Internal.Drt;
 #else
@@ -118,7 +120,7 @@ namespace MS.Win32
         [DllImport(ExternDll.Kernel32, ExactSpelling = true, CharSet = System.Runtime.InteropServices.CharSet.Auto)]
         public static extern IntPtr GetCurrentThread();
 
-#if !DRT
+#if !DRT && !UIAUTOMATIONTYPES
         ///<SecurityNote>
         ///     Critical - elevates via a SUC.
         ///</SecurityNote>
@@ -461,7 +463,7 @@ namespace MS.Win32
         public static extern void Keybd_event(byte vk, byte scan, int flags, IntPtr extrainfo);
 #endif
 
-#if !DRT
+#if !DRT && !UIAUTOMATIONTYPES
         /// <SecurityNote>
         ///     Critical: This code elevates to unmanaged code permission
         /// </SecurityNote>
@@ -1229,7 +1231,214 @@ namespace MS.Win32
         [DllImport(ExternDll.Kernel32, CharSet = CharSet.Unicode)]
         public static extern IntPtr LoadLibrary(string lpFileName);
 
-#if !DRT
+        [Flags]
+        internal enum LoadLibraryFlags : uint
+        {
+            None = 0x00000000,
+            /// <summary>
+            /// If this value is used, and the executable module is a DLL, the system does 
+            /// not call DllMain for process and thread initialization and termination. 
+            /// Also, the system does not load additional executable modules that are 
+            /// referenced by the specified module.
+            /// </summary>
+            /// <remarks>
+            /// Do not use this value; it is provided only for backward compatibility. 
+            /// If you are planning to access only data or resources in the DLL, use 
+            /// <see cref="LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE"/> or 
+            /// <see cref="LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE"/> or <see cref="LOAD_LIBRARY_AS_IMAGE_RESOURCE"/>
+            /// or both. Otherwise, load the library as a DLL or executable module 
+            /// using the <see cref="LoadLibrary(string)"/>function.
+            /// </remarks>
+            DONT_RESOLVE_DLL_REFERENCES = 0x00000001,
+            /// <summary>
+            /// If this value is used, the system does not check AppLocker rules or apply 
+            /// Software Restriction Policies for the DLL. This action applies only to the 
+            /// DLL being loaded and not to its dependencies. This value is recommended 
+            /// for use in setup programs that must run extracted DLLs during installation.
+            /// </summary>
+            /// <remarks>
+            /// Windows Server 2008 R2 and Windows 7:  
+            ///     On systems with KB2532445 installed, the 
+            ///     caller must be running as "LocalSystem" or "TrustedInstaller"; otherwise the 
+            ///     system ignores this flag. For more information, see "You can circumvent AppLocker 
+            ///     rules by using an Office macro on a computer that is running Windows 7 or 
+            ///     Windows Server 2008 R2" in the Help and Support Knowledge Base 
+            ///     at <see cref="http://support.microsoft.com/kb/2532445."/>
+            /// 
+            /// Windows Server 2008, Windows Vista, Windows Server 2003 and Windows XP:  
+            ///     AppLocker was introduced in Windows 7 and Windows Server 2008 R2.
+            /// </remarks>
+            LOAD_IGNORE_CODE_AUTHZ_LEVEL = 0x00000010,
+            /// <summary>
+            /// If this value is used, the system maps the file into the calling process's 
+            /// virtual address space as if it were a data file. Nothing is done to execute 
+            /// or prepare to execute the mapped file. Therefore, you cannot call functions 
+            /// like GetModuleFileName, GetModuleHandle or GetProcAddress with this DLL. 
+            /// Using this value causes writes to read-only memory to raise an access violation. 
+            /// Use this flag when you want to load a DLL only to extract messages or resources 
+            /// from it.This value can be used with <see cref="LOAD_LIBRARY_AS_IMAGE_RESOURCE"/>.
+            /// </summary>
+            LOAD_LIBRARY_AS_DATAFILE = 0x00000002,
+            /// <summary>
+            /// Similar to LOAD_LIBRARY_AS_DATAFILE, except that the DLL file is opened with 
+            /// exclusive write access for the calling process. Other processes cannot open 
+            /// the DLL file for write access while it is in use. However, the DLL can 
+            /// still be opened by other processes. This value can be used with 
+            /// <see cref="LOAD_LIBRARY_AS_IMAGE_RESOURCE"/>. 
+            /// </summary>
+            /// <remarks>
+            /// Windows Server 2003 and Windows XP:  This value is not supported until 
+            /// Windows Vista.
+            /// </remarks>
+            LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE = 0x00000040,
+            /// <summary>
+            /// If this value is used, the system maps the file into the process's virtual 
+            /// address space as an image file. However, the loader does not load the static 
+            /// imports or perform the other usual initialization steps. Use this flag when 
+            /// you want to load a DLL only to extract messages or resources from it. Unless 
+            /// the application depends on the file having the in-memory layout of an image, 
+            /// this value should be used with either <see cref="LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE "/> or 
+            /// <see cref="LOAD_LIBRARY_AS_DATAFILE"/>.
+            /// </summary>
+            /// <remarks>
+            /// Windows Server 2003 and Windows XP:  This value is not supported until Windows Vista.
+            /// </remarks>
+            LOAD_LIBRARY_AS_IMAGE_RESOURCE = 0x00000020,
+            /// <summary>
+            /// If this value is used, the application's installation directory is searched for the 
+            /// DLL and its dependencies. Directories in the standard search path are not searched. 
+            /// This value cannot be combined with <see cref="LOAD_WITH_ALTERED_SEARCH_PATH"/>.
+            /// </summary>
+            /// <remarks>
+            /// Windows 7, Windows Server 2008 R2, Windows Vista and Windows Server 2008:  
+            ///     This value requires KB2533623 to be installed.
+            /// Windows Server 2003 and Windows XP:  
+            ///     This value is not supported.
+            /// </remarks>
+            LOAD_LIBRARY_SEARCH_APPLICATION_DIR = 0x00000200,
+            /// <summary>
+            /// This value is a combination of <see cref="LOAD_LIBRARY_SEARCH_APPLICATION_DIR"/>, 
+            /// <see cref="LOAD_LIBRARY_SEARCH_SYSTEM32"/>, and <see cref="LOAD_LIBRARY_SEARCH_USER_DIRS"/>. 
+            /// Directories in the standard search path are not searched. This value cannot be combined with 
+            /// <see cref="LOAD_WITH_ALTERED_SEARCH_PATH"/>. This value represents the recommended maximum number 
+            /// of directories an application should include in its DLL search path.
+            /// </summary>
+            /// <remarks>
+            /// Windows 7, Windows Server 2008 R2, Windows Vista and Windows Server 2008:  
+            ///     This value requires KB2533623 to be installed. 
+            /// 
+            /// Windows Server 2003 and Windows XP:  
+            ///     This value is not supported.
+            /// </remarks>
+            LOAD_LIBRARY_SEARCH_DEFAULT_DIRS = 0x00001000,
+            /// <summary>
+            /// If this value is used, the directory that contains the DLL is temporarily added to 
+            /// the beginning of the list of directories that are searched for the DLL's dependencies. 
+            /// Directories in the standard search path are not searched.
+            /// 
+            /// The lpFileName parameter must specify a fully qualified path. This value cannot be 
+            /// combined with <see cref="LOAD_WITH_ALTERED_SEARCH_PATH"/>. 
+            /// 
+            /// For example, if Lib2.dll is a dependency of C:\Dir1\Lib1.dll, loading Lib1.dll with 
+            /// this value causes the system to search for Lib2.dll only in C:\Dir1. To search for 
+            /// Lib2.dll in C:\Dir1 and all of the directories in the DLL search path, combine this 
+            /// value with <see cref="LOAD_LIBRARY_DEFAULT_DIRS"/>.
+            /// </summary>
+            /// <remarks>
+            /// Windows 7, Windows Server 2008 R2, Windows Vista and Windows Server 2008:  
+            ///     This value requires KB2533623 to be installed.
+            /// 
+            /// Windows Server 2003 and Windows XP:  
+            ///     This value is not supported.
+            /// </remarks>
+            LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR = 0x00000100,
+            /// <summary>
+            /// If this value is used, %windows%\system32 is searched for the DLL and its dependencies. 
+            /// Directories in the standard search path are not searched. This value cannot be 
+            /// combined with <see cref="LOAD_WITH_ALTERED_SEARCH_PATH"/>
+            /// </summary>
+            /// <remarks>
+            /// Windows 7, Windows Server 2008 R2, Windows Vista and Windows Server 2008:  
+            ///     This value requires KB2533623 to be installed.
+            /// Windows Server 2003 and Windows XP:  
+            ///     This value is not supported.
+            /// </remarks>
+            LOAD_LIBRARY_SEARCH_SYSTEM32 = 0x00000800,
+            /// <summary>
+            /// If this value is used, directories added using the AddDllDirectory or the SetDllDirectory 
+            /// function are searched for the DLL and its dependencies. If more than one directory has been added, 
+            /// the order in which the directories are searched is unspecified. Directories in the 
+            /// standard search path are not searched. This value cannot be combined with 
+            /// <see cref="LOAD_WITH_ALTERED_SEARCH_PATH"/>
+            /// </summary>
+            /// <remarks>
+            /// Windows 7, Windows Server 2008 R2, Windows Vista and Windows Server 2008:  
+            ///     This value requires KB2533623 to be installed.
+            /// Windows Server 2003 and Windows XP:  
+            ///     This value is not supported.
+            /// </remarks>
+            LOAD_LIBRARY_SEARCH_USER_DIRS = 0x00000400,
+            /// <summary>
+            /// If this value is used and lpFileName specifies an absolute path, the system uses the alternate 
+            /// file search strategy discussed in the Remarks section to find associated executable modules that 
+            /// the specified module causes to be loaded. If this value is used and lpFileName specifies a 
+            /// relative path, the behavior is undefined. If this value is not used, or if lpFileName does not specify a path, 
+            /// the system uses the standard search strategy discussed in the Remarks section to find associated 
+            /// executable modules that the specified module causes to be loaded.This value cannot be combined with 
+            /// any LOAD_LIBRARY_SEARCH flag.
+            /// </summary>
+            LOAD_WITH_ALTERED_SEARCH_PATH = 0x00000008
+        }
+
+        /// <summary>
+        /// Do not use this - instead use <see cref="LoadLibraryHelper.SecureLoadLibrary"/>
+        /// </summary>
+        [SuppressUnmanagedCodeSecurity]
+        [SecurityCritical]
+        [Obsolete("Use LoadLibraryHelper.SafeLoadLibraryEx instead")]
+        [DllImport(ExternDll.Kernel32, CallingConvention = CallingConvention.Winapi, CharSet = CharSet.Unicode, SetLastError = true)]
+        internal static extern IntPtr LoadLibraryEx([In][MarshalAs(UnmanagedType.LPTStr)]string lpFileName, IntPtr hFile, [In] LoadLibraryFlags dwFlags);
+
+        [Flags]
+        internal enum GetModuleHandleFlags : uint
+        {
+            None = 0x00000000,
+            /// <summary>
+            /// The lpModuleName parameter in <see cref="GetModuleHandleEx"/> is an address 
+            /// in the module.
+            /// </summary>
+            GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS = 0x00000004,
+            /// <summary>
+            /// The module stays loaded until the process is terminated, no matter how many times 
+            /// FreeLibrary is called.
+            /// This option cannot be used with <see cref="GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT"/>.
+            /// </summary>
+            GET_MODULE_HANDLE_EX_FLAG_PIN = 0x00000001,
+            /// <summary>
+            /// The reference count for the module is not incremented. This option is equivalent to the 
+            /// behavior of GetModuleHandle. Do not pass the retrieved module handle to the FreeLibrary 
+            /// function; doing so can cause the DLL to be unmapped prematurely.
+            /// This option cannot be used with <see cref="GET_MODULE_HANDLE_EX_FLAG_PIN"/>.
+            /// </summary>
+            GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT = 0x00000002
+        }
+
+        [SuppressUnmanagedCodeSecurity]
+        [SecurityCritical]
+        [DllImport(ExternDll.Kernel32, CallingConvention = CallingConvention.Winapi, CharSet = CharSet.Unicode, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool GetModuleHandleEx(
+            [In] GetModuleHandleFlags dwFlags,
+            [In][Optional][MarshalAs(UnmanagedType.LPTStr)] string lpModuleName,
+            [Out] out IntPtr hModule);
+
+        [SuppressUnmanagedCodeSecurity]
+        [SecurityCritical]
+        [DllImport(ExternDll.Kernel32, CallingConvention = CallingConvention.Winapi, CharSet = CharSet.Unicode, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool FreeLibrary([In] IntPtr hModule);
+
+#if !DRT && !UIAUTOMATIONTYPES
         ///<SecurityNote>
         /// Critical as this code performs an elevation.
         ///</SecurityNote>
@@ -1338,7 +1547,7 @@ namespace MS.Win32
         [DllImport(ExternDll.Ole32, ExactSpelling=true, CharSet=CharSet.Auto)]
         public static extern int RevokeDragDrop(HandleRef hwnd);
 
-#if !DRT
+#if !DRT && !UIAUTOMATIONTYPES
         /// <SecurityNote>
         ///     Critical:Elevates to Unmanaged code permission and can be used to
         ///     get information of messages in queues.
@@ -3024,8 +3233,8 @@ namespace MS.Win32
         IEnumConnectionPoints Clone();
     }
 
-#if !DRT
-     /// <SecurityNote>
+#if !DRT && !UIAUTOMATIONTYPES
+    /// <SecurityNote>
      ///     Critical:Elevates to Unmanaged code permission
      /// </SecurityNote>
     [SecurityCritical(SecurityCriticalScope.Everything)]

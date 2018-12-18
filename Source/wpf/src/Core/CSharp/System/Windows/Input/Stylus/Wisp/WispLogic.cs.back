@@ -205,74 +205,80 @@ namespace System.Windows.Input.StylusWisp
             RawStylusInputReport lastMoveReport = null;
             RawStylusInputReport coalescedMove = null;
 
-
-            _lastMovesQueued.TryGetValue(stylusDevice, out lastMoveReport);
-            _coalescedMoves.TryGetValue(stylusDevice, out coalescedMove);
-
-            // All moves now go through a coalesce to simplify logic
-            if (inputReport.Actions == RawStylusActions.Move)
+            // DDVSO:485595
+            // Multiple threads may access the coalescing information at the same time.
+            // We lock here to prevent that.  This is a rare scenario, so the coarse 
+            // grained lock is fine here.
+            lock (_coalesceLock)
             {
-                // Start a new coalescing report if none exists
-                if (coalescedMove == null)
+                _lastMovesQueued.TryGetValue(stylusDevice, out lastMoveReport);
+                _coalescedMoves.TryGetValue(stylusDevice, out coalescedMove);
+
+                // All moves now go through a coalesce to simplify logic
+                if (inputReport.Actions == RawStylusActions.Move)
                 {
-                    _coalescedMoves[stylusDevice] = inputReport;
-                    coalescedMove = inputReport;
+                    // Start a new coalescing report if none exists
+                    if (coalescedMove == null)
+                    {
+                        _coalescedMoves[stylusDevice] = inputReport;
+                        coalescedMove = inputReport;
+                    }
+                    // Add new move to coalesced
+                    else
+                    {
+                        // GetRawPacketData creates copies, so only call them once
+                        int[] oldData = coalescedMove.GetRawPacketData();
+                        int[] newData = inputReport.GetRawPacketData();
+                        int[] mergedData = new int[oldData.Length + newData.Length];
+
+                        oldData.CopyTo(mergedData, 0);
+                        newData.CopyTo(mergedData, oldData.Length);
+
+                        coalescedMove = new RawStylusInputReport(
+                                coalescedMove.Mode,
+                                coalescedMove.Timestamp,
+                                coalescedMove.InputSource,
+                                coalescedMove.PenContext,
+                                coalescedMove.Actions,
+                                coalescedMove.TabletDeviceId,
+                                coalescedMove.StylusDeviceId,
+                                mergedData
+                                );
+
+                        coalescedMove.StylusDevice = stylusDevice.StylusDevice;
+
+                        _coalescedMoves[stylusDevice] = coalescedMove;
+                    }
+
+                    // We can't queue any move if one is still waiting for processing
+                    if (lastMoveReport != null
+                        && lastMoveReport.IsQueued)
+                    {
+                        return;
+                    }
                 }
-                // Add new move to coalesced
-                else
+
+                // If we get this far, we are queuing a coalesced move if it exists
+                if (coalescedMove != null)
                 {
-                    // GetRawPacketData creates copies, so only call them once
-                    int[] oldData = coalescedMove.GetRawPacketData();
-                    int[] newData = inputReport.GetRawPacketData();
-                    int[] mergedData = new int[oldData.Length + newData.Length];
+                    QueueStylusEvent(coalescedMove);
 
-                    oldData.CopyTo(mergedData, 0);
-                    newData.CopyTo(mergedData, oldData.Length);
-
-                    coalescedMove = new RawStylusInputReport(
-                            coalescedMove.Mode,
-                            coalescedMove.Timestamp,
-                            coalescedMove.InputSource,
-                            coalescedMove.PenContext,
-                            coalescedMove.Actions,
-                            coalescedMove.TabletDeviceId,
-                            coalescedMove.StylusDeviceId,
-                            mergedData
-                            );
-
-                    coalescedMove.StylusDevice = stylusDevice.StylusDevice;
-
-                    _coalescedMoves[stylusDevice] = coalescedMove;
+                    // Set last move and cleanup coalescing tracking
+                    _lastMovesQueued[stylusDevice] = coalescedMove;
+                    _coalescedMoves.Remove(stylusDevice);
                 }
 
-                // We can't queue any move if one is still waiting for processing
-                if (lastMoveReport != null
-                    && lastMoveReport.IsQueued)
+                // Move always queues via coalescing, so only queue here if not a move
+                // This has to be done post-coalesced move to maintain order of touch
+                // operations
+                if (inputReport.Actions != RawStylusActions.Move)
                 {
-                    return;
+                    QueueStylusEvent(inputReport);
+
+                    // Once we see a non-move, we should get no more input for this particular chain
+                    // so we can remove the stored prior moves (if they exist).
+                    _lastMovesQueued.Remove(stylusDevice);
                 }
-            }
-
-            // If we get this far, we are queuing a coalesced move if it exists
-            if (coalescedMove != null)
-            {
-                QueueStylusEvent(coalescedMove);
-
-                // Set last move and cleanup coalescing tracking
-                _lastMovesQueued[stylusDevice] = coalescedMove;
-                _coalescedMoves.Remove(stylusDevice);
-            }
-
-            // Move always queues via coalescing, so only queue here if not a move
-            // This has to be done post-coalesced move to maintain order of touch
-            // operations
-            if (inputReport.Actions != RawStylusActions.Move)
-            {
-                QueueStylusEvent(inputReport);
-
-                // Once we see a non-move, we should get no more input for this particular chain
-                // so we can remove the stored prior moves (if they exist).
-                _lastMovesQueued.Remove(stylusDevice);
             }
         }
 
@@ -287,7 +293,7 @@ namespace System.Windows.Input.StylusWisp
         void ProcessInputReport(RawStylusInputReport inputReport)
         {
             // First, assign the StylusDevice (note it may still be null for new StylusDevice)
-            inputReport.StylusDevice = FindStylusDeviceWithLock(inputReport.StylusDeviceId).StylusDevice;
+            inputReport.StylusDevice = FindStylusDeviceWithLock(inputReport.StylusDeviceId)?.StylusDevice;
 
             // Only call plugins if we are not in a drag drop operation and the HWND is enabled!
             if (!_inDragDrop || !inputReport.PenContext.Contexts.IsWindowDisabled)
@@ -3384,6 +3390,16 @@ namespace System.Windows.Input.StylusWisp
         internal void UnRegisterHwndForInput(HwndSource hwndSource)
         {
             bool shutdownWorkThread = Dispatcher.HasShutdownStarted;
+
+            // DDVSO:514949
+            // WispTabletDevice needs to schedule work on the PenThread during disposal.
+            // If the dispatcher is shutting down, we have to ensure that we dispose tablets
+            // prior to any context shutting down the needed PenThread.
+            if (shutdownWorkThread)
+            {
+                OnDispatcherShutdown(null, null);
+            }
+
             lock (__penContextsLock)
             {
                 PenContexts penContexts;
@@ -4026,7 +4042,11 @@ namespace System.Windows.Input.StylusWisp
         // Stores the move report that is currently being used to coalesce subsequent moves
         Dictionary<StylusDeviceBase, RawStylusInputReport> _coalescedMoves = new Dictionary<StylusDeviceBase, RawStylusInputReport>();
 
-
+        /// <summary>
+        /// Lock the access to coalesced moves as it's possible it can be accessed simultaneously from two
+        /// PenThreads if the initial PenThread fills up with PenContexts.
+        /// </summary>
+        object _coalesceLock = new object();
 
 #if !MULTICAPTURE
         IInputElement _stylusCapture;

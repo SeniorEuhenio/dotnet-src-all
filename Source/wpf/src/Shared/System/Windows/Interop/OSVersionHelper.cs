@@ -12,6 +12,8 @@ using MS.Internal.PresentationCore;
 using MS.Internal.PresentationFramework;
 #elif REACHFRAMEWORK
 using MS.Internal.ReachFramework;
+#elif UIAUTOMATIONTYPES
+using MS.Internal.UIAutomationTypes;
 #else
 using MS.Internal;
 #endif
@@ -28,6 +30,8 @@ namespace System.Windows.Interop
 namespace MS.Internal.PresentationFramework.Interop
 #elif REACHFRAMEWORK
 namespace MS.Internal.ReachFramework.Interop
+#elif UIAUTOMATIONTYPES
+namespace MS.Internal.UIAutomationTypes.Interop
 #else
 namespace Microsoft.Internal.Interop
 #endif

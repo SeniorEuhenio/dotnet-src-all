@@ -29,6 +29,12 @@ namespace System.Windows.Forms
             this.TabStop = false;
         }
 
+        /// <include file='doc\DataGridViewComboBoxEditingControl.uex' path='docs/doc[@for="DataGridViewComboBoxEditingControl.CreateAccessibilityInstance"]/*' />
+        protected override AccessibleObject CreateAccessibilityInstance()
+        {
+            return AccessibilityImprovements.Level2 ? new DataGridViewEditingControlAccessibleObject(this) : base.CreateAccessibilityInstance();
+        }
+
         // IDataGridViewEditingControl interface implementation
 
         /// <include file='doc\DataGridViewComboBoxEditingControl.uex' path='docs/doc[@for="DataGridViewComboBoxEditingControl.IDataGridViewEditingControl.EditingControlDataGridView"]/*' />

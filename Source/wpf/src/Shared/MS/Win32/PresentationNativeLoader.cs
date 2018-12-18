@@ -20,6 +20,8 @@ namespace MS.Internal.ReachFramework
 namespace MS.Internal.UIAutomationClient
 #elif UIAUTOMATIONCLIENTSIDEPROVIDERS
 namespace MS.Internal.UIAutomationClientSideProviders
+#elif UIAUTOMATIONTYPES
+namespace MS.Internal.UIAutomationTypes
 #elif WINDOWSFORMSINTEGRATION
 namespace MS.Internal.WinFormsIntegration
 #elif DRT

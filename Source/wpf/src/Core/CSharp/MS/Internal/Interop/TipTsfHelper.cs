@@ -14,6 +14,7 @@ using System.Windows.Automation.Peers;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Threading;
 using MS.Internal.WindowsRuntime.Windows.UI.ViewManagement;
 
 namespace MS.Internal.Interop
@@ -43,6 +44,55 @@ namespace MS.Internal.Interop
         private static bool s_PlatformSupported = true;
 
         /// <summary>
+        /// Cache any in progress operation in case we get multiple calls.
+        /// </summary>
+        [ThreadStatic]
+        private static DispatcherOperation s_KbOperation = null;
+
+        /// <summary>
+        /// If DispatcherProcessing is disabled, this will BeginInvoke the appropriate KB operation
+        /// for later processing.  It also will cancel any pending operations so only one op can be in
+        /// flight at a time.
+        /// </summary>
+        /// <param name="kbCall">The kb function to call.</param>
+        /// <param name="focusedObject">The object being focused</param>
+        /// <returns>True if an operation has been scheduled, false otherwise</returns>
+        private static bool CheckAndDispatchKbOperation(Action<DependencyObject> kbCall, DependencyObject focusedObject)
+        {
+            // Abort the current operation if we reach another call and it is
+            // still pending.
+            if (s_KbOperation?.Status == DispatcherOperationStatus.Pending)
+            {
+                s_KbOperation.Abort();
+            }
+
+            s_KbOperation = null;
+            
+            // DDVSO:403574
+            // Don't call any KB operations under disabled processing as a COM wait could
+            // cause re-entrancy and an InvalidOperationException.
+            if (Dispatcher.CurrentDispatcher._disableProcessingCount > 0)
+            {
+                // Retry when processing resumes
+                s_KbOperation =
+                    Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Input,
+                    new Action(() =>
+                    {
+                        // Since this action is happening sometime later, the focus 
+                        // may have already changed.
+                        if (Keyboard.FocusedElement == focusedObject)
+                        {
+                            kbCall(focusedObject);
+                        }
+                    }));
+
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Attempts to show the touch keyboard.
         /// We rely on the Windows API to determine if showing the keyboard aligns with the 
         /// current state (no physical KB, touch enabled, focused edit control).
@@ -69,6 +119,7 @@ namespace MS.Internal.Interop
                 && !CoreAppContextSwitches.DisableImplicitTouchKeyboardInvocation
                 && StylusLogic.IsStylusAndTouchSupportEnabled
                 && !StylusLogic.IsPointerStackEnabled
+                && !CheckAndDispatchKbOperation(Show, focusedObject)
                 && ShouldShow(focusedObject))
             {
                 InputPane ip;
@@ -105,7 +156,8 @@ namespace MS.Internal.Interop
             // attempt any calls into InputPane for these scenarios. 
             if (s_PlatformSupported
                 && StylusLogic.IsStylusAndTouchSupportEnabled
-                && !StylusLogic.IsPointerStackEnabled)
+                && !StylusLogic.IsPointerStackEnabled
+                && !CheckAndDispatchKbOperation(Hide, focusedObject))
             {
                 InputPane ip;
 

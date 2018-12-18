@@ -160,7 +160,23 @@ namespace System.Windows.Interop
         /// are available. This is communiated by use of the 
         /// window message <see cref="s_DisplayDevicesAvailabilityChanged"/>
         /// </summary>
-        private bool _displayDevicesAvailable = true;
+        /// <remarks>
+        /// Normally, we'd want to initialize this to true when we are running in a
+        /// Window Station in interactive mode (WinSta0), which is typical for desktop applications. 
+        /// On the other hand, we'd want to initialize this to false when running in a 
+        /// non-interactive Window Station (for e.g., typical SCM services). This can be 
+        /// identified by <see cref="Environment.UserInteractive"/>. 
+        /// 
+        /// Instead of initializing it this way directly, we instead initialize <see cref="_displayDevicesAvailable"/> 
+        /// using <see cref="MediaContext.ShouldRenderEvenWhenNoDisplayDevicesAreAvailable"/>, which in turn factors in (a) 
+        /// <see cref="Environment.UserInteractive"/>, and (b) a registry override that requests
+        /// that WPF's renderer act as if interactive displays are always present 
+        /// even when displays aren't - either because the process is running in an
+        /// non-interactive Window Station, or because the session is in a 
+        /// <see cref="NativeMethods.WTS_CONNECTSTATE_CLASS.WTSDisconnected"/> state, and (c) an compat
+        /// override that can be set in the application configuration file (app.config)
+        /// </remarks>
+        private bool _displayDevicesAvailable = MediaContext.ShouldRenderEvenWhenNoDisplayDevicesAreAvailable;
 
         /// <summary>
         /// True if WM_PAINT processing was deferred due to 
@@ -936,9 +952,15 @@ namespace System.Windows.Interop
                 TimeSpan delta = DateTime.Now - _lastWakeOrUnlockEvent;
                 bool fWithinPresentRetryWindow = delta.TotalSeconds < _allowedPresentFailureDelay;
 
+                // Either display devices are available, or we are in a 'don't-care' state - ie.., 
+                // running under a non-interactive Window Station.
+                // Note that running under a non-interactive Window Station is not supported by WPF, 
+                // but we try to keep things working anyway. 
+                bool displayDevicesAvailable = _displayDevicesAvailable || MediaContext.ShouldRenderEvenWhenNoDisplayDevicesAreAvailable;
+
                 if (_isSessionDisconnected || _isSuspended || 
                     (_hasRePresentedSinceWake && !fWithinPresentRetryWindow) || 
-                    !_displayDevicesAvailable)
+                    !displayDevicesAvailable)
                 {
                     _needsRePresentOnWake = true;
                 }
@@ -968,7 +990,16 @@ namespace System.Windows.Interop
                     break;
 
                 case WindowMessage.WM_PAINT:
-                    if (_displayDevicesAvailable)
+                    // If the current Window Station is non-interactive (i.e., NOT WinSta0)
+                    // then we will never find usable display devices. Normally, 
+                    // WPF is not supported when running in a non-interactive Window
+                    // Station, for e.g., a typical SCM service calling into WPF UI 
+                    // oriented API's is unsupported, and has never been tested. Some 
+                    // applications nevertheless do this. When we notice that we are running 
+                    // in a non-interactive Window Station, we will try to keep on rendering as best 
+                    // as we can, ignoring the fact that actual display devices aren't 
+                    // available in this configuration. 
+                    if (_displayDevicesAvailable || MediaContext.ShouldRenderEvenWhenNoDisplayDevicesAreAvailable)
                     {
                         _wasWmPaintProcessingDeferred = false;
                         DoPaint();

@@ -261,13 +261,13 @@ namespace System.Security.Cryptography.Pkcs {
 
 
                     CspParameters parameters = new CspParameters();
-                    if (X509Utils.GetPrivateKeyInfo(cmsgDecryptParam.safeCertContextHandle, ref parameters) == false)
-                        throw new CryptographicException(Marshal.GetLastWin32Error());
-
-                    KeyContainerPermission kp = new KeyContainerPermission(KeyContainerPermissionFlags.NoFlags);
-                    KeyContainerPermissionAccessEntry entry = new KeyContainerPermissionAccessEntry(parameters, KeyContainerPermissionFlags.Open | KeyContainerPermissionFlags.Decrypt);
-                    kp.AccessEntries.Add(entry);
-                    kp.Demand();
+                    if (X509Utils.GetPrivateKeyInfo(cmsgDecryptParam.safeCertContextHandle, ref parameters))
+                    {
+                        KeyContainerPermission kp = new KeyContainerPermission(KeyContainerPermissionFlags.NoFlags);
+                        KeyContainerPermissionAccessEntry entry = new KeyContainerPermissionAccessEntry(parameters, KeyContainerPermissionFlags.Open | KeyContainerPermissionFlags.Decrypt);
+                        kp.AccessEntries.Add(entry);
+                        kp.Demand();
+                    }
 
                     // Decrypt the content.
                     switch (recipientInfo.Type) {
@@ -554,58 +554,20 @@ namespace System.Security.Cryptography.Pkcs {
 
             // Acquire CSP if the recipient's cert is found.
             if (safeCertContextHandle != null && !safeCertContextHandle.IsInvalid) {
-                SafeCryptProvHandle safeCryptProvHandle = SafeCryptProvHandle.InvalidHandle;
-                uint keySpec = 0;
-                bool freeCsp = false;
+                SafeCryptProvHandle safeCryptProvHandle;
+                uint keySpec;
 
-                // Check to see if KEY_PROV_INFO contains "MS Base ..."
-                // If so, acquire "MS Enhanced..." or "MS Strong".
-                // if failed, then use CryptAcquireCertificatePrivateKey
-                CspParameters parameters = new CspParameters();
-                if (X509Utils.GetPrivateKeyInfo(safeCertContextHandle, ref parameters) == false)
-                    throw new CryptographicException(Marshal.GetLastWin32Error());
-                
-                if (String.Compare(parameters.ProviderName, CAPI.MS_DEF_PROV, StringComparison.OrdinalIgnoreCase) == 0) {
-                    if (CAPI.CryptAcquireContext(ref safeCryptProvHandle, parameters.KeyContainerName, CAPI.MS_ENHANCED_PROV, CAPI.PROV_RSA_FULL, 0) ||
-                        CAPI.CryptAcquireContext(ref safeCryptProvHandle, parameters.KeyContainerName, CAPI.MS_STRONG_PROV,   CAPI.PROV_RSA_FULL, 0)) {
-                            cmsgDecryptParam.safeCryptProvHandle = safeCryptProvHandle;
-                    }
+                hr = PkcsUtils.GetCertPrivateKey(safeCertContextHandle, out safeCryptProvHandle, out keySpec);
+
+                if (safeCryptProvHandle != null && !safeCryptProvHandle.IsInvalid) {
+                    cmsgDecryptParam.safeCryptProvHandle = safeCryptProvHandle;
+                }
+                else {
+                    cmsgDecryptParam.safeCryptProvHandle = null;
                 }
 
                 cmsgDecryptParam.safeCertContextHandle = safeCertContextHandle;
-                cmsgDecryptParam.keySpec = (uint)parameters.KeyNumber;
-                hr = CAPI.S_OK;
-
-                uint flags = CAPI.CRYPT_ACQUIRE_COMPARE_KEY_FLAG | CAPI.CRYPT_ACQUIRE_USE_PROV_INFO_FLAG;
-                if (parameters.ProviderType == 0)
-                {
-                    //
-                    // The ProviderType being 0 indicates that this cert is using a CNG key. Set the flag to tell CryptAcquireCertificatePrivateKey that it's okay to give
-                    // us a CNG key.
-                    //
-                    // (This should be equivalent to passing CRYPT_ACQUIRE_ALLOW_NCRYPT_KEY_FLAG. But fixing it this way restricts the code path changes
-                    // within Crypt32 to the cases that were already non-functional in 4.6.1. Thus, it is a "safer" way to fix it for a point release.)
-                    //
-                    flags |= CAPI.CRYPT_ACQUIRE_PREFER_NCRYPT_KEY_FLAG;
-                }
-
-                if ((safeCryptProvHandle == null) || (safeCryptProvHandle.IsInvalid)) {
-                    if (CAPI.CAPISafe.CryptAcquireCertificatePrivateKey(safeCertContextHandle,
-                                                                        flags,
-                                                                        IntPtr.Zero,
-                                                                        ref safeCryptProvHandle,
-                                                                        ref keySpec,
-                                                                        ref freeCsp)) {
-                        if (!freeCsp) {
-                            GC.SuppressFinalize(safeCryptProvHandle);
-                        }
-
-                        cmsgDecryptParam.safeCryptProvHandle = safeCryptProvHandle;
-                    }
-                    else {
-                        hr = Marshal.GetHRForLastWin32Error();
-                    }
-                }
+                cmsgDecryptParam.keySpec = keySpec;
             }
 
             return hr;

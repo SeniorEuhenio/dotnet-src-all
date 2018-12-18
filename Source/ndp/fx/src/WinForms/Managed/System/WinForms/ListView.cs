@@ -5418,13 +5418,21 @@ namespace System.Windows.Forms {
             //If Validation is cancelled dont fire any events through the Windows ListView's message loop...
             if (!ValidationCancelled) {
 
-                if (CheckBoxes && imageListState != null && imageListState.Images.Count < 2) {
-                    // vsw 156366: when the user clicks on the check box and the listView's state image list
-                    // does not have 2 images, comctl will give us an AttemptToDivideByZero exception.
-                    // So don't send the message to DefWndProc in this situation.
-                    ListViewHitTestInfo lvhti = this.HitTest(x,y);
-                    if (lvhti.Location != ListViewHitTestLocations.StateImage)
-                    {
+                if (CheckBoxes) {
+                    ListViewHitTestInfo lvhti = this.HitTest(x, y);
+                    if (imageListState != null && imageListState.Images.Count < 2) {
+                        // vsw 156366: when the user clicks on the check box and the listView's state image list
+                        // does not have 2 images, comctl will give us an AttemptToDivideByZero exception.
+                        // So don't send the message to DefWndProc in this situation.
+                        if (lvhti.Location != ListViewHitTestLocations.StateImage) {
+                            DefWndProc(ref m);
+                        }
+                    }
+                    else {
+                        // When a user clicks on the state image, focus the item.
+                        if (AccessibilityImprovements.Level2 && lvhti.Item != null && lvhti.Location == ListViewHitTestLocations.StateImage) {
+                            lvhti.Item.Focused = true;
+                        }
                         DefWndProc(ref m);
                     }
                 }
@@ -5895,7 +5903,7 @@ namespace System.Windows.Forms {
                             if (newValue != oldValue) {
                                 ItemCheckedEventArgs e = new ItemCheckedEventArgs(Items[nmlv->iItem]);
                                 OnItemChecked(e);
-                                if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                                if (AccessibilityImprovements.Level1) {
                                     AccessibilityNotifyClients(AccessibleEvents.StateChange, nmlv->iItem);
                                     AccessibilityNotifyClients(AccessibleEvents.NameChange, nmlv->iItem);
                                 }

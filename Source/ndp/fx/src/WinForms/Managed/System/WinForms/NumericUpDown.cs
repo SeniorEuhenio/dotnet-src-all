@@ -909,7 +909,7 @@ namespace System.Windows.Forms {
                         return role;
                     }
                     else {
-                        if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                        if (AccessibilityImprovements.Level1) {
                             return AccessibleRole.SpinButton;
                         }
                         else {
@@ -922,7 +922,7 @@ namespace System.Windows.Forms {
             public override string Name
             {
                 get {
-                    if (base.Name == null && !LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                    if (base.Name == null && AccessibilityImprovements.Level1) {
                         return Owner.GetType().Name;
                     }
                     else {

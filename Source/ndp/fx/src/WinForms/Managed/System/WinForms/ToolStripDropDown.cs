@@ -40,6 +40,7 @@ namespace System.Windows.Forms {
         private int                         countDropDownItemsAssignedTo = 0; // the number of dropdown items using this as their dropdown..
         private BitVector32                 state               = new BitVector32();
         private Point                       displayLocation     = new Point(0,0);
+        private bool                        saveSourceControl   = false;
 
         private ToolStripDropDownDirection childDropDownDirection = ToolStripDropDownDirection.Default;
         private ToolStripDropDownCloseReason closeReason = ToolStripDropDownCloseReason.AppFocusChange;
@@ -1290,8 +1291,12 @@ namespace System.Windows.Forms {
         }
 
         internal override void HandleItemClicked(ToolStripItem dismissingItem) {
-            // post processing after the click has happened.
-            SourceControlInternal = null;
+            // Only clear the SourceControl if this is the last click.
+            if (!LocalAppContextSwitches.UseLegacyContextMenuStripSourceControlValue &&
+                this.ActiveDropDowns.Count == 0) {
+                // post processing after the click has happened.
+                SourceControlInternal = null;
+            }
             base.HandleItemClicked(dismissingItem);
         }
         /// <devdoc>
@@ -1895,6 +1900,8 @@ namespace System.Windows.Forms {
                                 // close, closing event with reason AppFocusChange.  This is by 
                                 // design since the item wasnt clicked on that window.
                                 if (reason == ToolStripDropDownCloseReason.ItemClicked) {
+                                    // Preserve the SourceControl value up the chain.
+                                    this.saveSourceControl = true;
                                     DismissAll();   
                                     // make sure that when we roll up, our owner item's selection is cleared.
                                     ToolStripItem rootOwnerItem = GetToplevelOwnerItem();
@@ -1947,7 +1954,10 @@ namespace System.Windows.Forms {
                                 }
                                 
 
-                                if (reason != ToolStripDropDownCloseReason.ItemClicked) {
+                                if (!this.saveSourceControl) {
+                                    Debug.Assert(reason != ToolStripDropDownCloseReason.ItemClicked,
+                                        "Why are we resetting SourceControl on a click event?");
+
                                     // VSWhidbey 475650: If we're not about to fire a Click event, reset SourceControl.
                                     SourceControlInternal = null;
                                 }
@@ -1982,6 +1992,7 @@ namespace System.Windows.Forms {
             }
             finally {
               state[stateInSetVisibleCore] = false;
+              this.saveSourceControl = false;
             }
 
         }
@@ -2161,7 +2172,10 @@ namespace System.Windows.Forms {
            ToolStripDropDown toplevel = this.GetFirstDropDown();
            toplevel.closeReason = this.closeReason;
            toplevel.DismissActiveDropDowns();
-           toplevel.Visible = false;   
+            if (!LocalAppContextSwitches.UseLegacyContextMenuStripSourceControlValue) {
+                toplevel.saveSourceControl = this.saveSourceControl;
+            }
+            toplevel.Visible = false;
        }
        private void DismissActiveDropDowns() {
            Debug.WriteLineIf((DropDownActivateDebug.TraceVerbose && ActiveDropDowns.Count > 0), "Dismiss children called - COUNT " + ActiveDropDowns.Count + " \r\n" + new StackTrace().ToString());

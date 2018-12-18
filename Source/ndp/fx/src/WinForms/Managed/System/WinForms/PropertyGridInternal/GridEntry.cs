@@ -161,7 +161,7 @@ namespace System.Windows.Forms.PropertyGridInternal {
 
         private bool colorInversionNeededInHC {
             get {
-                 return SystemInformation.HighContrast && !OwnerGrid.developerOverride && !LocalAppContextSwitches.UseLegacyAccessibilityFeatures;
+                 return SystemInformation.HighContrast && !OwnerGrid.developerOverride && AccessibilityImprovements.Level1;
             }
         }
 
@@ -169,10 +169,14 @@ namespace System.Windows.Forms.PropertyGridInternal {
 
             get {
                 if (accessibleObject == null) {
-                    accessibleObject = new GridEntryAccessibleObject(this);
+                    accessibleObject = GetAccessibilityObject();
                 }
                 return accessibleObject;
             }
+        }
+
+        protected virtual GridEntryAccessibleObject GetAccessibilityObject() {
+            return new GridEntryAccessibleObject(this);
         }
 
         /// <include file='doc\GridEntry.uex' path='docs/doc[@for="GridEntry.AllowMerge"]/*' />
@@ -435,7 +439,7 @@ namespace System.Windows.Forms.PropertyGridInternal {
                     }
                 }
 
-                if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                if (AccessibilityImprovements.Level1) {
                     // Notify accessibility clients of expanded state change
                     // StateChange requires NameChange, too - accessible clients won't see this, unless both events are raised
 
@@ -793,12 +797,12 @@ namespace System.Windows.Forms.PropertyGridInternal {
             }
         }
 
-            /// <include file='doc\GridEntry.uex' path='docs/doc[@for="GridEntry.OutlineRect"]/*' />
-            /// <devdoc>
-            /// Returns rect that the outline icon (+ or - or arrow) will be drawn into, relative
-            /// to the upper left corner of the GridEntry.
-            /// </devdoc>
-            public Rectangle OutlineRect {
+        /// <include file='doc\GridEntry.uex' path='docs/doc[@for="GridEntry.OutlineRect"]/*' />
+        /// <devdoc>
+        /// Returns rect that the outline icon (+ or - or arrow) will be drawn into, relative
+        /// to the upper left corner of the GridEntry.
+        /// </devdoc>
+        public Rectangle OutlineRect {
             get {
                 if (!outlineRect.IsEmpty) {
                     return outlineRect;
@@ -2699,7 +2703,7 @@ namespace System.Windows.Forms.PropertyGridInternal {
         [ComVisible(true)]
         public class GridEntryAccessibleObject : AccessibleObject {
 
-            GridEntry owner = null;
+            protected GridEntry owner = null;
             private delegate void SelectDelegate(AccessibleSelection flags);
             private int[] runtimeId = null; // Used by UIAutomation
 
@@ -2736,7 +2740,7 @@ namespace System.Windows.Forms.PropertyGridInternal {
 
             public override string Help {
                 get {
-                    if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                    if (AccessibilityImprovements.Level1) {
                         return owner.PropertyDescription;
                     }
                     else {
@@ -2748,7 +2752,7 @@ namespace System.Windows.Forms.PropertyGridInternal {
             #region IAccessibleEx - patterns and properties
 
             internal override bool IsIAccessibleExSupported() {
-                if (owner.Expandable && !LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                if (owner.Expandable && AccessibilityImprovements.Level1) {
                     return true;
                 }
                 else {
@@ -2851,10 +2855,7 @@ namespace System.Windows.Forms.PropertyGridInternal {
 
             public override AccessibleRole Role {
                 get {
-                    if (LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
-                        return AccessibleRole.Row;
-                    }
-                    else {
+                    if (AccessibilityImprovements.Level1)  {
                         if (owner.Expandable) {
                             return AccessibleRole.ButtonDropDownGrid;
                         }
@@ -2862,6 +2863,7 @@ namespace System.Windows.Forms.PropertyGridInternal {
                             return AccessibleRole.Cell;
                         }
                     }
+                    return AccessibleRole.Row;
                 }
             }
 

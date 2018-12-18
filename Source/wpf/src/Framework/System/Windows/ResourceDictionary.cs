@@ -20,6 +20,7 @@ using System.ComponentModel;
 using System.Security;
 using System.Windows.Threading;
 using System.Windows.Media;
+using System.Windows.Diagnostics;
 using System.IO.Packaging;
 using MS.Internal.IO.Packaging;         // for PackageCacheEntry
 using System.Globalization;
@@ -145,11 +146,34 @@ namespace System.Windows
                     throw new ArgumentException(SR.Get(SRID.ResourceDictionaryLoadFromFailure, value == null ? "''" : value.ToString()));
                 }
 
-                _source = value;
+                ResourceDictionaryDiagnostics.RemoveResourceDictionaryForUri(_source, this);
 
+                ResourceDictionarySourceUriWrapper uriWrapper = value as ResourceDictionarySourceUriWrapper;
+
+                Uri sourceUri;
+
+                // DDVSO 546550: If the Uri we received is a ResourceDictionarySourceUriWrapper it means
+                // that it is being passed down by the Baml parsing code, and it is trying to give us more
+                // information to avoid possible ambiguities in assembly resolving. Use the VersionedUri
+                // to resolve, and the set _source to the OriginalUri so we don't change the return of Source property.
+                // The versioned Uri is not stored, if the version info is needed while debugging, once this method 
+                // returns _reader should be set, from there BamlSchemaContext.LocalAssembly contains the version info.
+                if (uriWrapper == null)
+                {
+                    _source = value;
+                    sourceUri = _source;
+                }
+                else
+                {
+                    _source = uriWrapper.OriginalUri;
+                    sourceUri = uriWrapper.VersionedUri;
+                }
+                
                 Clear();
+                
+                
+                Uri uri = BindUriHelper.GetResolvedUri(_baseUri, sourceUri);
 
-                Uri uri = BindUriHelper.GetResolvedUri(_baseUri, _source);
                 WebRequest request = WpfWebRequestHelper.CreateRequest(uri);
                 WpfWebRequestHelper.ConfigCachePolicy(request, false);
                 ContentType contentType = null;
@@ -244,6 +268,8 @@ namespace System.Windows
                         PropagateParentOwners(_mergedDictionaries[i]);
                     }
                 }
+
+                ResourceDictionaryDiagnostics.AddResourceDictionaryForUri(uri, this);
 
                 if (!IsInitializePending)
                 {
@@ -960,6 +986,11 @@ namespace System.Windows
 
         private void OnGettingValuePrivate(object key, ref object value, out bool canCache)
         {
+            // diagnostic agent may want to know when a StaticResource reference
+            // resolves.  Do this before calling out to OnGettingValue, as that
+            // can inflate deferred content and cause nested requests
+            ResourceDictionaryDiagnostics.RecordLookupResult(key, this);
+
             OnGettingValue(key, ref value, out canCache);
 
             if (key != null && canCache)
@@ -1761,6 +1792,8 @@ namespace System.Windows
                         deferredResourceReference = new DeferredThemeResourceReference(this, resourceKey, canCacheAsThemeResource);
                     }
 
+                    ResourceDictionaryDiagnostics.RecordLookupResult(resourceKey, this);
+
                     return deferredResourceReference;
                 }
             }
@@ -2031,6 +2064,23 @@ namespace System.Windows
             }
 
             return false;
+        }
+
+        // three properties used by ResourceDictionaryDiagnostics
+
+        internal WeakReferenceList FrameworkElementOwners
+        {
+            get { return _ownerFEs; }
+        }
+
+        internal WeakReferenceList FrameworkContentElementOwners
+        {
+            get { return _ownerFCEs; }
+        }
+
+        internal WeakReferenceList ApplicationOwners
+        {
+            get { return _ownerApps; }
         }
 
         #endregion HelperMethods
@@ -2494,6 +2544,32 @@ namespace System.Windows
             CanBeAccessedAcrossThreads  = 0x20,
             InvalidatesImplicitDataTemplateResources = 0x40,
             HasImplicitDataTemplates    = 0x80,
+        }
+
+        /// <summary>
+        /// This wrapper class exists so SourceUriTypeConverterMarkupExtension can pass
+        /// a more complete Uri to help resolve to the correct assembly, while also passing 
+        /// the original Uri so that ResourceDictionary.Source still returns the original value.
+        /// </summary> 
+        internal class ResourceDictionarySourceUriWrapper : Uri
+        {
+            public ResourceDictionarySourceUriWrapper(Uri originalUri, Uri versionedUri) : base(originalUri.OriginalString, UriKind.RelativeOrAbsolute)
+            {
+                OriginalUri = originalUri;
+                VersionedUri = versionedUri;
+            }
+
+            internal Uri OriginalUri
+            {
+                get;
+                set;
+            }
+
+            internal Uri VersionedUri
+            {
+                get;
+                set;
+            }
         }
 
         #endregion PrivateDataStructures

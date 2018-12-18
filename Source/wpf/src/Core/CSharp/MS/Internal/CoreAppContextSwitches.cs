@@ -7,6 +7,7 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using System.Windows;
 
 namespace MS.Internal
 {
@@ -133,21 +134,122 @@ namespace MS.Internal
         }
 
         #endregion
-        
+
         #region UseLegacyAccessibilityFeatures
 
         // DDVSO:444529
         // Switch to disable new Accessibility features that may affect compat.
-        internal const string UseLegacyAccessibilityFeaturesSwitchName = "Switch.UseLegacyAccessibilityFeatures";
-        private static int _useLegacyAccessibilityFeatures;
         public static bool UseLegacyAccessibilityFeatures
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                return LocalAppContext.GetCachedSwitchValue(UseLegacyAccessibilityFeaturesSwitchName, ref _useLegacyAccessibilityFeatures);
+                return AccessibilitySwitches.UseLegacyAccessibilityFeatures;
             }
         }
+
+        #endregion
+
+        #region UseLegacyAccessibilityFeatures2
+
+        // Switch to disable new Accessibility features that may affect compat.
+        public static bool UseLegacyAccessibilityFeatures2
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                return AccessibilitySwitches.UseLegacyAccessibilityFeatures2;
+            }
+        }
+        
+        #endregion
+
+        #region ShouldRenderEvenWhenNoDisplayDevicesAreAvailable and ShouldNotRenderInNonInteractiveWindowStation
+
+        #region ShouldRenderEvenWhenNoDisplayDevicesAreAvailable
+
+        internal const string ShouldRenderEvenWhenNoDisplayDevicesAreAvailableSwitchName = "Switch.System.Windows.Media.ShouldRenderEvenWhenNoDisplayDevicesAreAvailable";
+        private static int _shouldRenderEvenWhenNoDisplayDevicesAreAvailable;
+
+        /// <summary>
+        /// See <see cref="System.Windows.Media.MediaContext.ShouldRenderEvenWhenNoDisplayDevicesAreAvailable"/> for details
+        /// </summary>
+        /// <remarks>
+        ///     A registry value (HKLM only) can be set to force this value to be true.
+        ///         Registry location: 
+        ///             HKEY_LOCAL_MACHINE\Software\[Wow6432Node\]Microsoft\.NETFramework\AppContext
+        ///         Value Name:
+        ///             Switch.System.Windows.Media.ShouldRenderEvenWhenNoDisplayDevicesAreAvailable
+        ///         Type:
+        ///             REG_SZ
+        ///         Values:
+        ///             "true"
+        ///             "false"
+        ///         Default:
+        ///             "false"
+        ///     ii. An element in the <![CDATA[<AppContextSwitchOverrides>]]> element of the application 
+        ///     configuration file (App.Config) can be set as follows:
+        ///     <![CDATA[
+        ///         <configuration>
+        ///             <runtime>
+        ///                 <AppContextSwitchOverrides 
+        ///                     value="Switch.Name.One=value1;Switch.Name.Two=value2;Switch.System.Windows.Media.ShouldRenderEvenWhenNoDisplayDevicesAreAvailable=true" />
+        ///             </runtime>
+        ///         </configuration>
+        ///     ]]>
+        /// </remarks>
+        public static bool ShouldRenderEvenWhenNoDisplayDevicesAreAvailable
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                return LocalAppContext.GetCachedSwitchValue(ShouldRenderEvenWhenNoDisplayDevicesAreAvailableSwitchName, ref _shouldRenderEvenWhenNoDisplayDevicesAreAvailable);
+            }
+        }
+
+        #endregion
+
+        #region ShouldNotRenderInNonInteractiveWindowStation
+
+        internal const string ShouldNotRenderInNonInteractiveWindowStationSwitchName = "Switch.System.Windows.Media.ShouldNotRenderInNonInteractiveWindowStation";
+        private static int _shouldNotRenderInNonInteractiveWindowStation;
+
+        /// <summary>
+        /// See <see cref="System.Windows.Media.MediaContext.ShouldRenderEvenWhenNoDisplayDevicesAreAvailable"/> for details
+        /// </summary>
+        /// <remarks>
+        ///     A registry value (HKLM only) can be set to force this value to be true.
+        ///         Registry location: 
+        ///             HKEY_LOCAL_MACHINE\Software\[Wow6432Node\]Microsoft\.NETFramework\AppContext
+        ///         Value Name:
+        ///             Switch.System.Windows.Media.ShouldNotRenderInNonInteractiveWindowStation
+        ///         Type:
+        ///             REG_SZ
+        ///         Values:
+        ///             "true"
+        ///             "false"
+        ///         Default:
+        ///             "false"
+        ///     ii. An element in the <![CDATA[<AppContextSwitchOverrides>]]> element of the application 
+        ///     configuration file (App.Config) can be set as follows:
+        ///     <![CDATA[
+        ///         <configuration>
+        ///             <runtime>
+        ///                 <AppContextSwitchOverrides 
+        ///                     value="Switch.Name.One=value1;Switch.Name.Two=value2;Switch.System.Windows.Media.ShouldNotRenderInNonInteractiveWindowStation=true" />
+        ///             </runtime>
+        ///         </configuration>
+        ///     ]]>
+        /// </remarks>
+        public static bool ShouldNotRenderInNonInteractiveWindowStation
+        {
+            get
+            {
+                return LocalAppContext.GetCachedSwitchValue(ShouldNotRenderInNonInteractiveWindowStationSwitchName, ref _shouldNotRenderInNonInteractiveWindowStation);
+            }
+        }
+
+        #endregion
 
         #endregion
     }

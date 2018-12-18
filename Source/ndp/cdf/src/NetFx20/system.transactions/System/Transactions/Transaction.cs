@@ -1478,22 +1478,22 @@ namespace System.Transactions
 
         // ConditionalWeakTable is used to automatically remove the entries that are no longer referenced. This will help prevent leaks in async nested TransactionScope
         // usage and when child nested scopes are not syncronized properly. 
-        static readonly ConditionalWeakTable<ContextKey, ContextData> ContextDataTable = new ConditionalWeakTable<ContextKey, ContextData>();
+        static readonly ConditionalWeakTable<string, ContextData> ContextDataTable = new ConditionalWeakTable<string, ContextData>();
 
         // 
         //  Set CallContext data with the given contextKey. 
         //  return the ContextData if already present in contextDataTable, otherwise return the default value. 
         // 
-        static public ContextData CreateOrGetCurrentData(ContextKey contextKey)
+        static public ContextData CreateOrGetCurrentData(string contextKey)
         {
            CallContext.LogicalSetData(CurrentTransactionProperty, contextKey);
            return ContextDataTable.GetValue(contextKey, (env) => new ContextData(true));
         }
 
-        static public void ClearCurrentData(ContextKey contextKey, bool removeContextData)
+        static public void ClearCurrentData(string contextKey, bool removeContextData)
         {
             // Get the current ambient CallContext.
-            ContextKey key = (ContextKey)CallContext.LogicalGetData(CurrentTransactionProperty);
+            string key = (string)CallContext.LogicalGetData(CurrentTransactionProperty);
             if (contextKey != null || key != null)
             {
                 // removeContextData flag is used for perf optimization to avoid removing from the table in certain nested TransactionScope usage. 
@@ -1509,11 +1509,11 @@ namespace System.Transactions
                 }
             }
         }
-        
+
         static public bool TryGetCurrentData(out ContextData currentData)
         {
             currentData = null;
-            ContextKey contextKey = (ContextKey)CallContext.LogicalGetData(CurrentTransactionProperty);
+            string contextKey = (string)CallContext.LogicalGetData(CurrentTransactionProperty);
             if (contextKey == null)
             {
                return false;
@@ -1525,13 +1525,6 @@ namespace System.Transactions
         }
     }
 
-    //
-    // MarshalByRefObject is needed for cross AppDomain scenarios where just using object will end up with a different reference when call is made across serialization boundary.
-    //
-    class ContextKey : MarshalByRefObject
-    {
-    }
-    
     class ContextData
     {
         internal TransactionScope CurrentScope;

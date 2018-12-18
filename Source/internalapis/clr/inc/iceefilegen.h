@@ -67,6 +67,7 @@ typedef HRESULT (__stdcall * PFN_DestroyICeeFileGen)(ICeeFileGen ** ceeFileGen);
 #define ICEE_CREATE_FILE_CORMAIN_STUB  0x00000004  // add a mscoree!_Cor___Main call stub 
 #define ICEE_CREATE_FILE_STRIP_RELOCS  0x00000008  // strip the .reloc section
 #define ICEE_CREATE_FILE_EMIT_FIXUPS   0x00000010  // emit fixups for use by Vulcan
+#define ICEE_CREATE_SET_FILE_INTEGRITY 0x00010000  // Set a code integrity indicator on the file after writing it
 
 #define ICEE_CREATE_MACHINE_MASK       0x0000FF00  // space for up to 256 machine targets
 #define ICEE_CREATE_MACHINE_ILLEGAL    0x00000000  // An illegal machine name

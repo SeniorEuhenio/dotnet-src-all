@@ -389,9 +389,31 @@ namespace System.Windows.Controls
                         }
                     }
 
-                    // Ask the column to build a visual tree and
+                    // Ask the column to build a visual tree
+                    FrameworkElement newContent = column.BuildVisualTree(IsEditing, RowDataItem, this);
+
+                    // Before discarding the old visual tree, disconnect all its
+                    // bindings, as in ItemContainerGenerator.UnlinkContainerFromItem.
+                    // This prevents aliasing that can arise in recycling mode (DDVSO 405066)
+                    FrameworkElement oldContent = Content as FrameworkElement;
+                    if (oldContent != null && oldContent != newContent)
+                    {
+                        ContentPresenter cp = oldContent as ContentPresenter;
+                        if (cp == null)
+                        {
+                            oldContent.SetValue(FrameworkElement.DataContextProperty, BindingExpressionBase.DisconnectedItem);
+                        }
+                        else
+                        {
+                            // for a template column, disconnect by setting the
+                            // Content, to override the binding set up in
+                            // DataGridTemplateColumn.LoadTemplateContent.
+                            cp.Content = BindingExpressionBase.DisconnectedItem;
+                        }
+                    }
+
                     // hook the visual tree up through the Content property.
-                    Content = column.BuildVisualTree(IsEditing, RowDataItem, this);
+                    Content = newContent;
                 }
             }
         }

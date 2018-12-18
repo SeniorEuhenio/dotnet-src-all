@@ -15,5 +15,13 @@ namespace System.Activities.Core.Presentation
                 return System.Activities.Presentation.LocalAppContextSwitches.UseLegacyAccessibilityFeatures;
             }
         }
+        
+        public static bool UseLegacyAccessibilityFeatures2
+        {
+            get
+            {
+                return System.Activities.Presentation.LocalAppContextSwitches.UseLegacyAccessibilityFeatures2;
+            }
+        }
     }
 }

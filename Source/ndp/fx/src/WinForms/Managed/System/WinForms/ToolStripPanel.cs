@@ -380,6 +380,9 @@ namespace System.Windows.Forms {
                 return base.TabStop;
             }
             set {
+                if (AccessibilityImprovements.Level2) {
+                    SetStyle(ControlStyles.Selectable, value);
+                }
                 base.TabStop = value;
             }
         }
