@@ -1623,7 +1623,7 @@ namespace System.Data.Common {
             return InvalidOperation(Res.GetString(Res.ADP_OffsetOutOfRangeException));
         }
 
-		 //
+         //
         // : DbMetaDataFactory
         //
 
@@ -2492,6 +2492,16 @@ namespace System.Data.Common {
                     isSqlType = false;
                 }
             }
+        }
+
+        private static Version _systemDataVersion;
+        static internal Version GetAssemblyVersion() {
+            // NOTE: Using lazy thread-safety since we don't care if two threads both happen to update the value at the same time
+            if (_systemDataVersion == null) {
+                _systemDataVersion = new Version(ThisAssembly.InformationalVersion);
+            }
+
+            return _systemDataVersion;
         }
     }
 }

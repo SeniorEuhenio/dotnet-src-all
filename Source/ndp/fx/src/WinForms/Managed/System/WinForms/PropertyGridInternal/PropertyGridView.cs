@@ -410,6 +410,10 @@ namespace System.Windows.Forms.PropertyGridInternal {
             }
         }
 
+       //   This dialog's width is defined by the summary message 
+       //   in the top pane. We don't restrict dialog width in any way. 
+       //   Use caution and check at all DPI scaling factors if adding a new message
+       //   to be displayed in the top pane.
         private GridErrorDlg ErrorDialog {
             get {
                 if (this.errorDlg == null) {

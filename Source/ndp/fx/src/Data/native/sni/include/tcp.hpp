@@ -122,6 +122,7 @@ public:
 	~Tcp();	
 
 	static BOOL s_fAutoTuning;
+	static BOOL s_fSkipCompletionPort;
 
 	static DWORD Initialize(PSNI_PROVIDER_INFO pInfo);
 	static DWORD Terminate();
@@ -159,7 +160,7 @@ public:
 
 	DWORD SetKeepAliveOption();
 	inline void SetSockBufAutoTuning(BOOL* pfAuto){ Assert (pfAuto); m_fAuto = (*pfAuto == TRUE && s_fAutoTuning ==TRUE); }
-	
+		
 	static DWORD AcceptDone( SNI_Conn * pConn, 
 								 __inout LPVOID pAcceptKey,
 								 DWORD dwBytes,
@@ -200,6 +201,8 @@ private:
 	void ReleaseHandleRef(); 
 
 	BOOL FCloseRefHandle(); 
+
+	static DWORD ShouldEnableSkipIOCompletion(__out BOOL* pfShouldEnable);
 };
 
 #endif

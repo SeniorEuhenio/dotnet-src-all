@@ -681,7 +681,7 @@ namespace MS.Internal.Data
                 DynamicObjectAccessor oldDOA;
                 PropertyPath.DowncastAccessor(_arySVS[k].info, out oldDP, out oldPI, out oldPD, out oldDOA);
 
-                if (newO == BindingExpression.StaticSource)
+                if (oldO == BindingExpression.StaticSource)
                 {
                     Type declaringType = (oldPI != null) ? oldPI.DeclaringType
                                         : (oldPD != null) ? oldPD.ComponentType

@@ -317,6 +317,7 @@ public class Page: TemplateControl, IHttpHandler {
 
     internal const string ViewStateFieldPrefixID = systemPostFieldPrefix + "VIEWSTATE";
     internal const string ViewStateFieldCountID = ViewStateFieldPrefixID + "FIELDCOUNT";
+    internal const string ViewStateGeneratorFieldID = ViewStateFieldPrefixID + "GENERATOR";
     internal const string ViewStateEncryptionID = systemPostFieldPrefix + "VIEWSTATEENCRYPTED";
     internal const string EventValidationPrefixID = systemPostFieldPrefix + "EVENTVALIDATION";
     // Any change in this constant must be duplicated in DetermineIsExportingWebPart
@@ -401,6 +402,7 @@ public class Page: TemplateControl, IHttpHandler {
     private const int isPartialRenderingSupported    = 0x00000010;
     private const int isPartialRenderingSupportedSet = 0x00000020;
     private const int skipFormActionValidation       = 0x00000040;
+    private const int wasViewStateMacErrorSuppressed = 0x00000080;
 
     // Todo: Move boolean fields into _pageFlags.
     #pragma warning disable 0649
@@ -426,6 +428,7 @@ public class Page: TemplateControl, IHttpHandler {
         s_systemPostFields.Add(postEventSourceID);
         s_systemPostFields.Add(postEventArgumentID);
         s_systemPostFields.Add(ViewStateFieldCountID);
+        s_systemPostFields.Add(ViewStateGeneratorFieldID);
         s_systemPostFields.Add(ViewStateFieldPrefixID);
         s_systemPostFields.Add(ViewStateEncryptionID);
         s_systemPostFields.Add(previousPageID);
@@ -1513,6 +1516,21 @@ public class Page: TemplateControl, IHttpHandler {
         return base.GetUniqueIDPrefix();
     }
 
+    // This is a non-cryptographic hash code that can be used to identify which Page generated
+    // a __VIEWSTATE field. It shouldn't be considered sensitive information since its inputs
+    // are assumed to be known by all parties.
+    internal uint GetClientStateIdentifier() {
+        // 
+
+        // Use the page's directory and class name as part of the key (ASURT 64044)
+        // We need to make sure that the hash is case insensitive, since the file system
+        // is, and strange view state errors could otherwise happen (ASURT 128657)
+        int pageHashCode = StringComparer.InvariantCultureIgnoreCase.GetHashCode(
+            TemplateSourceDirectory);
+        pageHashCode += StringComparer.InvariantCultureIgnoreCase.GetHashCode(GetType().Name);
+        return (uint)pageHashCode;
+    }
+
     /*
      * Called when an exception occurs in ProcessRequest
      */
@@ -1635,6 +1653,11 @@ public class Page: TemplateControl, IHttpHandler {
 
             // Don't treat it as a postback if the page is posted from cross page
             if (_pageFlags[isCrossPagePostRequest])
+                return false;
+
+            // Don't treat it as a postback if a view state MAC check failed and we
+            // simply ate the exception.
+            if (ViewStateMacValidationErrorWasSuppressed)
                 return false;
 
             // If we're in a Transfer/Execute, never treat as postback (ASURT 121000)
@@ -2065,10 +2088,67 @@ public class Page: TemplateControl, IHttpHandler {
                 return null;
             }
 
+            // DevDiv #461378: Ignore validation errors for cross-page postbacks.
+            if (ShouldSuppressMacValidationException(e)) {
+                if (Context != null && Context.TraceIsEnabled) {
+                    Trace.Write("aspx.page", "Ignoring page state", e);
+                }
+
+                ViewStateMacValidationErrorWasSuppressed = true;
+                return null;
+            }
+
             e.WebEventCode = WebEventCodes.RuntimeErrorViewStateFailure;
             throw;
         }
         return new Pair(persister.ControlState, persister.ViewState);
+    }
+
+    private bool ViewStateMacValidationErrorWasSuppressed {
+        get { return _pageFlags[wasViewStateMacErrorSuppressed]; }
+        set { _pageFlags[wasViewStateMacErrorSuppressed] = value; }
+    }
+
+    internal bool ShouldSuppressMacValidationException(Exception e) {
+        // If the patch isn't active, don't suppress anything, as it would be a change in behavior.
+        if (!EnableViewStateMacRegistryHelper.SuppressMacValidationErrorsFromCrossPagePostbacks) {
+            return false;
+        }
+
+        // We check the __VIEWSTATEGENERATOR field for an identifier that matches the current Page.
+        // If the generator field exists and says that the current Page generated the incoming
+        // __VIEWSTATE field, then a validation failure represents a real error and we need to
+        // surface this information to the developer for resolution. Otherwise we assume this
+        // view state was not meant for us, so if validation fails we'll just ignore __VIEWSTATE.
+        if (ViewStateException.IsMacValidationException(e)) {
+            if (EnableViewStateMacRegistryHelper.SuppressMacValidationErrorsAlways) {
+                return true;
+            }
+
+            // DevDiv #841854: VSUK is often used for CSRF checks, so we can't ---- MAC exceptions by default in this case.
+            if (!String.IsNullOrEmpty(ViewStateUserKey)) {
+                return false;
+            }
+
+            if (_requestValueCollection == null) {
+                return true;
+            }
+
+            if (!VerifyClientStateIdentifier(_requestValueCollection[ViewStateGeneratorFieldID])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool VerifyClientStateIdentifier(string identifier) {
+        // Returns true iff we can parse the incoming identifier and it matches our own.
+        // If we can't parse the identifier, then by definition we didn't generate it.
+        uint parsedIdentifier;
+        return identifier != null
+            && UInt32.TryParse(identifier, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out parsedIdentifier)
+            && parsedIdentifier == GetClientStateIdentifier();
     }
 
     internal void LoadScrollPosition() {
@@ -2169,6 +2249,14 @@ public class Page: TemplateControl, IHttpHandler {
                 writer.WriteLine("\" />");
                 ++count;
                 _hiddenFieldsToRender[name] = stateChunk;
+            }
+
+            // DevDiv #461378: Write out an identifier so we know who generated this __VIEWSTATE field.
+            // It doesn't need to be MACed since the only thing we use it for is error suppression,
+            // similar to how __PREVIOUSPAGE works.
+            if (EnableViewStateMacRegistryHelper.WriteViewStateGeneratorField) {
+                // hex is easier than base64 to work with and consumes only one extra byte on the wire
+                ClientScript.RegisterHiddenField(ViewStateGeneratorFieldID, GetClientStateIdentifier().ToString("X8", CultureInfo.InvariantCulture));
             }
         }
         else {
@@ -3812,7 +3900,10 @@ window.onload = WebForm_RestoreScrollPosition;
     public bool EnableViewStateMac {
         get { return _enableViewStateMac; }
         set {
-            if(_enableViewStateMac != value) {
+            // DevDiv #461378: EnableViewStateMac=false can lead to remote code execution, so we
+            // have an mechanism that forces this to keep its default value of 'true'. We only
+            // allow actually setting the value if this enforcement mechanism is inactive.
+            if (!EnableViewStateMacRegistryHelper.EnforceViewStateMac) {
                 _enableViewStateMac = value;
             }
         }

@@ -117,6 +117,9 @@ namespace System.Web {
         bool        _transferEncodingSet;
         bool        _chunked;
 
+        // OnSendingHeaders pseudo-event
+        private SubscriptionQueue<Action<HttpContext>> _onSendingHeadersSubscriptionQueue = new SubscriptionQueue<Action<HttpContext>>();
+
         // mobile redirect properties
         internal static readonly String RedirectQueryStringVariable = "__redir";
         internal static readonly String RedirectQueryStringValue = "1";
@@ -207,9 +210,9 @@ namespace System.Web {
             }
         }
 
-        internal bool HeadersWritten {
+        public bool HeadersWritten {
             get { return _headersWritten; }
-            set { _headersWritten = value; }
+            internal set { _headersWritten = value; }
         }
 
         internal ArrayList GenerateResponseHeadersIntegrated(bool forCache) {
@@ -331,6 +334,11 @@ namespace System.Web {
                     OutputCacheSection outputCacheConfig = config.OutputCache;
                     if (outputCacheConfig != null) {
                         _sendCacheControlHeader &= outputCacheConfig.SendCacheControlHeader;
+                    }
+
+                    // DevDiv #406078: Need programmatic way of disabling "Cache-Control: private" response header.
+                    if (SuppressDefaultCacheControlHeader) {
+                        _sendCacheControlHeader = false;
                     }
 
                     // Ensure that cacheability is set to cache-control: private
@@ -571,6 +579,8 @@ namespace System.Web {
 
                 if (!_headersWritten) {
                     if (!_suppressHeaders && !_clientDisconnected) {
+                        EnsureSessionStateIfNecessary();
+
                         if (finalFlush) {
                             bufferedLength = _httpWriter.GetBufferedLength();
 
@@ -1539,6 +1549,25 @@ namespace System.Web {
             set;
         }
 
+        /// <summary>
+        /// By default, ASP.NET sends a "Cache-Control: private" response header unless an explicit cache
+        /// policy has been specified for this response. This property allows suppressing this default
+        /// response header on a per-request basis. It can still be suppressed for the entire application
+        /// by setting the appropriate value in &lt;httpRuntime&gt; or &lt;outputCache&gt;. See
+        /// http://msdn.microsoft.com/en-us/library/system.web.configuration.httpruntimesection.sendcachecontrolheader.aspx
+        /// for more information on those config elements.
+        /// </summary>
+        /// <remarks>
+        /// Developers should use caution when suppressing the default Cache-Control header, as proxies
+        /// and other intermediaries may treat responses without this header as cacheable by default.
+        /// This could lead to the inadvertent caching of sensitive information.
+        /// See RFC 2616, Sec. 13.4, for more information.
+        /// </remarks>
+        public bool SuppressDefaultCacheControlHeader {
+            get;
+            set;
+        }
+
         // Flag indicating to buffer the output
         //    Gets or sets a value indicating whether HTTP output is buffered.
         public bool BufferOutput {
@@ -2154,6 +2183,43 @@ namespace System.Web {
                 throw new HttpException(SR.GetString(SR.Cannot_flush_completed_response));
 
             Flush(false);
+        }
+
+        // Registers a callback that the ASP.NET runtime will invoke immediately before
+        // response headers are sent for this request. This differs from the IHttpModule-
+        // level pipeline event in that this is a per-request subscription rather than
+        // a per-application subscription. The intent is that the callback may modify
+        // the response status code or may set a response cookie or header. Other usage
+        // notes and caveats:
+        //
+        // - This API is available only in the IIS integrated mode pipeline and only
+        //   if response headers haven't yet been sent for this request.
+        // - The ASP.NET runtime does not guarantee anything about the thread that the
+        //   callback is invoked on. For example, the callback may be invoked synchronously
+        //   on a background thread if a background flush is being performed.
+        //   HttpContext.Current is not guaranteed to be available on such a thread.
+        // - The callback must not call any API that manipulates the response entity body
+        //   or that results in a flush. For example, the callback must not call
+        //   Response.Redirect, as that method may manipulate the response entity body.
+        // - The callback must contain only short-running synchronous code. Trying to kick
+        //   off an asynchronous operation or wait on such an operation could result in
+        //   a deadlock.
+        // - The callback must not throw, otherwise behavior is undefined.
+        [SuppressMessage("Microsoft.Design", "CA1030:UseEventsWhereAppropriate", Justification = @"The normal event pattern doesn't work between HttpResponse and HttpResponseBase since the signatures differ.")]
+        public ISubscriptionToken AddOnSendingHeaders(Action<HttpContext> callback) {
+            if (callback == null) {
+                throw new ArgumentNullException("callback");
+            }
+
+            if (!(_wr is IIS7WorkerRequest)) {
+                throw new PlatformNotSupportedException(SR.GetString(SR.Requires_Iis_Integrated_Mode));
+            }
+
+            if (HeadersWritten) {
+                throw new HttpException(SR.GetString(SR.Cannot_call_method_after_headers_sent_generic));
+            }
+
+            return _onSendingHeadersSubscriptionQueue.Enqueue(callback);
         }
 
         /*
@@ -3207,6 +3273,12 @@ namespace System.Web {
                     }
                 }
 
+                // DevDiv #782830: Provide a hook where the application can change the response status code
+                // or response headers.
+                if (!_onSendingHeadersSubscriptionQueue.IsEmpty) {
+                    _onSendingHeadersSubscriptionQueue.FireAndComplete(cb => cb(Context));
+                }
+
                 if (_statusSet) {
                     _wr.SendStatus(this.StatusCode, this.SubStatusCode, this.StatusDescription);
                     _statusSet = false;
@@ -3217,6 +3289,10 @@ namespace System.Web {
                 //
                 if (!_suppressHeaders && !_clientDisconnected)
                 {
+                    if (sendHeaders) {
+                        EnsureSessionStateIfNecessary();
+                    }
+
                     // If redirect location set, write it through to IIS as a header
                     if (_redirectLocation != null && _redirectLocationSet) {
                         HttpHeaderCollection headers = Headers as HttpHeaderCollection;
@@ -3330,6 +3406,14 @@ namespace System.Web {
             }
         }
 
+        private void EnsureSessionStateIfNecessary() {
+            // Ensure the session state is in complete state before sending the response headers
+            // Due to optimization and delay initialization sometimes we create and store the session state id in ReleaseSessionState.
+            // But it's too late in case of Flush. Session state id must be written (if used) before sending the headers.
+            if (AppSettings.EnsureSessionStateLockedOnFlush) {
+                _context.EnsureSessionStateIfNecessary();
+            }
+        }
     }
 
     internal enum CacheDependencyType {

@@ -1053,10 +1053,19 @@ namespace System.Windows.Controls
         internal void InvalidateAverageColumnWidth()
         {
             _averageColumnWidth = null;
+
+            // changing a column width should also invalidate the maximum desired
+            // size of the row presenter (Dev11 821019)
+            VirtualizingStackPanel vsp = (DataGridOwner == null) ? null :
+                    DataGridOwner.InternalItemsHost as VirtualizingStackPanel;
+            if (vsp != null)
+            {
+                vsp.ResetMaximumDesiredSize();
+            }
         }
 
         /// <summary>
-        ///     Property holding the average widht of columns
+        ///     Property holding the average width of columns
         /// </summary>
         internal double AverageColumnWidth
         {
@@ -1072,7 +1081,7 @@ namespace System.Windows.Controls
         }
 
         /// <summary>
-        ///     Helper method which determines the average with of all the columns
+        ///     Helper method which determines the average width of all the columns
         /// </summary>
         private double ComputeAverageColumnWidth()
         {

@@ -1583,7 +1583,8 @@ namespace System.Windows.Forms {
         private int AddImage(Bitmap image) {
             
             image.MakeTransparent();
-            if (DpiHelper.IsScalingRequired) {
+            // Resize bitmap only if resizing is needed in order to avoid image distortion.
+            if (DpiHelper.IsScalingRequired && (image.Size.Width != normalButtonSize.Width || image.Size.Height != normalButtonSize.Height)) {
                 image = DpiHelper.CreateResizedBitmap(image, normalButtonSize);
             }
             int result = imageList[NORMAL_BUTTONS].Images.Count;
@@ -2359,7 +2360,7 @@ namespace System.Windows.Forms {
 
                     for (int i = 0; i < images.Count; i++) {
                         if (images[i] is Bitmap) {
-                            this.imageList[LARGE_BUTTONS].Images.Add(new Bitmap((Bitmap)images[i], DEFAULT_NORMAL_BUTTON_SIZE.Width, DEFAULT_NORMAL_BUTTON_SIZE.Height));
+                            this.imageList[LARGE_BUTTONS].Images.Add(new Bitmap((Bitmap)images[i], largeButtonSize.Width, largeButtonSize.Height));
                         }
                     }
                 }

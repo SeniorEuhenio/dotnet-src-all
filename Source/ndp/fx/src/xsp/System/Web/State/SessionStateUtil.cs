@@ -47,18 +47,17 @@ namespace System.Web.SessionState {
             }
         }
 
-        static internal void AddDelayedHttpSessionStateToContext(HttpContext context, SessionStateModule module) {
-            context.AddDelayedHttpSessionState(module);
+        static internal void AddHttpSessionStateModuleToContext(HttpContext context, SessionStateModule module, bool delayed) {
+            context.AddHttpSessionStateModule(module, delayed);
         }
 
         static internal void RemoveHttpSessionStateFromContext(HttpContext context, bool delayed) {
-            if (delayed) {
-                context.RemoveDelayedHttpSessionState();
-            }
-            else {
+            if (!delayed) {
                 context.Items.Remove(SESSION_KEY);
             }
-        }
+
+            context.RemoveHttpSessionStateModule();
+         }
 
         // Called by custom session state module
         static public void RemoveHttpSessionStateFromContext(HttpContext context) {

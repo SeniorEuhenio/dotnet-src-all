@@ -851,12 +851,12 @@ namespace System.Windows.Forms
                 if (freeDimension != DataGridViewFreeDimension.Height)
                 {
                     preferredSize.Width = Math.Max(preferredSize.Width,
-                                                   borderAndPaddingWidths + DATAGRIDVIEWCELL_iconMarginWidth * 2 + DATAGRIDVIEWCELL_iconsWidth);
+                                                   borderAndPaddingWidths + DATAGRIDVIEWCELL_iconMarginWidth * 2 + iconsWidth);
                 }
                 if (freeDimension != DataGridViewFreeDimension.Width)
                 {
                     preferredSize.Height = Math.Max(preferredSize.Height,
-                                                    borderAndPaddingHeights + DATAGRIDVIEWCELL_iconMarginHeight * 2 + DATAGRIDVIEWCELL_iconsHeight);
+                                                    borderAndPaddingHeights + DATAGRIDVIEWCELL_iconMarginHeight * 2 + iconsHeight);
                 }
             }
             return preferredSize;

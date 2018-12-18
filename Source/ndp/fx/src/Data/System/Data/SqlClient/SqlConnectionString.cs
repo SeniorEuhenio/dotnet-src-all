@@ -356,7 +356,7 @@ namespace System.Data.SqlClient {
                 // fail-over partner is set
 
                 if (_multiSubnetFailover) {
-                    throw SQL.MultiSubnetFailoverWithFailoverPartner(serverProvidedFailoverPartner: false, conId: Guid.Empty);
+                    throw SQL.MultiSubnetFailoverWithFailoverPartner(serverProvidedFailoverPartner: false, internalConnection: null);
                 }
 
                 if (String.Equals(DEFAULT.Initial_Catalog, _initialCatalog, StringComparison.OrdinalIgnoreCase)) {

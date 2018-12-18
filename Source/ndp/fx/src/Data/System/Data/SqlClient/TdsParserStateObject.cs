@@ -2368,8 +2368,8 @@ namespace System.Data.SqlClient {
                         else {
                             if (_parser._loginWithFailover)
                             {
-                                stateObj._internalTimeout = false; // if we are failover login mode, do not fail and forget that timeout happened
-                                _parser.State = TdsParserState.Broken;
+                                // For DbMirroring Failover during login, never break the connection, just close the TdsParser
+                                _parser.Disconnect();
                             }
                             else if ((_parser.State == TdsParserState.OpenNotLoggedIn) && (_parser.Connection.ConnectionOptions.MultiSubnetFailover))
                             {

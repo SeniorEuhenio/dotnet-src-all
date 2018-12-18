@@ -932,7 +932,19 @@ namespace System.Transactions
         }
 
 
-        internal virtual void DisposeRoot( InternalTransaction tx )
+        internal virtual Enlistment PromoteAndEnlistDurable(
+            InternalTransaction tx,
+            Guid resourceManagerIdentifier,
+            IPromotableSinglePhaseNotification promotableNotification,
+            ISinglePhaseNotification enlistmentNotification,
+            EnlistmentOptions enlistmentOptions,
+            Transaction atomicTransaction
+            )
+        {
+            throw TransactionException.CreateTransactionStateException(SR.GetString(SR.TraceSourceLtm), tx.innerException);
+        }
+
+        internal virtual void DisposeRoot(InternalTransaction tx)
         {
         }
 
@@ -3874,32 +3886,43 @@ namespace System.Transactions
                 return;
             }
 
-            // Associate the distributed transaction with the local transaction.
-            tx.PromotedTransaction = distributedTx;
-
-            // Add a weak reference to the transaction to the promotedTransactionTable.
-            Hashtable promotedTransactionTable = TransactionManager.PromotedTransactionTable;
-            lock ( promotedTransactionTable )
+            // If tx.PromotedTransaction is already set to the distributedTx that was
+            // returned, then the PSPE enlistment must have used
+            // Transaction.PSPEPromoteAndConvertToEnlistDurable to promote the transaction
+            // within the same AppDomain. So we don't need to add the distributedTx to the
+            // PromotedTransactionTable and we don't need to call
+            // FireDistributedTransactionStarted and we don't need to promote the 
+            // enlistments. That was all done when the transaction was changed to
+            // TransactionStatePromoted.
+            if (tx.PromotedTransaction != distributedTx)
             {
-                // Since we are adding this reference to the table create an object that will clean that
-                // entry up.
-                tx.finalizedObject = new FinalizedObject( tx, tx.PromotedTransaction.Identifier );
+                // Associate the distributed transaction with the local transaction.
+                tx.PromotedTransaction = distributedTx;
 
-                WeakReference weakRef = new WeakReference( tx.outcomeSource, false );
-                promotedTransactionTable[tx.PromotedTransaction.Identifier] = weakRef;
+                // Add a weak reference to the transaction to the promotedTransactionTable.
+                Hashtable promotedTransactionTable = TransactionManager.PromotedTransactionTable;
+                lock (promotedTransactionTable)
+                {
+                    // Since we are adding this reference to the table create an object that will clean that
+                    // entry up.
+                    tx.finalizedObject = new FinalizedObject(tx, tx.PromotedTransaction.Identifier);
+
+                    WeakReference weakRef = new WeakReference(tx.outcomeSource, false);
+                    promotedTransactionTable[tx.PromotedTransaction.Identifier] = weakRef;
+                }
+                TransactionManager.FireDistributedTransactionStarted(tx.outcomeSource);
+
+                if (DiagnosticTrace.Information)
+                {
+                    TransactionPromotedTraceRecord.Trace(SR.GetString(SR.TraceSourceLtm),
+                        tx.TransactionTraceId,
+                        distributedTx.TransactionTraceId
+                        );
+                }
+
+                // Once we have a promoted transaction promote the enlistments.
+                PromoteEnlistmentsAndOutcome(tx);
             }
-            TransactionManager.FireDistributedTransactionStarted( tx.outcomeSource );
-
-            if ( DiagnosticTrace.Information )
-            {
-                TransactionPromotedTraceRecord.Trace( SR.GetString( SR.TraceSourceLtm ), 
-                    tx.TransactionTraceId,
-                    distributedTx.TransactionTraceId
-                    );
-            }
-
-            // Once we have a promoted transaction promote the enlistments.
-            PromoteEnlistmentsAndOutcome( tx );
         }
     }
 
@@ -4000,7 +4023,7 @@ namespace System.Transactions
     // ----.
     internal class TransactionStatePSPEOperation : TransactionState
     {
-        internal override void EnterState( InternalTransaction tx )
+        internal override void EnterState(InternalTransaction tx)
         {
             // No one should ever use this particular version.  It has to be overridden because
             // the base is abstract.
@@ -4059,6 +4082,8 @@ namespace System.Transactions
 
         internal Oletx.OletxTransaction PSPEPromote( InternalTransaction tx )
         {
+            bool changeToReturnState = true;
+
             TransactionState returnState = tx.State;
             Debug.Assert( returnState == _TransactionStateDelegated || 
                 returnState == _TransactionStateDelegatedSubordinate, 
@@ -4068,51 +4093,131 @@ namespace System.Transactions
             Oletx.OletxTransaction distributedTx = null;
             try
             {
+                if (tx.attemptingPSPEPromote)
+                {
+                    // There should not already be a PSPEPromote call outstanding.
+                    throw TransactionException.CreateInvalidOperationException(
+                            SR.GetString(SR.TraceSourceLtm),
+                            SR.GetString(SR.PromotedReturnedInvalidValue),
+                            null
+                            );
+                }
+                tx.attemptingPSPEPromote = true;
+
                 Byte[] propagationToken = tx.promoter.Promote();
 
                 if ( propagationToken == null )
                 {
-                    // The PSPE has returned an invalid promoted transaction.
-                    throw TransactionException.CreateInvalidOperationException(
-                            SR.GetString( SR.TraceSourceLtm ),
-                            SR.GetString( SR.PromotedReturnedInvalidValue ),
-                            null
-                            );
+                    // If the returned propagationToken is null AND the tx.PromotedTransaction is null, the promote failed.
+                    // But if the PSPE promoter used PSPEPromoteAndConvertToEnlistDurable, tx.PromotedTransaction will NOT be null
+                    // at this point and we just use tx.PromotedTransaction as distributedTx and we don't bother to change to the
+                    // "return state" because the transaction is already in the state it needs to be in.
+                    if (tx.PromotedTransaction == null)
+                    {
+                        // The PSPE has returned an invalid promoted transaction.
+                        throw TransactionException.CreateInvalidOperationException(
+                                SR.GetString(SR.TraceSourceLtm),
+                                SR.GetString(SR.PromotedReturnedInvalidValue),
+                                null
+                                );
+                    }
+                    // The transaction has already transitioned to TransactionStatePromoted, so we don't want
+                    // to change the state to the "returnState" because TransactionStateDelegatedBase.EnterState, would
+                    // try to promote the enlistments again.
+                    changeToReturnState = false;
+                    distributedTx = tx.PromotedTransaction;
                 }
 
-                try
+                // At this point, if we haven't yet set distributedTx, we need to get it using the returned
+                // propagation token. The PSPE promoter must NOT have used PSPEPromoteAndConvertToEnlistDurable.
+                if (distributedTx == null)
                 {
-                    distributedTx = TransactionInterop.GetOletxTransactionFromTransmitterPropigationToken( 
-                                        propagationToken 
-                                        );
-                }
-                catch ( ArgumentException e )
-                {
-                    // The PSPE has returned an invalid promoted transaction.
-                    throw TransactionException.CreateInvalidOperationException(
-                            SR.GetString( SR.TraceSourceLtm ),
-                            SR.GetString( SR.PromotedReturnedInvalidValue ),
-                            e
-                            );
-                }
+                    try
+                    {
+                        distributedTx = TransactionInterop.GetOletxTransactionFromTransmitterPropigationToken(
+                                            propagationToken
+                                            );
+                    }
+                    catch (ArgumentException e)
+                    {
+                        // The PSPE has returned an invalid promoted transaction.
+                        throw TransactionException.CreateInvalidOperationException(
+                                SR.GetString(SR.TraceSourceLtm),
+                                SR.GetString(SR.PromotedReturnedInvalidValue),
+                                e
+                                );
+                    }
 
-                if ( TransactionManager.FindPromotedTransaction( distributedTx.Identifier ) != null )
-                {
-                    // If there is already a promoted transaction then someone has committed an error.
-                    distributedTx.Dispose();
-                    throw TransactionException.CreateInvalidOperationException(
-                            SR.GetString( SR.TraceSourceLtm ), 
-                            SR.GetString( SR.PromotedTransactionExists ), 
-                            null
-                            );
+                    if (TransactionManager.FindPromotedTransaction(distributedTx.Identifier) != null)
+                    {
+                        // If there is already a promoted transaction then someone has committed an error.
+                        distributedTx.Dispose();
+                        throw TransactionException.CreateInvalidOperationException(
+                                SR.GetString(SR.TraceSourceLtm),
+                                SR.GetString(SR.PromotedTransactionExists),
+                                null
+                                );
+                    }
                 }
             }
             finally
             {
-                returnState.CommonEnterState( tx );
+                tx.attemptingPSPEPromote = false;
+                // If we get here and changeToReturnState is false, the PSPE enlistment must have requested that we
+                // promote and convert the enlistment to a durable enlistment
+                // (Transaction.PSPEPromoteAndConvertToEnlistDurable). In that case, the internal transaction is
+                // already in TransactionStatePromoted, so we don't want to put it BACK into TransactionStateDelegatedBase.
+                if (changeToReturnState)
+                {
+                    returnState.CommonEnterState(tx);
+                }
             }
 
             return distributedTx;
+        }
+
+        internal override Enlistment PromoteAndEnlistDurable(
+            InternalTransaction tx,
+            Guid resourceManagerIdentifier,
+            IPromotableSinglePhaseNotification promotableNotification,
+            ISinglePhaseNotification enlistmentNotification,
+            EnlistmentOptions enlistmentOptions,
+            Transaction atomicTransaction
+            )
+        {
+            // This call is only allowed if we have an outstanding call to ITransactionPromoter.Promote.
+            if (!tx.attemptingPSPEPromote)
+            {
+                throw TransactionException.CreateTransactionStateException(SR.GetString(SR.TraceSourceLtm), tx.innerException);
+            }
+
+            if (promotableNotification != tx.promoter)
+            {
+                throw TransactionException.CreateInvalidOperationException(
+                        SR.GetString(SR.TraceSourceLtm),
+                        SR.GetString(SR.InvalidIPromotableSinglePhaseNotificationSpecified),
+                        null
+                        );
+            }
+
+            Enlistment enlistment;
+
+            // First promote the transaction. We do this by simply changing the state of the transaction to Promoted.
+            // In TransactionStateActive.EnlistPromotableSinglePhase, tx.durableEnlistment was set to point at the InternalEnlistment
+            // for that PSPE enlistment. We are going to replace that with a "true" durable enlistment here. But we need to
+            // set tx.durableEnlistment to null BEFORE we promote because if we don't the promotion will attempt to promote
+            // the tx.durableEnlistment. Because we are doing the EnlistDurable AFTER promotion, it will be a "promoted"
+            // durable enlistment and we can safely set tx.durableEnlistment to the InternalEnlistment of that Enlistment.
+            tx.durableEnlistment = null;
+            tx.promoteState = TransactionState._TransactionStatePromoted;
+            tx.promoteState.EnterState(tx);
+
+            // Now we need to create the durable enlistment that will replace the PSPE enlistment. Use the internalEnlistment of
+            // this newly created durable enlistment as the tx.durableEnlistment.
+            enlistment = tx.State.EnlistDurable(tx, resourceManagerIdentifier, enlistmentNotification, enlistmentOptions, atomicTransaction);
+            tx.durableEnlistment = enlistment.InternalEnlistment;
+
+            return enlistment;
         }
     }
 

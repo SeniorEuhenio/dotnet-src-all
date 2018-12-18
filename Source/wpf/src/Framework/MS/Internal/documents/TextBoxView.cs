@@ -286,21 +286,21 @@ namespace System.Windows.Controls
             get
             {
                 double result = 0.0;
-                
+
                 if(_scrollData != null)
                 {
                     result = _scrollData.ExtentWidth;
                     if(UseLayoutRounding)
                     {
                         // Dev 10 bug: 827316
-                        // With layout rounding enabled DesiredSize.Width is rounded 
+                        // With layout rounding enabled DesiredSize.Width is rounded
                         // so the computed value of _scrollData.ExtentWidth may not agree with DesiredSize.
                         // This discrepancy causes the retry logic for auto scrollbars in ScrollViewer not to terminate.
                         // This fix applies layout rounding to the Extent so that it matches DesiredSize
                         result = RoundLayoutValue(result, DpiScaleX);
                     }
                 }
-                
+
                 return result;
             }
         }
@@ -313,21 +313,21 @@ namespace System.Windows.Controls
             get
             {
                 double result = 0.0;
-                
+
                 if(_scrollData != null)
                 {
                     result = _scrollData.ExtentHeight;
                     if(UseLayoutRounding)
                     {
                         // Dev 10 bug: 827316
-                        // With layout rounding enabled DesiredSize.Width is rounded 
+                        // With layout rounding enabled DesiredSize.Width is rounded
                         // so the computed value of _scrollData.ExtentWidth may not agree with DesiredSize.
                         // This discrepancy causes the retry logic for auto scrollbars in ScrollViewer not to terminate
                         // This fix applies layout rounding to the Extent so that it matches DesiredSize
                         result = RoundLayoutValue(result, DpiScaleY);
                     }
                 }
-                
+
                 return result;
             }
         }
@@ -487,7 +487,7 @@ namespace System.Windows.Controls
 
             double oldWidth = _contentSize.Width;
             _contentSize = desiredSize;
-            
+
             // If the width has changed we need to reformat if we're centered or right aligned so the
             // spacing gets properly updated.
             if (oldWidth != desiredSize.Width && lineProperties.TextAlignment != TextAlignment.Left)
@@ -546,8 +546,8 @@ Exit:
         ///
         ///    By default a Visual does not have any children.
         ///
-        ///  Remark: 
-        ///       During this virtual call it is not valid to modify the Visual tree. 
+        ///  Remark:
+        ///       During this virtual call it is not valid to modify the Visual tree.
         /// </summary>
         protected override Visual GetVisualChild(int index)
         {
@@ -570,15 +570,15 @@ Exit:
         #region Protected Properties
 
         /// <summary>
-        ///  Derived classes override this property to enable the Visual code to enumerate 
+        ///  Derived classes override this property to enable the Visual code to enumerate
         ///  the Visual children. Derived classes need to return the number of children
         ///  from this method.
         ///
         ///    By default a Visual does not have any children.
         ///
-        ///  Remark: 
+        ///  Remark:
         ///      During this virtual method the Visual tree must not be modified.
-        /// </summary>        
+        /// </summary>
         protected override int VisualChildrenCount
         {
             get
@@ -845,7 +845,7 @@ Exit:
 
             using (TextBoxLine line = GetFormattedLine(lineIndex))
             {
-                boundary = line.IsAtCaretCharacterHit(sourceCharacterHit);             
+                boundary = line.IsAtCaretCharacterHit(sourceCharacterHit);
             }
 
             return boundary;
@@ -1275,7 +1275,7 @@ Exit:
                 return false;
             }
         }
-        
+
 
         /// <summary>
         /// <see cref="ITextView.TextSegments"/>
@@ -1725,7 +1725,7 @@ Exit:
                     using (line)
                     {
                         line.Format(metrics.Offset, formatWidth, width, lineProperties, _cache.TextRunCache, _cache.TextFormatter);
-                        
+
                         // We should be in [....] with current metrics, unless background layout is pending.
                         if (!this.IsBackgroundLayoutPending)
                         {
@@ -1744,12 +1744,12 @@ Exit:
         }
 
         // Removes lines that were discarded during Measure from the visual tree. We don't want to
-        // clear all of the visual children and then add lines that were already in the visual tree 
+        // clear all of the visual children and then add lines that were already in the visual tree
         // back because native resources will get freed and reallocated unnecessarily (ref count goes
         // to 0 -- see Dev10 bug 607756).
         //
         // It is safe to modify the visual tree in Arrange, but there are no guarantees during Measure.
-        // It might be possible to get rid of TextBoxLineDrawingVisual and remove items from the 
+        // It might be possible to get rid of TextBoxLineDrawingVisual and remove items from the
         // visual tree during Measure as well.
         private void DetachDiscardedVisualChildren()
         {
@@ -1854,7 +1854,23 @@ Exit:
                 }
                 else
                 {
-                    Invariant.Assert(endOffset == _lineMetrics[lineIndex].Offset);
+                    // WinBlue bug 433347 uncovered a scenario where Narrator (starting
+                    // in Win8, and worsening in Blue) asks for the geometry around a
+                    // range that includes only end-of-line characters.   Such a call
+                    // arrives in this method with startOffset==endOffset ==
+                    // _lineMetrics[lineIndex].Offset + _lineMetrics[lineIndex].ContentLength;
+                    // in other words, pointing at the end of the line, just before the
+                    // end-of-line characters.  The previous comment suggests that
+                    // this was intended be handled by adding "the newline whitespace
+                    // geometry", but that doesn't happen.   Instead, control flows
+                    // here where the assert fails.
+                    //
+                    // Ideally, we'd fix this by implementing the intent of the
+                    // comment correctly.  But at this date, the consensus is to
+                    // simply avoid crashing.   Changing the assert does this.
+                    //Invariant.Assert(endOffset == _lineMetrics[lineIndex].Offset);
+                    Invariant.Assert(endOffset == _lineMetrics[lineIndex].Offset ||
+                            endOffset == _lineMetrics[lineIndex].Offset + _lineMetrics[lineIndex].ContentLength);
                 }
             }
             else
@@ -1970,7 +1986,7 @@ Exit:
 
                     _lineMetrics.Add(new LineRecord(lineOffset, line));
 
-                    // Desired width is always max of calculated line widths. 
+                    // Desired width is always max of calculated line widths.
                     // Desired height is sum of all line heights.
                     desiredSize.Width = Math.Max(desiredSize.Width, line.Width);
                     desiredSize.Height += _lineHeight;
@@ -2076,7 +2092,7 @@ Exit:
         {
             int delta = range.PositionsAdded - range.PositionsRemoved;
             Invariant.Assert(delta >= 0);
-            
+
             int lineIndex = GetLineIndexFromOffset(range.StartIndex, LogicalDirection.Forward);
 
             if (delta > 0)
@@ -2464,7 +2480,7 @@ Exit:
                 if (lineIndex >= _viewportLineVisualsIndex &&
                     lineIndex < _viewportLineVisualsIndex + _viewportLineVisuals.Count &&
                     _viewportLineVisuals[lineIndex - _viewportLineVisualsIndex] != null)
-                {                 
+                {
                     // Mark discarded line visual so it can be removed from the visual tree in ArrangeVisuals.
                     _viewportLineVisuals[lineIndex - _viewportLineVisualsIndex].DiscardOnArrange = true;
                     _viewportLineVisuals[lineIndex - _viewportLineVisualsIndex] = null;
@@ -2815,7 +2831,7 @@ Exit:
 
             private readonly LineProperties _lineProperties;
             private readonly TextRunCache _textRunCache;
-            private TextFormatter      _textFormatter;            
+            private TextFormatter      _textFormatter;
         }
 
         // Line metrics array entry.

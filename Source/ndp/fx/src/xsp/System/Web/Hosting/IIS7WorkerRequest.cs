@@ -465,13 +465,24 @@ namespace System.Web.Hosting {
             bool fAsync = false;
             int bytesRead = 0;
             IntPtr ppAsyncReceiveBuffer;
-            int result = IIS.MgdReadEntityBody(_context,
+            int result = 0;
+
+            try {
+                // Acquire blocking call
+                IsInReadEntitySync = true;  
+
+                result = IIS.MgdReadEntityBody(_context,
                                                buffer,
                                                offset,
                                                size,
                                                fAsync,
                                                out bytesRead,
                                                out ppAsyncReceiveBuffer);
+            }
+            finally {
+                // Release the blocking call
+                IsInReadEntitySync = false;
+            }
 
             // DevDiv Bugs 177323: mimic classic mode and don't throw if the client disconnected
             if (result < 0) {

@@ -253,7 +253,7 @@ namespace System.Net {
                 suri = this.RequestUri.ToString();
             else
                 suri = this.RequestUri.OriginalString;
-            FrameworkEventSource.Log.BeginGetRequestStream(this, suri);
+            if (FrameworkEventSource.Log.IsEnabled()) LogBeginGetRequestStream(suri);
 
             return m_ReadAResult;
         }
@@ -289,7 +289,7 @@ namespace System.Net {
                 suri = this.RequestUri.ToString();
             else
                 suri = this.RequestUri.OriginalString;
-            FrameworkEventSource.Log.BeginGetResponse(this, suri);
+            if (FrameworkEventSource.Log.IsEnabled()) LogBeginGetResponse(suri);
 
             return m_WriteAResult;
         }
@@ -324,7 +324,7 @@ namespace System.Net {
                 GlobalLog.Leave("FileWebRequest::EndGetRequestStream");
             }
 
-            FrameworkEventSource.Log.EndGetRequestStream(this);
+            if (FrameworkEventSource.Log.IsEnabled()) LogEndGetRequestStream();
 
             return stream;
         }
@@ -356,7 +356,7 @@ namespace System.Net {
                 GlobalLog.Leave("FileWebRequest::EndGetResponse");
             }
 
-            FrameworkEventSource.Log.EndGetResponse(this);
+            if (FrameworkEventSource.Log.IsEnabled()) LogEndGetResponse();
 
             return response;
         }

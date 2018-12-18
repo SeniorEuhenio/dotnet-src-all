@@ -44,6 +44,7 @@ namespace System.Threading
     using System.Collections.Generic;
     using System.Diagnostics.Contracts;
     using System.Diagnostics.CodeAnalysis;
+    using System.Diagnostics.Tracing;
 
     internal static class ThreadPoolGlobals
     {
@@ -560,7 +561,7 @@ namespace System.Threading
         {
             queueTail = queueHead = new QueueSegment();
 #if !FEATURE_CORECLR
-            loggingEnabled = System.Diagnostics.Tracing.FrameworkEventSource.Log.IsEnabled(System.Diagnostics.Tracing.EventLevel.Verbose, System.Diagnostics.Tracing.FrameworkEventSource.Keywords.ThreadPool);
+            loggingEnabled = FrameworkEventSource.Log.IsEnabled(EventLevel.Verbose, FrameworkEventSource.Keywords.ThreadPool|FrameworkEventSource.Keywords.ThreadTransfer);
 #endif
         }
 
@@ -735,7 +736,7 @@ namespace System.Threading
 
 #if !FEATURE_CORECLR
             // Has the desire for logging changed since the last time we entered?
-            workQueue.loggingEnabled = System.Diagnostics.Tracing.FrameworkEventSource.Log.IsEnabled(System.Diagnostics.Tracing.EventLevel.Verbose, System.Diagnostics.Tracing.FrameworkEventSource.Keywords.ThreadPool);
+            workQueue.loggingEnabled = FrameworkEventSource.Log.IsEnabled(EventLevel.Verbose, FrameworkEventSource.Keywords.ThreadPool|FrameworkEventSource.Keywords.ThreadTransfer);
 #endif
 
             //

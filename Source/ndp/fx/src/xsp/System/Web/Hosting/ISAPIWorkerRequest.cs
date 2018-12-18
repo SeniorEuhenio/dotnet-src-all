@@ -1732,7 +1732,20 @@ internal class ISAPIWorkerRequestInProc : ISAPIWorkerRequest {
     internal override int GetAdditionalPostedContentCore(byte[] bytes, int offset, int bufferSize) {
         if (_ecb == IntPtr.Zero)
             return 0;
-        int rc = UnsafeNativeMethods.EcbGetAdditionalPostedContent(_ecb, bytes, offset, bufferSize);
+
+        int rc = 0;
+
+        try {
+            // Acquire blocking call
+            IsInReadEntitySync = true;
+  
+            rc = UnsafeNativeMethods.EcbGetAdditionalPostedContent(_ecb, bytes, offset, bufferSize);
+        }
+        finally {
+            // Release blocking call
+            IsInReadEntitySync = false;
+        }
+
         if (rc > 0)
             PerfCounters.IncrementCounterEx(AppPerfCounter.REQUEST_BYTES_IN, rc);
         return rc;

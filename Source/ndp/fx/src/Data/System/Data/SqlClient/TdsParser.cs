@@ -48,26 +48,26 @@ namespace System.Data.SqlClient {
         }
 
 
-		// ReliabilitySection Usage:
-		//
-		// #if DEBUG
-		//        TdsParser.ReliabilitySection tdsReliabilitySection = new TdsParser.ReliabilitySection();
-		//
-		//        RuntimeHelpers.PrepareConstrainedRegions();
-		//        try {
-		//            tdsReliabilitySection.Start();
-		// #else
-		//        {
-		// #endif //DEBUG
-		//
-		//        // code that requires reliability
-		//
-		//        }
-		// #if DEBUG
-		//        finally {
-		//            tdsReliabilitySection.Stop();
-		//        }
-		//  #endif //DEBUG
+        // ReliabilitySection Usage:
+        //
+        // #if DEBUG
+        //        TdsParser.ReliabilitySection tdsReliabilitySection = new TdsParser.ReliabilitySection();
+        //
+        //        RuntimeHelpers.PrepareConstrainedRegions();
+        //        try {
+        //            tdsReliabilitySection.Start();
+        // #else
+        //        {
+        // #endif //DEBUG
+        //
+        //        // code that requires reliability
+        //
+        //        }
+        // #if DEBUG
+        //        finally {
+        //            tdsReliabilitySection.Stop();
+        //        }
+        //  #endif //DEBUG
 
         internal struct ReliabilitySection {
 #if DEBUG
@@ -656,20 +656,24 @@ namespace System.Data.SqlClient {
                 _physicalStateObj.WriteByte((byte)option);
 
                 // Fill in the offset of the option data
-                _physicalStateObj.WriteByte((byte)(offset & 0xff00)); // send upper order byte
+                _physicalStateObj.WriteByte((byte)((offset & 0xff00) >> 8)); // send upper order byte
                 _physicalStateObj.WriteByte((byte)(offset & 0x00ff)); // send lower order byte
 
                 switch (option) {
                     case (int)PreLoginOptions.VERSION:
-                        // For now, send 9.00.000 (Yukon RTM)
-                        // Apparently, it doesn't matter what I send over. :)
-                        // The server does not yet use it.
-                        payload[payloadLength++] = 0x10;
-                        payload[payloadLength++] = 0x00;
-                        payload[payloadLength++] = 0x00;
-                        payload[payloadLength++] = 0x00;
-                        payload[payloadLength++] = 0;
-                        payload[payloadLength++] = 0;
+                        Version systemDataVersion = ADP.GetAssemblyVersion();
+
+                        // Major and minor
+                        payload[payloadLength++] = (byte)(systemDataVersion.Major & 0xff);
+                        payload[payloadLength++] = (byte)(systemDataVersion.Minor & 0xff);
+
+                        // Build (Big Endian)
+                        payload[payloadLength++] = (byte)((systemDataVersion.Build & 0xff00) >> 8);
+                        payload[payloadLength++] = (byte)(systemDataVersion.Build & 0xff);
+
+                        // Sub-build (Little Endian)
+                        payload[payloadLength++] = (byte)(systemDataVersion.Revision & 0xff);
+                        payload[payloadLength++] = (byte)((systemDataVersion.Revision & 0xff00) >> 8);
                         offset += 6;
                         optionDataSize = 6;
                         break;
@@ -716,9 +720,9 @@ namespace System.Data.SqlClient {
                     case (int)PreLoginOptions.THREADID:
                         Int32 threadID = TdsParserStaticMethods.GetCurrentThreadIdForTdsLoginOnly();
 
-                        payload[payloadLength++] = (byte)(0xff000000 & threadID);
-                        payload[payloadLength++] = (byte)(0x00ff0000 & threadID);
-                        payload[payloadLength++] = (byte)(0x0000ff00 & threadID);
+                        payload[payloadLength++] = (byte)((0xff000000 & threadID) >> 24);
+                        payload[payloadLength++] = (byte)((0x00ff0000 & threadID) >> 16);
+                        payload[payloadLength++] = (byte)((0x0000ff00 & threadID) >> 8);
                         payload[payloadLength++] = (byte)(0x000000ff & threadID);
                         offset += 4;
                         optionDataSize = 4;
@@ -743,9 +747,9 @@ namespace System.Data.SqlClient {
                         Buffer.BlockCopy(connectionIdBytes, 0, payload, payloadLength, GUID_SIZE);
                         payloadLength += GUID_SIZE;
                         payload[payloadLength++] = (byte)(0x000000ff & actId.Sequence); 
-                        payload[payloadLength++] = (byte)(0x0000ff00 & actId.Sequence);
-                        payload[payloadLength++] = (byte)(0x00ff0000 & actId.Sequence);
-                        payload[payloadLength++] = (byte)(0xff000000 & actId.Sequence);
+                        payload[payloadLength++] = (byte)((0x0000ff00 & actId.Sequence) >> 8);
+                        payload[payloadLength++] = (byte)((0x00ff0000 & actId.Sequence) >> 16);
+                        payload[payloadLength++] = (byte)((0xff000000 & actId.Sequence) >> 24);
                         int actIdSize = GUID_SIZE + sizeof(UInt32);
                         offset += actIdSize;
                         optionDataSize += actIdSize;
@@ -758,7 +762,7 @@ namespace System.Data.SqlClient {
                 }
 
                 // Write data length
-                _physicalStateObj.WriteByte((byte)(optionDataSize & 0xff00));
+                _physicalStateObj.WriteByte((byte)((optionDataSize & 0xff00) >> 8));
                 _physicalStateObj.WriteByte((byte)(optionDataSize & 0x00ff));
             }
 
@@ -1070,7 +1074,7 @@ namespace System.Data.SqlClient {
 
             sqlErs.Add(error);
 
-            SqlException exc = SqlException.CreateException(sqlErs, serverVersion, _connHandler._clientConnectionId);
+            SqlException exc = SqlException.CreateException(sqlErs, serverVersion, _connHandler);
 
             bool notified;
             connection.OnInfoMessage(new SqlInfoMessageEventArgs(exc), out notified);
@@ -1122,7 +1126,7 @@ namespace System.Data.SqlClient {
             // Don't break the connection if it is already closed
             breakConnection &= (TdsParserState.Closed != _state);
             if (breakConnection) {
-                if ((_state == TdsParserState.OpenNotLoggedIn) && (_connHandler.ConnectionOptions.MultiSubnetFailover) && (temp.Count == 1) && ((temp[0].Number == TdsEnums.TIMEOUT_EXPIRED) || (temp[0].Number == TdsEnums.SNI_WAIT_TIMEOUT))) {
+                if ((_state == TdsParserState.OpenNotLoggedIn) && (_connHandler.ConnectionOptions.MultiSubnetFailover || _loginWithFailover) && (temp.Count == 1) && ((temp[0].Number == TdsEnums.TIMEOUT_EXPIRED) || (temp[0].Number == TdsEnums.SNI_WAIT_TIMEOUT))) {
                     // DevDiv2 Bug 459546: With "MultiSubnetFailover=yes" in the Connection String, SQLClient incorrectly throws a Timeout using shorter time slice (3-4 seconds), not honoring the actual 'Connect Timeout'
                     // http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/459546
                     // For Multisubnet Failover we slice the timeout to make reconnecting faster (with the assumption that the server will not failover instantaneously)
@@ -1142,7 +1146,7 @@ namespace System.Data.SqlClient {
                 if (_state == TdsParserState.OpenLoggedIn) {
                     serverVersion = _connHandler.ServerVersion;
                 }
-                exception = SqlException.CreateException(temp, serverVersion, _connHandler._clientConnectionId);
+                exception = SqlException.CreateException(temp, serverVersion, _connHandler);
             }
 
             // call OnError outside of _ErrorCollectionLock to avoid deadlock

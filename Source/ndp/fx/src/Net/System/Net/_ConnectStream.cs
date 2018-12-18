@@ -96,11 +96,8 @@ namespace System.Net {
 
         private HttpWebRequest m_Request;
 
-        private static readonly TimerCallback s_DrainTimerElapsedCallback = 
-            new TimerCallback(DrainTimerElapsedCallback);
-
         private static volatile int responseDrainTimeoutMilliseconds = Timeout.Infinite;
-        private const int defaultResponseDrainTimeoutMilliseconds = 100;
+        private const int defaultResponseDrainTimeoutMilliseconds = 500;
         private const string responseDrainTimeoutAppSetting = "responseDrainTimeout";
 
         //
@@ -2109,10 +2106,8 @@ namespace System.Net {
             WebExceptionStatus error = WebExceptionStatus.SendFailure;
 
             //m_Request.writebuffer may be set to null on resubmit before method exits
-            byte[] writeBuffer = request.WriteBuffer;
 
-            GlobalLog.Enter("ConnectStream#" + ValidationHelper.HashString(stream) + "::WriteHeadersCallback", "Connection#" + ValidationHelper.HashString(stream.m_Connection) + ", " + writeBuffer.Length.ToString());
-
+            GlobalLog.Enter("ConnectStream#" + ValidationHelper.HashString(stream) + "::WriteHeadersCallback", "Connection#" + ValidationHelper.HashString(stream.m_Connection) + ", " + request.WriteBufferLength.ToString()); 
             try{
                 stream.m_Connection.EndWrite(ar);
                 if (stream.m_Connection.m_InnerException != null)
@@ -2148,8 +2143,8 @@ namespace System.Net {
 
             // Resend data, etc.
             request.WriteHeadersCallback(error, stream, true);
-            
-            GlobalLog.Leave("ConnectStream#" + ValidationHelper.HashString(stream) + "::WriteHeadersCallback",writeBuffer.Length.ToString());
+            request.FreeWriteBuffer();
+            GlobalLog.Leave("ConnectStream#" + ValidationHelper.HashString(stream) + "::WriteHeadersCallback",request.WriteBufferLength.ToString());
         }
 
 
@@ -2168,7 +2163,7 @@ namespace System.Net {
 
         --*/
         internal void WriteHeaders(bool async) {
-            GlobalLog.Enter("ConnectStream#" + ValidationHelper.HashString(this) + "::WriteHeaders", "Connection#" + ValidationHelper.HashString(m_Connection) + ", headers buffer size = " + m_Request.WriteBuffer.Length.ToString());
+            GlobalLog.Enter("ConnectStream#" + ValidationHelper.HashString(this) + "::WriteHeaders", "Connection#" + ValidationHelper.HashString(m_Connection) + ", headers buffer size = " + m_Request.WriteBufferLength.ToString());
 
             WebExceptionStatus error =  WebExceptionStatus.SendFailure;
 
@@ -2176,6 +2171,7 @@ namespace System.Net {
             {
                 //m_Request.WriteBuffer may be set to null on resubmit before method exits
                 byte[] writeBuffer = m_Request.WriteBuffer;
+                int writeBufferLength = m_Request.WriteBufferLength;
                 
                 try
                 {
@@ -2187,7 +2183,7 @@ namespace System.Net {
                     if(async)
                     {
                         WriteHeadersCallbackState state = new WriteHeadersCallbackState(m_Request, this);
-                        IAsyncResult ar = m_Connection.UnsafeBeginWrite(writeBuffer,0,writeBuffer.Length, m_WriteHeadersCallback, state);
+                        IAsyncResult ar = m_Connection.UnsafeBeginWrite(writeBuffer,0,writeBufferLength, m_WriteHeadersCallback, state);
                         if (ar.CompletedSynchronously) {
                             m_Connection.EndWrite(ar);
                             error = WebExceptionStatus.Success;
@@ -2202,7 +2198,7 @@ namespace System.Net {
                     else
                     {
                         SafeSetSocketTimeout(SocketShutdown.Send);
-                        m_Connection.Write(writeBuffer, 0, writeBuffer.Length);
+                        m_Connection.Write(writeBuffer, 0, writeBufferLength);
                         error = WebExceptionStatus.Success;
                     }
                 }
@@ -2257,6 +2253,7 @@ namespace System.Net {
             }
 
             m_Request.WriteHeadersCallback(error, this, async);            
+            m_Request.FreeWriteBuffer();
         }
 
         private void HandleWriteHeadersException(Exception e, WebExceptionStatus error) {
@@ -2558,7 +2555,19 @@ namespace System.Net {
 #if DEBUG
             using (GlobalLog.SetThreadKind(ThreadKinds.Sync)) {
 #endif
-                normalShutDown = DrainSocket();
+            //
+            // A race condition still exists when a different thread calls HttpWebRequest.Abort().
+            // This is expected and handled within DrainSocket().
+            //
+            Connection connection = m_Connection;
+            if (connection != null)
+            {
+                NetworkStream networkStream = connection.NetworkStream;
+                if (networkStream != null && networkStream.Connected)
+                {
+                    normalShutDown = DrainSocket();
+                }
+            }
 #if DEBUG
             }
 #endif
@@ -2797,10 +2806,7 @@ namespace System.Net {
                 return true;
             }
 
-            //
-            // If its not chunked and we have a read buffer, don't waste time coping the data
-            //  around againg, just pretend its gone, i.exception. make it die
-            //
+            // Optimization for non-chunked responses: when data is already present in the buffer, skip parsing it.
             long ReadBytes = m_ReadBytes;
 
             if (!m_Chunked) {
@@ -2879,15 +2885,44 @@ namespace System.Net {
 
             int bytesRead;
             int totalBytesRead = 0;
-            AutoResetEvent drainEvent = new AutoResetEvent(false);
-            Timer drainTimer = new Timer(s_DrainTimerElapsedCallback, this, drainTimeoutMilliseconds, Timeout.Infinite);
+            Stopwatch sw = new Stopwatch();
 
             try {
+
+                // Override the receive timeout interval to correspond to the drainTimeoutMiliseconds.
+                NetworkStream networkStream = m_Connection.NetworkStream;
+                networkStream.SetSocketTimeoutOption(SocketShutdown.Receive, drainTimeoutMilliseconds, false);
+                sw.Start();
+
                 do {
+                    if (sw.ElapsedMilliseconds >= drainTimeoutMilliseconds) {
+                        GlobalLog.Print("ConnectStream#" + ValidationHelper.HashString(this) + "::DrainSocket() drain timeout exceeded.");
+                        bytesRead = -1;
+                        break;
+                    }
                     bytesRead = ReadWithoutValidation(s_DrainingBuffer, 0, s_DrainingBuffer.Length, false);
                     totalBytesRead += bytesRead;
                     GlobalLog.Print("ConnectStream#" + ValidationHelper.HashString(this) + "::DrainSocket() drained bytesRead:" + bytesRead.ToString() + " bytes");
                 } while ((bytesRead > 0) && (totalBytesRead <= c_MaxDrainBytes));
+            }
+            catch (IOException) {
+                //
+                // If SO_RCVTIMEO is set and we aborted the recv, the socket is in an indeterminate state.
+                // We need to close this socket.
+                //
+
+                GlobalLog.Print("ConnectStream#" + ValidationHelper.HashString(this) + "::DrainSocket() drain timeout exceeded.");
+                bytesRead = -1;
+            }
+            catch (ObjectDisposedException)
+            {
+                //
+                // A race condition exists when a different thread calls HttpWebRequest.Abort().
+                // In certain cases, the SocketHandle or NetworkStream object may have been already closed/disposed.
+                //
+
+                GlobalLog.Print("ConnectStream#" + ValidationHelper.HashString(this) + "::DrainSocket() the socket was already closed.");
+                bytesRead = -1;
             }
             catch (Exception exception) {
                 if (NclUtilities.IsFatal(exception)) throw;
@@ -2896,18 +2931,26 @@ namespace System.Net {
                 bytesRead = -1;
             }
             finally {
-                drainTimer.Dispose(drainEvent);
-                drainEvent.WaitOne(); // Wait for pending timer callback to complete (if there is one).
+                sw.Stop();
             }
 
             if (bytesRead != 0) {
-                // If we were unable to drain the whole response, abort the connection.
+                //
+                // bytesRead > 0 means that we still have data from a chunked transfer but we have exceeded c_MaxDrainBytes.
+                // bytesRead = -1 indicates a failure or a time out (either SO_RCVTIMEO or total execution time exceeded).
+                // For appCompat reasons we must call AbortSocket(false) and return true below.
+                //
+
                 m_Connection.AbortSocket(false);
-                return true;
+            }
+            else {
+                
+                // Drain succesful. Set the receive timeout interval back to the original value.
+                SafeSetSocketTimeout(SocketShutdown.Receive);
             }
 
             GlobalLog.Leave("ConnectStream::DrainSocket", true);
-            return bytesRead > 0;
+            return true;
         }
 
         private int GetResponseDrainTimeout() {
@@ -2934,12 +2977,6 @@ namespace System.Net {
         }
 
         internal static byte[] s_DrainingBuffer = new byte[4096];
-
-        private static void DrainTimerElapsedCallback(object sender) {
-            ConnectStream self = sender as ConnectStream;
-
-            self.m_Connection.AbortSocket(false);
-        }
 
         /*++
             IOError - Handle an IOError on the stream.

@@ -87,7 +87,11 @@ namespace System.Windows.Forms {
         private CachedItemHdcInfo              cachedItemHdcInfo             = null;
         private bool                           alreadyHooked  = false;
 
-        private Size                           imageScalingSize         = new Size(16,16);
+        private Size                           imageScalingSize;
+        private static bool                    isScalingInitialized     = false;
+        private const int                      ICON_DIMENSION           = 16;
+        private static int                     iconWidth                = ICON_DIMENSION;
+        private static int                     iconHeight               = ICON_DIMENSION;
 
         private Font                           defaultFont              = null;
         private RestoreFocusMessageFilter             restoreFocusFilter;
@@ -168,7 +172,15 @@ namespace System.Windows.Forms {
         /// Summary of ToolStrip.
         /// </devdoc>
         public ToolStrip() {
-        
+            if (!isScalingInitialized) {
+                if (DpiHelper.IsScalingRequired) {
+                    iconWidth = DpiHelper.LogicalToDeviceUnitsX(ICON_DIMENSION);
+                    iconHeight = DpiHelper.LogicalToDeviceUnitsY(ICON_DIMENSION);
+                }
+                isScalingInitialized = true;
+            }
+            imageScalingSize = new Size(iconWidth, iconHeight);
+
             SuspendLayout();
             this.CanOverflow = true;
             this.TabStop = false;

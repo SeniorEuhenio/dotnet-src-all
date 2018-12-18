@@ -187,7 +187,13 @@ namespace System.Net {
         private WebHeaderCollection     _HttpRequestHeaders;
 
         // send buffer for output request with headers.
-        private byte[]                  _WriteBuffer;
+        private byte[]                 _WriteBuffer;
+        private int                    _WriteBufferLength;       // The logical size of _WriteBuffer (<= WriteBuffer.Length)
+
+        private const int CachedWriteBufferSize = 512;
+        // Because we do this asychronously, we pin buffers, so we want a cache of good buffers to pin.  Here is the cache.
+        private static PinnableBufferCache _WriteBufferCache = new PinnableBufferCache("System.Net.HttpWebRequest", CachedWriteBufferSize);
+        private bool                    _WriteBufferFromPinnableCache;  // We have to explictly free if it we got our buffer from the pinnable cache
 
         // Property to set whether writes can be handled
         private HttpWriteMode           _HttpWriteMode;
@@ -1405,7 +1411,7 @@ namespace System.Net {
                 suri = this.RequestUri.ToString();
             else
                 suri = this.RequestUri.OriginalString;
-            FrameworkEventSource.Log.BeginGetRequestStream(this, suri);
+            if (FrameworkEventSource.Log.IsEnabled()) LogBeginGetRequestStream(suri);
 
             return asyncResult;
 #if DEBUG
@@ -1460,7 +1466,7 @@ namespace System.Net {
             GlobalLog.Leave("HttpWebRequest#" + ValidationHelper.HashString(this) + "::EndGetRequestStream", ValidationHelper.HashString(connectStream));
             if(Logging.On)Logging.Exit(Logging.Web, this, "EndGetRequestStream", connectStream);
 
-            FrameworkEventSource.Log.EndGetRequestStream(this);
+            if (FrameworkEventSource.Log.IsEnabled()) LogEndGetRequestStream();
 
             return connectStream;
 #if DEBUG
@@ -1979,7 +1985,7 @@ namespace System.Net {
                 suri = this.RequestUri.ToString();
             else
                 suri = this.RequestUri.OriginalString;
-            FrameworkEventSource.Log.BeginGetResponse(this, suri);
+            if (FrameworkEventSource.Log.IsEnabled()) LogBeginGetResponse(suri);
 
             return asyncResult;
 #if DEBUG
@@ -2025,7 +2031,7 @@ namespace System.Net {
             if(Logging.On)Logging.Exit(Logging.Web, this, "EndGetResponse", httpWebResponse);
             InitLifetimeTracking(httpWebResponse);
 
-            FrameworkEventSource.Log.EndGetResponse(this);
+            if (FrameworkEventSource.Log.IsEnabled()) LogEndGetResponse();
 
             return httpWebResponse;
 #if DEBUG
@@ -2946,6 +2952,43 @@ namespace System.Net {
             get {
                 return _WriteBuffer;
             }
+        }
+
+        internal int WriteBufferLength {
+            get {
+                return _WriteBufferLength;
+            }
+        }
+
+        // Return the buffer to the pinnable cache if it came from there.   
+        internal void FreeWriteBuffer()
+        {
+            if (_WriteBufferFromPinnableCache)
+            {
+                _WriteBufferCache.FreeBuffer(_WriteBuffer);
+                _WriteBufferFromPinnableCache = false;
+            }
+            _WriteBufferLength = 0;
+            _WriteBuffer = null;
+        }
+
+        // Get the buffer from the pinnable cache if the necessary space is small enough
+        private void SetWriteBuffer(int bufferSize)
+        {
+            if(bufferSize <= CachedWriteBufferSize)
+            {
+                if (!_WriteBufferFromPinnableCache) 
+                {
+                    _WriteBuffer = _WriteBufferCache.AllocateBuffer();
+                    _WriteBufferFromPinnableCache = true;
+                }
+            }
+            else
+            {
+                FreeWriteBuffer();
+                _WriteBuffer = new byte[bufferSize];
+            }
+            _WriteBufferLength = bufferSize;
         }
 
         //
@@ -3897,7 +3940,7 @@ namespace System.Net {
                 return null;
             }
 
-			// _WriteARequest == null is the case where the user specifies POST but doesn't call GetRequestStream().
+            // _WriteARequest == null is the case where the user specifies POST but doesn't call GetRequestStream().
             ContextAwareResult context =
                 (HttpWriteMode == HttpWriteMode.None || _OldSubmitWriteStream != null || _WriteAResult == null || _WriteAResult.IsCompleted == true ?
                 _ReadAResult : _WriteAResult) as ContextAwareResult;
@@ -4027,7 +4070,7 @@ namespace System.Net {
                         _OldSubmitWriteStream = _SubmitWriteStream;
                     }
                     // make sure we reformat the headers before resubmitting
-                    _WriteBuffer = null;
+                    _WriteBufferLength = 0;
                 }
 
                 m_Retry = false;
@@ -4041,7 +4084,7 @@ namespace System.Net {
                         ServerAuthenticationState.PreAuthIfNeeded(this, Credentials);
                 }
 
-                if (WriteBuffer == null) {
+                if (WriteBufferLength == 0) {
                     UpdateHeaders();
                 }
 
@@ -4244,14 +4287,14 @@ namespace System.Net {
                 }
 
                 // gather header bytes and write them to the stream
-                if (WriteBuffer==null)
+                if (WriteBufferLength==0)
                 {
                     long result = SwitchToContentLength();
                     SerializeHeaders();
                     PostSwitchToContentLength(result);
                 }
 
-                GlobalLog.Assert(WriteBuffer != null && WriteBuffer[0] < 0x80 && WriteBuffer[0] != 0x0, "HttpWebRequest#{0}::EndSubmitRequest()|Invalid WriteBuffer generated.", ValidationHelper.HashString(this));
+                GlobalLog.Assert(WriteBufferLength != 0 && WriteBuffer[0] < 0x80 && WriteBuffer[0] != 0x0, "HttpWebRequest#{0}::EndSubmitRequest()|Invalid WriteBuffer generated.", ValidationHelper.HashString(this));
 
                 _SubmitWriteStream.WriteHeaders(Async);
             }
@@ -4562,7 +4605,7 @@ namespace System.Net {
                                     host.ByteCount +
                                     RequestLineConstantSize +
                                     headersSize;
-            _WriteBuffer = new byte[writeBufferLength];
+            SetWriteBuffer(writeBufferLength);
             offset = Encoding.ASCII.GetBytes(CurrentMethod.Name, 0, CurrentMethod.Name.Length, WriteBuffer, 0);
             WriteBuffer[offset++] = (byte)' ';
             host.Copy(WriteBuffer, offset);
@@ -4659,7 +4702,7 @@ namespace System.Net {
                                     path.Length +
                                     RequestLineConstantSize +
                                     headersSize;
-            _WriteBuffer = new byte[writeBufferLength];
+            SetWriteBuffer(writeBufferLength);
 
             offset = Encoding.ASCII.GetBytes(CurrentMethod.Name, 0, CurrentMethod.Name.Length, WriteBuffer, 0);
             WriteBuffer[offset++] = (byte)' ';
@@ -4725,7 +4768,7 @@ namespace System.Net {
                                     path.Length +
                                     RequestLineConstantSize +
                                     headersSize;
-            _WriteBuffer = new byte[writeBufferLength];
+            SetWriteBuffer(writeBufferLength);
 
             offset = Encoding.ASCII.GetBytes(CurrentMethod.Name, 0, CurrentMethod.Name.Length, WriteBuffer, 0);
             WriteBuffer[offset++] = (byte)' ';
@@ -4764,7 +4807,7 @@ namespace System.Net {
                 RequestLineConstantSize +
                 headersSize;
 
-            _WriteBuffer = new byte[writeBufferLength];
+            SetWriteBuffer(writeBufferLength);
             offset = Encoding.ASCII.GetBytes(CurrentMethod.Name, 0, CurrentMethod.Name.Length, WriteBuffer, 0);
             WriteBuffer[offset++] = (byte)' ';
             offset += Encoding.ASCII.GetBytes(pathAndQuery, 0, pathAndQuery.Length, WriteBuffer, offset);
@@ -5871,7 +5914,7 @@ namespace System.Net {
 
             m_BodyStarted = false;
             HeadersCompleted = false;
-            _WriteBuffer = null;
+            _WriteBufferLength = 0;
             m_Extra401Retry = false;
 
 #if TRAVE

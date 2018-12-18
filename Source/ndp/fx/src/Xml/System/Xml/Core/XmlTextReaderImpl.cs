@@ -354,7 +354,14 @@ namespace System.Xml {
             nameTable = nt;
             nt.Add( string.Empty );
 
-            xmlResolver = new XmlUrlResolver();
+            if (!System.Xml.XmlReaderSettings.EnableLegacyXmlSettings())
+            {
+                xmlResolver = null;
+            }
+            else
+            {
+                xmlResolver = new XmlUrlResolver();
+            }
 
             Xml = nt.Add( "xml" );
             XmlNs = nt.Add( "xmlns" );
@@ -531,7 +538,9 @@ namespace System.Xml {
                 InitStreamInput( xmlFragment, enc );
             }
             else {
-                InitStreamInput( xmlResolver.ResolveUri( null, context.BaseURI ), xmlFragment, enc );
+                // It is important to have valid resolver here to resolve the Xml url file path. 
+                // it is safe as this resolver will not be used to resolve DTD url's
+                InitStreamInput(GetTempResolver().ResolveUri(null, context.BaseURI), xmlFragment, enc);
             }
             InitFragmentReader( fragType, context, false );
 
@@ -597,7 +606,9 @@ namespace System.Xml {
 
             this.url = url;
 
-            ps.baseUri = xmlResolver.ResolveUri( null, url );
+            // It is important to have valid resolver here to resolve the Xml url file path. 
+            // it is safe as this resolver will not be used to resolve DTD url's
+            ps.baseUri = GetTempResolver().ResolveUri(null, url);
             ps.baseUriStr = ps.baseUri.ToString();
             reportedBaseUri = ps.baseUriStr;
 
@@ -1948,6 +1959,12 @@ namespace System.Xml {
             }
         }
 
+        // Needed to check from the schema validation if the caller set the resolver so we'll not override it
+        internal bool IsResolverSet
+        {
+            get { return xmlResolverIsSet; }
+        }
+
         // Specifies XmlResolver used for opening the XML document and other external references
         internal XmlResolver XmlResolver {
             set {
@@ -2322,6 +2339,13 @@ namespace System.Xml {
 #endif
             }
         }
+
+#if !SILVERLIGHT 
+        private XmlResolver GetTempResolver()
+        {
+            return xmlResolver == null ? new XmlUrlResolver() : xmlResolver;
+        }
+#endif
 
         internal bool DtdParserProxy_PushEntity( IDtdEntityInfo entity, out int entityId ) {
             bool retValue;
@@ -2788,13 +2812,12 @@ namespace System.Xml {
             Debug.Assert( url != null && url.Length > 0 );
             Debug.Assert( compressedStack != null );
 
-            XmlResolver tmpResolver;
+            // It is safe to use the resolver here as we don't resolve or expose any DTD to the caller
+            XmlResolver tmpResolver = GetTempResolver();
             if ( ps.baseUri != null ) {
-                Debug.Assert( xmlResolver != null );
-                tmpResolver = xmlResolver;
+                Debug.Assert(xmlResolver != null || !System.Xml.XmlReaderSettings.EnableLegacyXmlSettings());
             }
             else {
-                tmpResolver = ( xmlResolver == null ) ? new XmlUrlResolver() : xmlResolver;
                 ps.baseUri = tmpResolver.ResolveUri( null, url );
                 ps.baseUriStr = ps.baseUri.ToString();
             }
@@ -2816,7 +2839,8 @@ namespace System.Xml {
         }
 
         void OpenUrlDelegate(object xmlResolver) {
-            ps.stream = (Stream) ((XmlResolver)xmlResolver).GetEntity( ps.baseUri, null, typeof( Stream ) );
+            // Safe to have valid resolver here as it is not used to parse DTD
+            ps.stream = (Stream) GetTempResolver().GetEntity(ps.baseUri, null, typeof(Stream));
         }
 #endif
 

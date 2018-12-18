@@ -339,7 +339,8 @@ namespace System.Windows.Data
 
                 if (_ppath != null && _ppath.StartsWithStaticProperty)
                 {
-                    if (_sourceInUse == SourceProperties.None || _sourceInUse == SourceProperties.StaticSource)
+                    if (_sourceInUse == SourceProperties.None || _sourceInUse == SourceProperties.StaticSource ||
+                        FrameworkCompatibilityPreferences.TargetsDesktop_V4_0) // (for compat - Dev11 738992)
                     {
                         SourceReference = StaticSourceRef;
                     }

@@ -131,6 +131,12 @@ namespace System.Web {
             }
         }
 
+        public override bool HeadersWritten {
+            get {
+                return _httpResponse.HeadersWritten;
+            }
+        }
+
         public override Encoding HeaderEncoding {
             get {
                 return _httpResponse.HeaderEncoding;
@@ -227,6 +233,15 @@ namespace System.Web {
             }
         }
 
+        public override bool SuppressDefaultCacheControlHeader {
+            get {
+                return _httpResponse.SuppressDefaultCacheControlHeader;
+            }
+            set {
+                _httpResponse.SuppressDefaultCacheControlHeader = value;
+            }
+        }
+
         public override bool SuppressFormsAuthenticationRedirect {
             get {
                 return _httpResponse.SuppressFormsAuthenticationRedirect;
@@ -263,6 +278,10 @@ namespace System.Web {
 
         public override void AddFileDependency(string filename) {
             _httpResponse.AddFileDependency(filename);
+        }
+
+        public override ISubscriptionToken AddOnSendingHeaders(Action<HttpContextBase> callback) {
+            return _httpResponse.AddOnSendingHeaders(HttpContextWrapper.WrapCallback(callback));
         }
 
         public override void AddFileDependencies(ArrayList filenames) {

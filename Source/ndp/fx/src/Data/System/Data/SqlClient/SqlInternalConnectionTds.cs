@@ -239,6 +239,8 @@ namespace System.Data.SqlClient
 
         // Routing information (ROR)
         RoutingInfo _routingInfo = null;
+        private Guid _originalClientConnectionId = Guid.Empty;
+        private string _routingDestination = null;
 
         // although the new password is generally not used it must be passed to the c'tor
         // the new Login7 packet will always write out the new password (or a length of zero and no bytes if not present)
@@ -353,6 +355,18 @@ namespace System.Data.SqlClient
         internal Guid ClientConnectionId {
             get {
                 return _clientConnectionId;
+            }
+        }
+       
+        internal Guid OriginalClientConnectionId {
+            get {
+                return _originalClientConnectionId;
+            }
+        }
+       
+        internal string RoutingDestination {
+            get {
+                return _routingDestination;
             }
         }
 
@@ -966,7 +980,7 @@ namespace System.Data.SqlClient
                         mustPutSession = true;
                     }
                     else if (internalTransaction.OpenResultsCount != 0) {
-                        throw SQL.CannotCompleteDelegatedTransactionWithOpenResults(_clientConnectionId);
+                        throw SQL.CannotCompleteDelegatedTransactionWithOpenResults(this);
                     }
                 }               
 
@@ -1017,7 +1031,7 @@ namespace System.Data.SqlClient
                 if (!_sessionRecoveryAcknowledged) {
                     _currentSessionData = null;
                     if (_recoverySessionData != null) {
-                        throw SQL.CR_NoCRAckAtReconnection(_clientConnectionId);
+                        throw SQL.CR_NoCRAckAtReconnection(this);
                     }
                 }
                 if (_currentSessionData != null && _recoverySessionData==null) {
@@ -1028,7 +1042,7 @@ namespace System.Data.SqlClient
                 bool isEncrypted = _parser.EncryptionOptions == EncryptionOptions.ON;
                 if (_recoverySessionData != null) {
                     if (_recoverySessionData._encrypted != isEncrypted) {
-                        throw SQL.CR_EncryptionChanged(_clientConnectionId);
+                        throw SQL.CR_EncryptionChanged(this);
                     }                                      
                 }
                 if (_currentSessionData != null) {
@@ -1276,22 +1290,24 @@ namespace System.Data.SqlClient
                 
                 if (connectionOptions.MultiSubnetFailover && null != ServerProvidedFailOverPartner) {
                     // connection succeeded: trigger exception if server sends failover partner and MultiSubnetFailover is used
-                    throw SQL.MultiSubnetFailoverWithFailoverPartner(serverProvidedFailoverPartner: true, conId: _clientConnectionId);
+                    throw SQL.MultiSubnetFailoverWithFailoverPartner(serverProvidedFailoverPartner: true, internalConnection: this);
                 }
 
                 if (_routingInfo != null) {
                     Bid.Trace("<sc.SqlInternalConnectionTds.LoginNoFailover> Routed to %ls", serverInfo.ExtendedServerName);
 
                     if (routingAttempts > 0) {
-                        throw SQL.ROR_RecursiveRoutingNotSupported(_clientConnectionId);
+                        throw SQL.ROR_RecursiveRoutingNotSupported(this);
                     }
 
                     if (timeout.IsExpired) {
-                        throw SQL.ROR_TimeoutAfterRoutingInfo(_clientConnectionId);
+                        throw SQL.ROR_TimeoutAfterRoutingInfo(this);
                     }                    
 
                     serverInfo = new ServerInfo(ConnectionOptions, _routingInfo, serverInfo.ResolvedServerName);
                     timeoutErrorInternal.SetInternalSourceType(SqlConnectionInternalSourceType.RoutingDestination);
+                    _originalClientConnectionId = _clientConnectionId;
+                    _routingDestination = serverInfo.UserServerName;
 
                     // restore properties that could be changed by the environment tokens
                     _currentPacketSize = ConnectionOptions.PacketSize;
@@ -1331,7 +1347,7 @@ namespace System.Data.SqlClient
             if (null != ServerProvidedFailOverPartner) {
                 if (connectionOptions.MultiSubnetFailover) {
                     // connection failed: do not allow failover to server-provided failover partner if MultiSubnetFailover is set
-                    throw SQL.MultiSubnetFailoverWithFailoverPartner(serverProvidedFailoverPartner: true, conId: _clientConnectionId);
+                    throw SQL.MultiSubnetFailoverWithFailoverPartner(serverProvidedFailoverPartner: true, internalConnection: this);
                 }
                 Debug.Assert(ConnectionOptions.ApplicationIntent != ApplicationIntent.ReadOnly, "FAILOVER+AppIntent=RO: Should already fail (at LOGSHIPNODE in OnEnvChange)");
 
@@ -1495,7 +1511,7 @@ namespace System.Data.SqlClient
                     // If it is something else, not known yet (future server) - this client is not designed to support this.                    
                     // In any case, server should not have sent the routing info.
                     Bid.Trace("<sc.SqlInternalConnectionTds.LoginWithFailover> Routed to %ls", _routingInfo.ServerName);
-                    throw SQL.ROR_UnexpectedRoutingInfo(_clientConnectionId);
+                    throw SQL.ROR_UnexpectedRoutingInfo(this);
                 }
 
                 break; // leave the while loop -- we've successfully connected
@@ -1719,10 +1735,11 @@ namespace System.Data.SqlClient
         ////////////////////////////////////////////////////////////////////////////////////////
 
         internal void BreakConnection() {
+            var connection = Connection;
             Bid.Trace("<sc.SqlInternalConnectionTds.BreakConnection|RES|CPOOL> %d#, Breaking connection.\n", ObjectID);
             DoomThisConnection();   // Mark connection as unusable, so it will be destroyed
-            if (null != Connection) {
-                Connection.Close();                
+            if (null != connection) {
+                connection.Close();                
             }
         }
 
@@ -1776,7 +1793,7 @@ namespace System.Data.SqlClient
 
                 case TdsEnums.ENV_LOGSHIPNODE:
                     if (ConnectionOptions.ApplicationIntent == ApplicationIntent.ReadOnly) {
-                        throw SQL.ROR_FailoverNotSupportedServer(_clientConnectionId);
+                        throw SQL.ROR_FailoverNotSupportedServer(this);
                     }
                     _currentFailoverPartner = rec.newValue;
                     break;
@@ -1805,7 +1822,7 @@ namespace System.Data.SqlClient
 
                 case TdsEnums.ENV_ROUTING:
                     if (string.IsNullOrEmpty(rec.newRoutingInfo.ServerName) || rec.newRoutingInfo.Protocol != 0 || rec.newRoutingInfo.Port == 0) {
-                        throw SQL.ROR_InvalidRoutingInfo(_clientConnectionId);
+                        throw SQL.ROR_InvalidRoutingInfo(this);
                     }
                     _routingInfo = rec.newRoutingInfo;
                     break;
@@ -1821,7 +1838,7 @@ namespace System.Data.SqlClient
             // 
             if (_recoverySessionData != null) {
                 if (_recoverySessionData._tdsVersion != rec.tdsVersion) {
-                    throw SQL.CR_TDSVersionNotPreserved(_clientConnectionId);
+                    throw SQL.CR_TDSVersionNotPreserved(this);
                 }
             }
             if (_currentSessionData != null) {

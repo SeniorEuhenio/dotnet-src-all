@@ -1168,6 +1168,64 @@ namespace System.Transactions
         }
 
 
+        [System.Security.Permissions.PermissionSetAttribute(System.Security.Permissions.SecurityAction.LinkDemand, Name = "FullTrust")]
+        public Enlistment PromoteAndEnlistDurable(Guid resourceManagerIdentifier,
+                                                  IPromotableSinglePhaseNotification promotableNotification,
+                                                  ISinglePhaseNotification enlistmentNotification,
+                                                  EnlistmentOptions enlistmentOptions)
+        {
+            if (DiagnosticTrace.Verbose)
+            {
+                MethodEnteredTraceRecord.Trace(SR.GetString(SR.TraceSourceOletx),
+                    "Transaction.PromoteAndEnlistDurable"
+                    );
+            }
+
+            if (Disposed)
+            {
+                throw new ObjectDisposedException("Transaction");
+            }
+
+            if (resourceManagerIdentifier == Guid.Empty)
+            {
+                throw new ArgumentException(SR.GetString(SR.BadResourceManagerId), "resourceManagerIdentifier");
+            }
+
+            if (promotableNotification == null)
+            {
+                throw new ArgumentNullException("promotableNotification");
+            }
+
+            if (enlistmentNotification == null)
+            {
+                throw new ArgumentNullException("enlistmentNotification");
+            }
+
+            if (enlistmentOptions != EnlistmentOptions.None && enlistmentOptions != EnlistmentOptions.EnlistDuringPrepareRequired)
+            {
+                throw new ArgumentOutOfRangeException("enlistmentOptions");
+            }
+
+            if (this.complete)
+            {
+                throw TransactionException.CreateTransactionCompletedException(SR.GetString(SR.TraceSourceLtm));
+            }
+
+            lock (this.internalTransaction)
+            {
+                Enlistment enlistment = this.internalTransaction.State.PromoteAndEnlistDurable(this.internalTransaction,
+                    resourceManagerIdentifier, promotableNotification, enlistmentNotification, enlistmentOptions, this);
+
+                if (DiagnosticTrace.Verbose)
+                {
+                    MethodExitedTraceRecord.Trace(SR.GetString(SR.TraceSourceOletx),
+                        "Transaction.PromoteAndEnlistDurable"
+                        );
+                }
+                return enlistment;
+            }
+        }
+
         internal Oletx.OletxTransaction Promote()
         {
             lock (this.internalTransaction)

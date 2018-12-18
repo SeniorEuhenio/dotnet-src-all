@@ -1345,7 +1345,8 @@ namespace System.ServiceModel.Channels
                     }
                     else
                     {
-                        ArraySegment<byte> messageBytes = this.SerializeBufferedMessage(message);
+                        // HttpOutputByteArrayContent assumes responsibility for returning the buffer to the bufferManager. 
+                        ArraySegment<byte> messageBytes = this.SerializeBufferedMessage(message, false);
                         httpResponseMessage.Content = new HttpOutputByteArrayContent(messageBytes.Array, messageBytes.Offset, messageBytes.Count, this.bufferManager);
                     }
 
@@ -1451,6 +1452,12 @@ namespace System.ServiceModel.Channels
 
         ArraySegment<byte> SerializeBufferedMessage(Message message)
         {
+            // by default, the HttpOutput should own the buffer and clean it up
+            return SerializeBufferedMessage(message, true);
+        }
+
+        ArraySegment<byte> SerializeBufferedMessage(Message message, bool shouldRecycleBuffer)
+        {
             ArraySegment<byte> result;
 
             MtomMessageEncoder mtomMessageEncoder = messageEncoder as MtomMessageEncoder;
@@ -1463,7 +1470,12 @@ namespace System.ServiceModel.Channels
                 result = mtomMessageEncoder.WriteMessage(message, int.MaxValue, bufferManager, 0, this.mtomBoundary);
             }
 
+            if (shouldRecycleBuffer)
+            {
+                // Only set this.bufferToRecycle if the HttpOutput owns the buffer, we will clean it up upon httpOutput.Close()
+                // Otherwise, caller of SerializeBufferedMessage assumes responsiblity for returning the buffer to the buffer pool
             this.bufferToRecycle = result.Array;
+            }
             return result;
         }
 
@@ -2985,7 +2997,7 @@ namespace System.ServiceModel.Channels
                 {
                     this.listenerResponse.StatusDescription = message.ReasonPhrase;
                 }
-                HttpChannelUtilities.CopyHeadersToNameValueCollection(message, this.listenerResponse.Headers);
+                HttpChannelUtilities.CopyHeaders(message, AddHeader);
             }
 
             protected override void AddHeader(string name, string value)
@@ -3116,6 +3128,8 @@ namespace System.ServiceModel.Channels
         Aborted,
         TimedOut
     }
+
+    delegate void AddHeaderDelegate(string headerName, string headerValue);
 
     static class HttpChannelUtilities
     {
@@ -3248,36 +3262,36 @@ namespace System.ServiceModel.Channels
             }
         }
 
-        public static void CopyHeadersToNameValueCollection(HttpRequestMessage request, NameValueCollection nameValueCollection)
+        public static void CopyHeaders(HttpRequestMessage request, AddHeaderDelegate addHeader)
         {
-            HttpChannelUtilities.CopyHeadersToNameValueCollection(request.Headers, nameValueCollection);
+            HttpChannelUtilities.CopyHeaders(request.Headers, addHeader);
             if (request.Content != null)
             {
-                HttpChannelUtilities.CopyHeadersToNameValueCollection(request.Content.Headers, nameValueCollection);
+                HttpChannelUtilities.CopyHeaders(request.Content.Headers, addHeader);
             }
         }
 
-        public static void CopyHeadersToNameValueCollection(HttpResponseMessage response, NameValueCollection nameValueCollection)
+        public static void CopyHeaders(HttpResponseMessage response, AddHeaderDelegate addHeader)
         {
-            HttpChannelUtilities.CopyHeadersToNameValueCollection(response.Headers, nameValueCollection);
+            HttpChannelUtilities.CopyHeaders(response.Headers, addHeader);
             if (response.Content != null)
             {
-                HttpChannelUtilities.CopyHeadersToNameValueCollection(response.Content.Headers, nameValueCollection);
+                HttpChannelUtilities.CopyHeaders(response.Content.Headers, addHeader);
             }
         }
 
-        static void CopyHeadersToNameValueCollection(HttpHeaders headers, NameValueCollection nameValueCollection)
+        static void CopyHeaders(HttpHeaders headers, AddHeaderDelegate addHeader)
         {
             foreach (KeyValuePair<string, IEnumerable<string>> header in headers)
             {
                 foreach (string value in header.Value)
                 {
-                    TryAddToCollection(nameValueCollection, header.Key, value);                    
+                    TryAddToCollection(addHeader, header.Key, value);                    
                 }
             }
         }
 
-        public static void CopyHeadersToNameValueCollection(NameValueCollection headers, NameValueCollection destination)
+        public static void CopyHeaders(NameValueCollection headers, AddHeaderDelegate addHeader)
         {
             //this nested loop logic was copied from NameValueCollection.Add(NameValueCollection)
             int count = headers.Count;
@@ -3290,23 +3304,28 @@ namespace System.ServiceModel.Channels
                 {
                     for (int j = 0; j < values.Length; j++)
                     {
-                        TryAddToCollection(destination, key, values[j]);
+                        TryAddToCollection(addHeader, key, values[j]);
                     }
                 }
                 else
                 {
-                    destination.Add(key, null);
+                    addHeader(key, null);
                 }
             }
         }
 
+        public static void CopyHeadersToNameValueCollection(NameValueCollection headers, NameValueCollection destination)
+        {
+            CopyHeaders(headers, destination.Add); 
+        }
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage(FxCop.Category.ReliabilityBasic, "Reliability104",
                             Justification = "The exceptions are traced already.")]
-        static void TryAddToCollection(NameValueCollection collection, string headerName, string value)
+        static void TryAddToCollection(AddHeaderDelegate addHeader, string headerName, string value)
         {
             try
             {
-                collection.Add(headerName, value);
+                addHeader(headerName, value);
             }
             catch (ArgumentException ex)
             {
@@ -3315,7 +3334,7 @@ namespace System.ServiceModel.Channels
                 {
                     //note: if the hosthame of a referer header contains illegal chars, we will still throw from here
                     //because Uri will not fix this up for us, which is ok. The request will get rejected in the error code path.
-                    collection.Add(headerName, encodedValue);
+                    addHeader(headerName, encodedValue);
                 }
                 else
                 {
@@ -4184,8 +4203,11 @@ namespace System.ServiceModel.Channels
 
         public void CopyHeaders(WebHeaderCollection headers)
         {
-            HttpChannelUtilities.CopyHeadersToNameValueCollection(this.httpRequestMessage, headers);
-        }
+            // No special-casing for the "WWW-Authenticate" header required here,
+            // because this method is only called for the incoming request
+            // and the WWW-Authenticate header is a header only applied to responses.
+            HttpChannelUtilities.CopyHeaders(this.httpRequestMessage, headers.Add);
+        }        
 
         internal void SetHttpRequestMessage(HttpRequestMessage httpRequestMessage)
         {

@@ -1013,6 +1013,13 @@ namespace System.Web {
                         throw new HttpException(SR.GetString(SR.Max_request_length_exceeded),
                                     null, WebEventCodes.RuntimeErrorPostTooLarge);
                     }
+
+                    // Fail synchrously if receiving the request content takes too long
+                    // RequestTimeoutManager is not efficient in case of ThreadPool starvation
+                    // as the timer callback doing Thread.Abort may not trigger for a long time
+                    if (remainingBytes > 0 && _context.HasTimeoutExpired) {
+                        throw new HttpException(SR.GetString(SR.Request_timed_out));
+                    }
                 }
             }
 

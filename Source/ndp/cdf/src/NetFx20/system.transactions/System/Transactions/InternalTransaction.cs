@@ -245,6 +245,13 @@ namespace System.Transactions
 
         internal ITransactionPromoter promoter;
 
+        // This member is used to allow a PSPE enlistment to call Transaction.PSPEPromoteAndConvertToEnlistDurable when it is
+        // asked to promote a transaction. The value is set to true in TransactionStatePSPEOperation.PSPEPromote before the
+        // Promote call is made and set back to false after the call returns (or an exception is thrown). The value is
+        // checked for true in TransactionStatePSPEOperation.PSPEPromoteAndConvertToEnlistDurable to make sure the transaction
+        // is in the process of promoting via a PSPE enlistment.
+        internal bool attemptingPSPEPromote = false;
+
         // Construct an internal transaction
         internal InternalTransaction( TimeSpan timeout, CommittableTransaction committableTransaction )
         {

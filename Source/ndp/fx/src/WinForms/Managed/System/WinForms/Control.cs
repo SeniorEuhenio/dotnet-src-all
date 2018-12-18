@@ -13040,6 +13040,10 @@ example usage
             //
             if (!GetStyle(ControlStyles.UserMouse)) {
                 DefWndProc(ref m);
+                // we might had re-entered the message loop and processed a WM_CLOSE message
+                if (IsDisposed) {
+                     return;
+                }  
             }
             else {
                 // DefWndProc would normally set the focus to this control, but

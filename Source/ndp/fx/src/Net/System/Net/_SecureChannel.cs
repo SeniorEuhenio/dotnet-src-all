@@ -739,9 +739,14 @@ namespace System.Net.Security {
                 }
                 else
                 {
-                    SecureCredential secureCredential = new SecureCredential(SecureCredential.CurrentVersion, selectedCert, 
-                                                                                                              SecureCredential.Flags.ValidateManual | SecureCredential.Flags.NoDefaultCred, 
-                                                                                                              m_ProtocolFlags, m_EncryptionPolicy);
+                    SecureCredential.Flags flags = SecureCredential.Flags.ValidateManual | SecureCredential.Flags.NoDefaultCred;
+                    if (!ServicePointManager.DisableStrongCrypto 
+                        && ((m_ProtocolFlags & (SchProtocols.Tls10 | SchProtocols.Tls11 | SchProtocols.Tls12)) != 0))
+                    {
+                        flags |= SecureCredential.Flags.UseStrongCrypto;
+                    }
+
+                    SecureCredential secureCredential = new SecureCredential(SecureCredential.CurrentVersion, selectedCert, flags, m_ProtocolFlags, m_EncryptionPolicy);
                     m_CredentialsHandle = AcquireCredentialsHandle(CredentialUse.Outbound, ref secureCredential);
                     thumbPrint = guessedThumbPrint; //delay it until here in case something above threw
                     m_SelectedClientCertificate = clientCertificate;
@@ -1098,7 +1103,16 @@ namespace System.Net.Security {
                 }
 
                 resultSize = 0;
-                e_writeBuffer = new byte[checked(size + m_HeaderSize + m_TrailerSize)];
+
+                int bufferSizeNeeded = checked(size + m_HeaderSize + m_TrailerSize);
+                if (output != null && bufferSizeNeeded <= output.Length)
+                {
+                    e_writeBuffer = output;
+                }
+                else
+                {
+                    e_writeBuffer = new byte[bufferSizeNeeded];
+                }
                 Buffer.BlockCopy(buffer,  offset, e_writeBuffer, m_HeaderSize, size);
             }
             catch(Exception e)

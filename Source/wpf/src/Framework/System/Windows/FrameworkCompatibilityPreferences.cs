@@ -11,6 +11,9 @@ namespace System.Windows
 
         static FrameworkCompatibilityPreferences()
         {
+            _targetsDesktop_V4_0 = BinaryCompatibility.AppWasBuiltForFramework == TargetFrameworkId.NetFramework
+                && !BinaryCompatibility.TargetsAtLeast_Desktop_V4_5;
+
             // user can use config file to set preferences
             NameValueCollection appSettings = null;
             try
@@ -25,10 +28,24 @@ namespace System.Windows
             {
                 SetHandleTwoWayBindingToPropertyWithNonPublicSetterFromAppSettings(appSettings);
                 SetUseSetWindowPosForTopmostWindowsFromAppSettings(appSettings);
+                SetVSP45CompatFromAppSettings(appSettings);
             }
         }
 
         #endregion Constructor
+
+        #region TargetsDesktop_V4_0
+
+        // CLR's BinaryCompatibility class doesn't expose a convenient way to determine
+        // if the app targets 4.0 exactly.  We use that a lot, so encapsulate it here
+        static bool _targetsDesktop_V4_0;
+
+        internal static bool TargetsDesktop_V4_0
+        {
+            get { return _targetsDesktop_V4_0; }
+        }
+
+        #endregion TargetsDesktop_V4_0
 
         #region AreInactiveSelectionHighlightBrushKeysSupported
 
@@ -234,7 +251,7 @@ namespace System.Windows
         {
             // user can use config file to enable this behavior change
             string s = appSettings["UseSetWindowPosForTopmostWindows"];
-            bool useSetWindowPos; 
+            bool useSetWindowPos;
             if (Boolean.TryParse(s, out useSetWindowPos))
             {
                 UseSetWindowPosForTopmostWindows = useSetWindowPos;
@@ -242,6 +259,56 @@ namespace System.Windows
         }
 
         #endregion UseSetWindowPosForTopmostWindows
+
+        #region VSP45Compat
+
+        // VirtualizingStackPanel added support for virtualization-when-grouping in 4.5,
+        // generalizing and subsuming the support for virtualizing a TreeView that existed in 4.0.
+        // The 4.5 algorithm had many flaws, leading to infinite loops, scrolling
+        // to the wrong place, and other bad symptoms.  DDCC is worried that fixing
+        // these issues may introduce new compat problems, and asked for a way to opt out
+        // of the fixes.  To opt out, add an entry to the <appSettings> section of the
+        // app config file:
+        //          <add key="IsVirtualizingStackPanel_45Compatible" value="true"/>
+
+        private static bool _vsp45Compat = false;
+
+        internal static bool VSP45Compat
+        {
+            get { return _vsp45Compat; }
+            set
+            {
+                lock (_lockObject)
+                {
+                    if (_isSealed)
+                    {
+                        throw new InvalidOperationException(SR.Get(SRID.CompatibilityPreferencesSealed, "IsVirtualizingStackPanel_45Compatible", "FrameworkCompatibilityPreferences"));
+                    }
+
+                    _vsp45Compat = value;
+                }
+            }
+        }
+
+        internal static bool GetVSP45Compat()
+        {
+            Seal();
+
+            return VSP45Compat;
+        }
+
+        static void SetVSP45CompatFromAppSettings(NameValueCollection appSettings)
+        {
+            // user can use config file to opt out of VSP fixes
+            string s = appSettings["IsVirtualizingStackPanel_45Compatible"];
+            bool value;
+            if (Boolean.TryParse(s, out value))
+            {
+                VSP45Compat = value;
+            }
+        }
+
+        #endregion VSP45Compat
 
         private static void Seal()
         {

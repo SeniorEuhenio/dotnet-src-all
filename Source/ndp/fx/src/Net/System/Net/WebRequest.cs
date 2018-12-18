@@ -10,10 +10,12 @@ namespace System.Net {
     using System.Configuration;
     using System.Diagnostics.CodeAnalysis;
     using System.Diagnostics.Contracts;
+    using System.Diagnostics.Tracing;
     using System.Globalization;
     using System.IO;
     using System.Net.Cache;
     using System.Net.Configuration;
+    using System.Reflection;
     using System.Runtime.Serialization;
     using System.Security.Permissions;
     using System.Security.Principal;
@@ -1173,6 +1175,67 @@ namespace System.Net {
                 // If the protocol cache policy is not specifically configured, grab from the base class.
                 InternalSetCachePolicy(WebRequest.DefaultCachePolicy);
             }
+        }
+
+        delegate void DelEtwFireBeginWRGet(object id, string uri);
+        delegate void DelEtwFireEndWRGet(object id);
+        static DelEtwFireBeginWRGet s_EtwFireBeginGetResponse;
+        static DelEtwFireEndWRGet s_EtwFireEndGetResponse;
+        static DelEtwFireBeginWRGet s_EtwFireBeginGetRequestStream;
+        static DelEtwFireEndWRGet s_EtwFireEndGetRequestStream;
+        static volatile bool s_TriedGetEtwDelegates;
+
+        private static void InitEtwMethods()
+        {
+            Type fest = typeof(FrameworkEventSource);
+            var beginParamTypes = new Type[] { typeof(object), typeof(string) };
+            var endParamTypes = new Type[] { typeof(object) };
+            var bindingFlags = BindingFlags.Instance|BindingFlags.NonPublic|BindingFlags.Public;
+            var mi1 = fest.GetMethod("BeginGetResponse", bindingFlags, null, beginParamTypes, null);
+            var mi2 = fest.GetMethod("EndGetResponse", bindingFlags, null, endParamTypes, null);
+            var mi3 = fest.GetMethod("BeginGetRequestStream", bindingFlags, null, beginParamTypes, null);
+            var mi4 = fest.GetMethod("EndGetRequestStream", bindingFlags, null, endParamTypes, null);
+            if (mi1 != null && mi2 != null && mi3 != null && mi4 != null)
+            {
+                s_EtwFireBeginGetResponse = (DelEtwFireBeginWRGet) mi1.CreateDelegate(typeof(DelEtwFireBeginWRGet), 
+                                                                    FrameworkEventSource.Log);
+                s_EtwFireEndGetResponse = (DelEtwFireEndWRGet) mi2.CreateDelegate(typeof(DelEtwFireEndWRGet), 
+                                                                       FrameworkEventSource.Log);
+                s_EtwFireBeginGetRequestStream = (DelEtwFireBeginWRGet) mi3.CreateDelegate(typeof(DelEtwFireBeginWRGet), 
+                                                                       FrameworkEventSource.Log);
+                s_EtwFireEndGetRequestStream = (DelEtwFireEndWRGet) mi4.CreateDelegate(typeof(DelEtwFireEndWRGet), 
+                                                                       FrameworkEventSource.Log);
+            }
+            s_TriedGetEtwDelegates = true;
+        }
+
+        internal void LogBeginGetResponse(string uri)
+        {
+            if (!s_TriedGetEtwDelegates) 
+                InitEtwMethods();
+            if (s_EtwFireBeginGetResponse != null)
+                s_EtwFireBeginGetResponse(this, uri);
+        }
+        internal void LogEndGetResponse()
+        {
+            if (!s_TriedGetEtwDelegates) 
+                InitEtwMethods();
+            if (s_EtwFireEndGetResponse != null)
+                s_EtwFireEndGetResponse(this);
+        }
+        internal void LogBeginGetRequestStream(string uri)
+        {
+            if (!s_TriedGetEtwDelegates) 
+                InitEtwMethods();
+            if (s_EtwFireBeginGetRequestStream != null)
+                s_EtwFireBeginGetRequestStream(this, uri);
+        }
+        internal void LogEndGetRequestStream()
+        {
+            if (!s_TriedGetEtwDelegates) 
+                InitEtwMethods();
+            if (s_EtwFireEndGetRequestStream != null)
+                s_EtwFireEndGetRequestStream(this);
         }
     } // class WebRequest
 } // namespace System.Net

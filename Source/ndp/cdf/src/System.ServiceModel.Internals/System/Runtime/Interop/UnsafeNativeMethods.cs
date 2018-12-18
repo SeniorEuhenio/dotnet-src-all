@@ -170,6 +170,12 @@ namespace System.Runtime.Interop
 
         [SuppressMessage(FxCop.Category.Security, FxCop.Rule.ReviewSuppressUnmanagedCodeSecurityUsage,
             Justification = "This PInvoke call has been reviewed")]
+        [DllImport(ADVAPI32, ExactSpelling = true, EntryPoint = "EventEnabled", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+        [SecurityCritical]
+        internal static extern bool EventEnabled([In] long registrationHandle, [In] ref EventDescriptor eventDescriptor);
+
+        [SuppressMessage(FxCop.Category.Security, FxCop.Rule.ReviewSuppressUnmanagedCodeSecurityUsage,
+            Justification = "This PInvoke call has been reviewed")]
         [DllImport(ADVAPI32, ExactSpelling = true, EntryPoint = "EventWrite", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
         [SecurityCritical]
         internal static extern unsafe uint EventWrite(

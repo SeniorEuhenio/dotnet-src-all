@@ -80,6 +80,7 @@ static HMODULE g_hKernel32 = NULL;
 static PFN_WIN32_SETFILECOMPLETIONNOTIFICATIONMODES g_pfnWin32SetFileCompletionNotificationModes = NULL;
 
 BOOL Tcp::s_fAutoTuning = FALSE; 
+BOOL Tcp::s_fSkipCompletionPort = FALSE;
 
 // DevNote: The followings are copied from ws2tcpip.h and ws2ipdef.h of LH(vistasp1). 
 // Remove them when integrated with LH winsdk.
@@ -3689,6 +3690,12 @@ DWORD Tcp::GatherWriteAsync(__in SNI_Packet * pPacket, SNI_ProvInfo * pInfo)
 			goto Exit;
 		}
 	}
+	else if (!s_fSkipCompletionPort)
+	{
+		// If we haven't enabled skipping the completion port, then we need to wait for it to be set
+		dwError = ERROR_IO_PENDING;
+		goto Exit;
+	}
 
 	dwError = ERROR_SUCCESS;
 	
@@ -3978,6 +3985,8 @@ FIsLoopBackExit:
 DWORD Tcp::Initialize(PSNI_PROVIDER_INFO pInfo)
 {
 	BidxScopeAutoSNI1( SNIAPI_TAG _T("pInfo: %p{PSNI_PROVIDER_INFO}\n"), pInfo );
+
+	DWORD dwError = ERROR_SUCCESS;
 	
 	// Initialize Winsock - we do this here, since its required for Tcp connections
 	// as well as SSRP stuff
@@ -3990,16 +3999,25 @@ DWORD Tcp::Initialize(PSNI_PROVIDER_INFO pInfo)
 		//Bug: 291912
 		//On WSAStartup failure, we can not use the error code returned by WSAGetLastError() since winsock context is not avaialbe yet.
 		// In this case, we use return value of WSAStartup as the error code when everthing fails.
-		if( DWORD dwError = WSAStartup((WORD)0x0101, &wsadata) )
+		if( dwError = WSAStartup((WORD)0x0101, &wsadata) )
 		{
 			// Everything failed			
 			Assert( 0 && " Winsock library initialization failed\n" );
 			BidTrace0( ERROR_TAG _T("Winsock library initialization failed\n") );
 			SNI_SET_LAST_ERROR( TCP_PROV, SNIE_SYSTEM, dwError); 
-			BidTraceU1( SNI_BID_TRACE_ON, RETURN_TAG _T("%d{WINERR}\n"), dwError);
-			return dwError;
+			
+			goto ErrorExit;
 		}	
 	}
+
+	dwError = ShouldEnableSkipIOCompletion(&s_fSkipCompletionPort);
+	if ( dwError != ERROR_SUCCESS )
+	{
+		SNI_SET_LAST_ERROR( TCP_PROV, SNIE_SYSTEM, dwError );
+
+		goto ErrorExit;
+	}
+	BidTraceU1( SNI_BID_TRACE_ON, SNI_TAG _T("Should enable 'Skip IO completion port on success': %d{bool}\n"), s_fSkipCompletionPort );
 
 
 #ifndef SNI_BASED_CLIENT
@@ -4036,9 +4054,10 @@ DWORD Tcp::Initialize(PSNI_PROVIDER_INFO pInfo)
 	pInfo->ProvNum = TCP_PROV;
 	pInfo->fInitialized = TRUE; 
 
-	BidTraceU1( SNI_BID_TRACE_ON, RETURN_TAG _T("%d{WINERR}\n"), ERROR_SUCCESS);
+ErrorExit:
+	BidTraceU1( SNI_BID_TRACE_ON, RETURN_TAG _T("%d{WINERR}\n"), dwError);
 	
-	return ERROR_SUCCESS;
+	return dwError;
 }
 
 DWORD Tcp::InitializeListener(HANDLE hSNIListener, __inout TcpListenInfo *pListenInfo, __out HANDLE * pListenHandle)
@@ -4916,6 +4935,12 @@ DWORD Tcp::PostReadAsync(SNI_Packet *pPacket, DWORD cbBuffer)
 			goto Exit;
 		}
 	}
+	else if (!s_fSkipCompletionPort)
+	{
+		// If we haven't enabled skipping the completion port, then we need to wait for it to be set
+		dwError = ERROR_IO_PENDING;
+		goto Exit;
+	}
 
 	if( 0 == GetOverlappedResult((HANDLE) m_sock, pOverlapped, &dwBytesRead, FALSE ))
 	{
@@ -5707,6 +5732,12 @@ OACR_WARNING_POP
 			goto Exit;
 		}
 	}
+	else if (!s_fSkipCompletionPort)
+	{
+		// If we haven't enabled skipping the completion port, then we need to wait for it to be set
+		dwError = ERROR_IO_PENDING;
+		goto Exit;
+	}
 	else
 	{
 		SNIPacketRelease(pPacket);
@@ -5928,13 +5959,18 @@ Tcp::DWSetSkipCompletionPortOnSuccess()
 	BidxScopeAutoSNI1(SNIAPI_TAG _T("%u#\n"), GetBidId());
 	DWORD dwRet = ERROR_SUCCESS;
 	
-	if( !m_pConn->m_fSync )
+	if(( s_fSkipCompletionPort ) && ( !m_pConn->m_fSync ))
 	{
+		BidTraceU1(SNI_BID_TRACE_ON, SNI_TAG _T("Enabling 'Skip IO completion port on success' for %u#{SNI_Conn}\n"), m_pConn->GetBidId());
 		if( 0 == SetFileCompletionNotificationModes(m_hNwk, FILE_SKIP_COMPLETION_PORT_ON_SUCCESS))
 		{
 			dwRet = GetLastError();
 			goto Exit;
 		}
+	}
+	else
+	{
+		BidTraceU1(SNI_BID_TRACE_ON, SNI_TAG _T("Not enabling 'Skip IO completion port on success' for %u#{SNI_Conn}\n"), m_pConn->GetBidId());
 	}
 
 Exit:
@@ -5970,4 +6006,73 @@ Tcp::PrepareForAsyncCall(SNI_Packet *pPacket)
 }
 // ----------------------------------------------------------------------------
 
+// Checks if any Non-IFS LSPs are installed for TCP
+// These are incompatible with the FILE_SKIP_COMPLETION_PORT_ON_SUCCESS option
+// For more information: http://msdn.microsoft.com/en-us/library/windows/desktop/aa365538(v=vs.85).aspx
+DWORD Tcp::ShouldEnableSkipIOCompletion(__out BOOL* pfShouldEnable)
+{
+	BidxScopeAutoSNI1(SNIAPI_TAG _T("pfShouldEnable: %p{BOOL*}\n"), pfShouldEnable);
+
+	DWORD dwRet = ERROR_SUCCESS;
+	*pfShouldEnable = TRUE;
+
+	// WSAEnumProtocols requires a NULL-delimited array of protocols to query
+	int protocols[] = {IPPROTO_TCP, NULL};
+
+	// Do initial query to find the size of the buffer array
+	// This will either error with WSAENOBUFS (indicating that a larger buffer is needed), or that there are no protocols
+	WSAPROTOCOL_INFO *infoBuffer = NULL;
+	DWORD bufferLength = 0;
+	int protocolCount = WSAEnumProtocols( protocols, infoBuffer, &bufferLength);
+	if( protocolCount == SOCKET_ERROR )
+	{
+		dwRet = WSAGetLastError();
+
+		if ( dwRet == WSAENOBUFS )
+		{
+			// Need a bigger buffer
+			infoBuffer = (WSAPROTOCOL_INFO *)NewNoX(gpmo) char[bufferLength];
+			if( infoBuffer == NULL  )
+			{
+				// Allocation failed
+				dwRet = ERROR_OUTOFMEMORY;
+			}
+			else
+			{
+				// Query again with the correct buffer size
+				protocolCount = WSAEnumProtocols(protocols, infoBuffer, &bufferLength);
+				if ( protocolCount == SOCKET_ERROR )
+				{
+					// WinSock error, fallthrough to exit
+					dwRet = WSAGetLastError();
+				}
+				else
+				{
+					// Got the protocols, now we need to scan for Non-IFS LSPs
+					for ( int i = 0; i < protocolCount; i++ )
+					{
+						if ( (infoBuffer[i].dwServiceFlags1 & XP1_IFS_HANDLES) != XP1_IFS_HANDLES )
+						{
+							*pfShouldEnable = FALSE;
+							break;
+						}
+					}
+
+					dwRet = ERROR_SUCCESS;
+				}
+
+				delete [] (char *) infoBuffer;
+			}
+		}
+		// else: There was a WinSock error, fallthrough to exit
+	}
+	else
+	{
+		// No error, so there must not be any protocols for us to look at
+		Assert( protocolCount == 0 && bufferLength == 0 );
+	}
+	
+	BidTraceU1(SNI_BID_TRACE_ON, RETURN_TAG _T("%d{WINERR}\n"), dwRet);
+	return dwRet;
+}
 

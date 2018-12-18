@@ -29,12 +29,15 @@ namespace System.Windows.Forms {
     using Util = NativeMethods.Util;
     using System.Runtime.InteropServices;
     using System.Runtime.Versioning;
+    using System.Reflection;
     
     // Miscellaneous Windows Forms utilities
     internal sealed class WindowsFormsUtils {
 
         // A better initializer than Size.Empty to force code using uninitialized to noticably fail.
         public static readonly Size UninitializedSize = new Size(-7199369, -5999471);
+        private static bool _targetsAtLeast_v4_5 = RunningOnCheck("TargetsAtLeast_Desktop_V4_5");
+
         
         public static readonly ContentAlignment AnyRightAlign   = ContentAlignment.TopRight | ContentAlignment.MiddleRight | ContentAlignment.BottomRight;
         public static readonly ContentAlignment AnyLeftAlign    = ContentAlignment.TopLeft | ContentAlignment.MiddleLeft | ContentAlignment.BottomLeft;
@@ -736,6 +739,36 @@ namespace System.Windows.Forms {
                     return this.graphics;
                 }
             }
+        }
+        // All 4.x version of the .NET framework are installed in place. For compatibility reasons, we
+        // want to know when an application is targeting netfx 4.5 or later vs 4.0
+        internal static bool TargetsAtLeast_v4_5 {
+            get {
+                return _targetsAtLeast_v4_5;
+            }
+        }
+
+        [SecuritySafeCritical]
+        [ReflectionPermission(SecurityAction.Assert, Unrestricted = true)]
+        private static bool RunningOnCheck(string propertyName) {
+            Type binaryCompatibitlityType;
+            try {
+                binaryCompatibitlityType = typeof(Object).GetTypeInfo().Assembly.GetType("System.Runtime.Versioning.BinaryCompatibility", false);
+            }
+            catch (TypeLoadException) {
+                return false;
+            }
+
+            if (binaryCompatibitlityType == null) {
+                return false;
+            }
+
+            PropertyInfo runningOnV4_5_Property = binaryCompatibitlityType.GetProperty(propertyName, Reflection.BindingFlags.Public | Reflection.BindingFlags.NonPublic | Reflection.BindingFlags.Static);
+            if (runningOnV4_5_Property == null) {
+                return false;
+            }
+
+            return (bool)runningOnV4_5_Property.GetValue(null);
         }
     }
     

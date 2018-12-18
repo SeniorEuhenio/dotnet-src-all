@@ -27,12 +27,14 @@ namespace System.Web.Compilation {
     using System.Security.Permissions;
     using System.Reflection;
     using System.Runtime.ExceptionServices;
+    using System.Threading;
     using System.Threading.Tasks;
     
     internal static class CompilationUtil {
 
         internal const string CodeDomProviderOptionPath = "system.codedom/compilers/compiler/ProviderOption/";
         private const string CompilerDirectoryPath = "CompilerDirectoryPath";
+        private static int _maxConcurrentCompilations;
 
         internal static bool IsDebuggingEnabled(HttpContext context) {
             CompilationSection compConfig = MTConfigUtil.GetCompilationConfig(context);
@@ -638,6 +640,31 @@ namespace System.Web.Compilation {
             }
             Debug.Assert(version.Length > 1, "Version has invalid length");
             return new Version(version.Substring(1));
-        }        
+        }
+
+        // Returns maximum number of concurrent compilations
+        internal static int MaxConcurrentCompilations {
+            get {
+                if (_maxConcurrentCompilations == 0) {
+                    int maxConcurrentCompilations;
+
+                    if (AppSettings.MaxConcurrentCompilations.HasValue && AppSettings.MaxConcurrentCompilations.Value >= 0) {
+                        maxConcurrentCompilations = AppSettings.MaxConcurrentCompilations.Value;
+                    }
+                    else {
+                        CompilationSection config = MTConfigUtil.GetCompilationAppConfig();
+                        maxConcurrentCompilations = config.MaxConcurrentCompilations;
+                    }
+
+                    if (maxConcurrentCompilations <= 0) {
+                        maxConcurrentCompilations = Environment.ProcessorCount;
+                    }
+
+                    Interlocked.CompareExchange(ref _maxConcurrentCompilations, maxConcurrentCompilations, 0);
+                }
+
+                return _maxConcurrentCompilations;
+            }
+        }
     }
 }

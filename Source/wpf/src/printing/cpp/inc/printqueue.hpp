@@ -1782,6 +1782,17 @@ namespace Printing
         ///</SecurityNote>
         [SecurityCritical]
         PackageSerializationManager^
+        CreateSerializationManager(
+            bool    isBatchMode,
+            bool    mustSetJobIdentifier,
+            PrintTicket^ printTicket
+            );
+
+        ///<SecurityNote>
+        /// Critical     - Returns type from non-APTCA reachframework.dll (PackageSerializationManager)
+        ///</SecurityNote>
+        [SecurityCritical]
+        PackageSerializationManager^
         CreateAsyncSerializationManager(
             bool    isBatchMode
             );

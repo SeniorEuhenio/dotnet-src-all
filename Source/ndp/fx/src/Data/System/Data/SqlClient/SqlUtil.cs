@@ -488,10 +488,10 @@ namespace System.Data.SqlClient {
         //
         // SQL.SqlDelegatedTransaction
         //
-        static internal Exception CannotCompleteDelegatedTransactionWithOpenResults(Guid conId) {
+        static internal Exception CannotCompleteDelegatedTransactionWithOpenResults(SqlInternalConnectionTds internalConnection) {
             SqlErrorCollection errors = new SqlErrorCollection();
             errors.Add(new SqlError(TdsEnums.TIMEOUT_EXPIRED, (byte)0x00, TdsEnums.MIN_ERROR_CLASS, null, (Res.GetString(Res.ADP_OpenReaderExists)), "", 0, TdsEnums.SNI_WAIT_TIMEOUT));
-            return SqlException.CreateException(errors, null, conId);
+            return SqlException.CreateException(errors, null, internalConnection);
         }
         static internal SysTx.TransactionPromotionException PromotionFailed(Exception inner) {
             SysTx.TransactionPromotionException e = new SysTx.TransactionPromotionException(Res.GetString(Res.SqlDelegatedTransaction_PromotionFailed), inner);
@@ -754,13 +754,13 @@ namespace System.Data.SqlClient {
         /// * server-provided failover partner - raising SqlException in this case
         /// * connection string with failover partner and MultiSubnetFailover=true - rasing argument one in this case with the same message
         /// </summary>
-        static internal Exception MultiSubnetFailoverWithFailoverPartner(bool serverProvidedFailoverPartner, Guid conId) {
+        static internal Exception MultiSubnetFailoverWithFailoverPartner(bool serverProvidedFailoverPartner, SqlInternalConnectionTds internalConnection) {
             string msg = Res.GetString(Res.SQLMSF_FailoverPartnerNotSupported);
             if (serverProvidedFailoverPartner) {
                 // VSTFDEVDIV\DevDiv2\179041 - replacing InvalidOperation with SQL exception
                 SqlErrorCollection errors = new SqlErrorCollection();
                 errors.Add(new SqlError(0, (byte)0x00, TdsEnums.FATAL_ERROR_CLASS, null, msg, "", 0));
-                SqlException exc = SqlException.CreateException(errors, null, conId);
+                SqlException exc = SqlException.CreateException(errors, null, internalConnection);
                 exc._doNotReconnect = true; // disable open retry logic on this error
                 return exc;
             }
@@ -792,42 +792,42 @@ namespace System.Data.SqlClient {
             return ADP.Argument(Res.GetString(Res.SQLROR_FailoverNotSupported));            
         }
 
-        static internal Exception ROR_FailoverNotSupportedServer(Guid conId) {
+        static internal Exception ROR_FailoverNotSupportedServer(SqlInternalConnectionTds internalConnection) {
             SqlErrorCollection errors = new SqlErrorCollection();
             errors.Add(new SqlError(0, (byte)0x00, TdsEnums.FATAL_ERROR_CLASS, null, (Res.GetString(Res.SQLROR_FailoverNotSupported)), "", 0));
-            SqlException exc = SqlException.CreateException(errors, null, conId);
+            SqlException exc = SqlException.CreateException(errors, null, internalConnection);
             exc._doNotReconnect = true;
             return exc;
         }
 
-        static internal Exception ROR_RecursiveRoutingNotSupported(Guid conId) {
+        static internal Exception ROR_RecursiveRoutingNotSupported(SqlInternalConnectionTds internalConnection) {
             SqlErrorCollection errors = new SqlErrorCollection();
             errors.Add(new SqlError(0, (byte)0x00, TdsEnums.FATAL_ERROR_CLASS, null, (Res.GetString(Res.SQLROR_RecursiveRoutingNotSupported)), "", 0));
-            SqlException exc=SqlException.CreateException(errors, null, conId);
+            SqlException exc=SqlException.CreateException(errors, null, internalConnection);
             exc._doNotReconnect = true;
             return exc;
         }
 
-        static internal Exception ROR_UnexpectedRoutingInfo(Guid conId) {
+        static internal Exception ROR_UnexpectedRoutingInfo(SqlInternalConnectionTds internalConnection) {
             SqlErrorCollection errors = new SqlErrorCollection();
             errors.Add(new SqlError(0, (byte)0x00, TdsEnums.FATAL_ERROR_CLASS, null, (Res.GetString(Res.SQLROR_UnexpectedRoutingInfo)), "", 0));
-            SqlException exc = SqlException.CreateException(errors, null, conId);
+            SqlException exc = SqlException.CreateException(errors, null, internalConnection);
             exc._doNotReconnect = true;
             return exc;
         }
 
-        static internal Exception ROR_InvalidRoutingInfo(Guid conId) {
+        static internal Exception ROR_InvalidRoutingInfo(SqlInternalConnectionTds internalConnection) {
             SqlErrorCollection errors = new SqlErrorCollection();
             errors.Add(new SqlError(0, (byte)0x00, TdsEnums.FATAL_ERROR_CLASS, null, (Res.GetString(Res.SQLROR_InvalidRoutingInfo)), "", 0));
-            SqlException exc = SqlException.CreateException(errors, null, conId);
+            SqlException exc = SqlException.CreateException(errors, null, internalConnection);
             exc._doNotReconnect = true;
             return exc;
         }
 
-        static internal Exception ROR_TimeoutAfterRoutingInfo(Guid conId) {
+        static internal Exception ROR_TimeoutAfterRoutingInfo(SqlInternalConnectionTds internalConnection) {
             SqlErrorCollection errors = new SqlErrorCollection();
             errors.Add(new SqlError(0, (byte)0x00, TdsEnums.FATAL_ERROR_CLASS, null, (Res.GetString(Res.SQLROR_TimeoutAfterRoutingInfo)), "", 0));
-            SqlException exc = SqlException.CreateException(errors, null, conId);
+            SqlException exc = SqlException.CreateException(errors, null, internalConnection);
             exc._doNotReconnect = true;
             return exc;
         }
@@ -856,10 +856,10 @@ namespace System.Data.SqlClient {
             return exc;
         }
         
-        static internal Exception CR_EncryptionChanged( Guid connectionId) {
+        static internal Exception CR_EncryptionChanged(SqlInternalConnectionTds internalConnection) {
             SqlErrorCollection errors = new SqlErrorCollection();
             errors.Add(new SqlError(0, 0, TdsEnums.FATAL_ERROR_CLASS, null, Res.GetString(Res.SQLCR_EncryptionChanged), "", 0));
-            SqlException exc = SqlException.CreateException(errors, "", connectionId);
+            SqlException exc = SqlException.CreateException(errors, "", internalConnection);
             return exc;
         }
 
@@ -870,17 +870,17 @@ namespace System.Data.SqlClient {
             return exc;
         }
 
-        static internal SqlException CR_NoCRAckAtReconnection(Guid connectionId) {
+        static internal SqlException CR_NoCRAckAtReconnection(SqlInternalConnectionTds internalConnection) {
             SqlErrorCollection errors = new SqlErrorCollection();
             errors.Add(new SqlError(0, 0, TdsEnums.FATAL_ERROR_CLASS, null, Res.GetString(Res.SQLCR_NoCRAckAtReconnection), "", 0));
-            SqlException exc = SqlException.CreateException(errors, "", connectionId);
+            SqlException exc = SqlException.CreateException(errors, "", internalConnection);
             return exc;
         }
 
-        static internal SqlException CR_TDSVersionNotPreserved(Guid connectionId) {
+        static internal SqlException CR_TDSVersionNotPreserved(SqlInternalConnectionTds internalConnection) {
             SqlErrorCollection errors = new SqlErrorCollection();
             errors.Add(new SqlError(0, 0, TdsEnums.FATAL_ERROR_CLASS, null, Res.GetString(Res.SQLCR_TDSVestionNotPreserved), "", 0));
-            SqlException exc = SqlException.CreateException(errors, "", connectionId);
+            SqlException exc = SqlException.CreateException(errors, "", internalConnection);
             return exc;
         }
 
@@ -1080,6 +1080,18 @@ namespace System.Data.SqlClient {
         }
         static internal string PreloginError() {
             return Res.GetString(Res.Snix_PreLogin);
+        }
+        static internal string ExClientConnectionId() {
+            return Res.GetString(Res.SQL_ExClientConnectionId);
+        }
+        static internal string ExErrorNumberStateClass() {
+            return Res.GetString(Res.SQL_ExErrorNumberStateClass);
+        }
+        static internal string ExOriginalClientConnectionId() {
+            return Res.GetString(Res.SQL_ExOriginalClientConnectionId);
+        }
+        static internal string ExRoutingDestination() {
+            return Res.GetString(Res.SQL_ExRoutingDestination);
         }
     }
 

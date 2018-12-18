@@ -106,6 +106,16 @@ namespace System.Xml.Schema {
             eventHandler = internalEventHandler;
             
             readerSettings = new XmlReaderSettings();
+
+            // we don't have to check XmlReaderSettings.EnableLegacyXmlSettings() here because the following
+            // code will return same result either we are running on v4.5 or later
+            if (readerSettings.GetXmlResolver() == null)
+            {
+                // The created resolver will be used in the schema validation only
+                readerSettings.XmlResolver = new XmlUrlResolver();
+                readerSettings.IsXmlResolverSet = false;
+            }
+            
             readerSettings.NameTable = nameTable;
             readerSettings.DtdProcessing = DtdProcessing.Prohibit;
     

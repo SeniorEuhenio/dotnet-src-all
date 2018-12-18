@@ -1559,7 +1559,11 @@ namespace System.Web {
                 wr.UnlockCachedResponseBytes();
                 context.AddError(e);
                 context.ReportRuntimeErrorIfExists(ref status);
-                context.Response.UpdateNativeResponse(sendHeaders);
+                try {
+                    context.Response.UpdateNativeResponse(sendHeaders);
+                }
+                catch {
+                }
             }
 
             if (sendHeaders) {

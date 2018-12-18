@@ -8,17 +8,19 @@ namespace System.Net {
     using System.Collections;
     using System.Collections.Generic;
     using System.Configuration;
+    using System.IO;
     using System.Net.Configuration;
     using System.Net.Sockets;
     using System.Net.Security;
+    using System.Security;
     using System.Security.Permissions;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Globalization;
     using System.Runtime.CompilerServices;
     using System.Diagnostics.CodeAnalysis;
-
-
+    using Microsoft.Win32;
+    
     // This turned to be a legacy type name that is simply forwarded to System.Security.Authentication.SslProtocols defined values.
 #if !FEATURE_PAL
     [Flags]
@@ -202,7 +204,7 @@ namespace System.Net {
 
         /// <devdoc>
         ///    <para>
-        ///       The number of non-persistant connections allowed on a <see cref='System.Net.ServicePoint'/>.
+        ///       The number of non-persistent connections allowed on a <see cref='System.Net.ServicePoint'/>.
         ///    </para>
         /// </devdoc>
         public const int DefaultNonPersistentConnectionLimit = 4;
@@ -215,7 +217,7 @@ namespace System.Net {
 
         /// <devdoc>
         ///    <para>
-        ///       The default number of persistent connections when runninger under ASP+.
+        ///       The default number of persistent connections when running under ASP+.
         ///    </para>
         /// </devdoc>
         private const int DefaultAspPersistentConnectionLimit = 10;
@@ -223,7 +225,6 @@ namespace System.Net {
 
         internal static readonly string SpecialConnectGroupName = "/.NET/NetClasses/HttpWebRequest/CONNECT__Group$$/";
         internal static readonly TimerThread.Callback s_IdleServicePointTimeoutDelegate = new TimerThread.Callback(IdleServicePointTimeoutCallback);
-
 
         //
         // data  - only statics used
@@ -243,12 +244,21 @@ namespace System.Net {
 #if !FEATURE_PAL
         private static volatile CertPolicyValidationCallback s_CertPolicyValidationCallback = new CertPolicyValidationCallback();
         private static volatile ServerCertValidationCallback s_ServerCertValidationCallback = null;
+
+        private const string strongCryptoKeyUnversioned = @"SOFTWARE\Microsoft\.NETFramework";
+        private const string strongCryptoKeyVersionedPattern = strongCryptoKeyUnversioned + @"\v{0}";
+        private const string strongCryptoKeyPath = @"HKEY_LOCAL_MACHINE\" + strongCryptoKeyUnversioned;
+        private const string strongCryptoValueName = "SchUseStrongCrypto";
+        private static string secureProtocolAppSetting = "System.Net.ServicePointManager.SecurityProtocol";
+
+        private static object disableStrongCryptoLock = new object();
+        private static volatile bool disableStrongCryptoInitialized = false;
+        private static bool disableStrongCrypto = false;
+
+        private static SecurityProtocolType s_SecurityProtocolType = SecurityProtocolType.Tls | SecurityProtocolType.Ssl3;
 #endif // !FEATURE_PAL
         private static volatile Hashtable s_ConfigTable = null;
         private static volatile int s_ConnectionLimit = PersistentConnectionLimit;
-#if !FEATURE_PAL
-        private static SecurityProtocolType s_SecurityProtocolType = SecurityProtocolType.Tls|SecurityProtocolType.Ssl3;
-#endif // !FEATURE_PAL
 
         internal static volatile bool s_UseTcpKeepAlive = false;
         internal static volatile int s_TcpKeepAliveTime;
@@ -412,17 +422,25 @@ namespace System.Net {
         [SuppressMessage("Microsoft.Concurrency", "CA8001", Justification = "Reviewed for thread-safety")]
         public static SecurityProtocolType SecurityProtocol {
             get {
+                EnsureStrongCryptoSettingsInitialized();
                 return s_SecurityProtocolType;
             }
             set {
-                // Do not allow Ssl2 (and others) as explicit SSL version request
-                SecurityProtocolType allowed = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls 
-                    | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
-
-                if ((value & ~allowed) != 0) {
-                    throw new NotSupportedException(SR.GetString(SR.net_securityprotocolnotsupported));
-                }
+                EnsureStrongCryptoSettingsInitialized();
+                ValidateSecurityProtocol(value);
                 s_SecurityProtocolType = value;
+            }
+        }
+
+        private static void ValidateSecurityProtocol(SecurityProtocolType value)
+        {
+            // Do not allow Ssl2 (and others) as explicit SSL version request
+            SecurityProtocolType allowed = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls
+                | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+
+            if ((value & ~allowed) != 0)
+            {
+                throw new NotSupportedException(SR.GetString(SR.net_securityprotocolnotsupported));
             }
         }
 #endif // !FEATURE_PAL
@@ -612,6 +630,76 @@ namespace System.Net {
         internal static ServerCertValidationCallback ServerCertValidationCallback {
             get {
                 return s_ServerCertValidationCallback;
+            }
+        }
+
+        internal static bool DisableStrongCrypto {
+            get {
+                EnsureStrongCryptoSettingsInitialized();
+                return (bool)disableStrongCrypto; 
+            }
+        }
+
+        [RegistryPermission(SecurityAction.Assert, Read = strongCryptoKeyPath)]
+        private static void EnsureStrongCryptoSettingsInitialized() {
+            
+            if (disableStrongCryptoInitialized) {
+                return;
+            }
+
+            lock (disableStrongCryptoLock) {
+                if (disableStrongCryptoInitialized) {
+                    return;
+                }
+
+                bool disableStrongCryptoInternal = true;
+
+                try {
+                    string strongCryptoKey = String.Format(CultureInfo.InvariantCulture, strongCryptoKeyVersionedPattern, Environment.Version.ToString(3));
+
+                    // We read reflected keys on WOW64.
+                    using (RegistryKey key = Registry.LocalMachine.OpenSubKey(strongCryptoKey)) {
+                        try {
+                            object schUseStrongCryptoKeyValue =
+                                key.GetValue(strongCryptoValueName, null);
+
+                            // Setting the value to 1 will enable the MSRC behavior. 
+                            // All other values are ignored.
+                            if ((schUseStrongCryptoKeyValue != null)
+                                && (key.GetValueKind(strongCryptoValueName) == RegistryValueKind.DWord)) {
+                                disableStrongCryptoInternal = ((int)schUseStrongCryptoKeyValue) != 1;
+                            }
+                        }
+                        catch (UnauthorizedAccessException) { }
+                        catch (IOException) { }
+                    }
+                }
+                catch (SecurityException) { }
+                catch (ObjectDisposedException) { }
+
+                if (disableStrongCryptoInternal) {
+                    // Revert the SecurityProtocol selection to the legacy combination.
+                    s_SecurityProtocolType = SecurityProtocolType.Tls | SecurityProtocolType.Ssl3;
+                }
+                else {
+                    s_SecurityProtocolType = 
+                        SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+
+                    // Attempt to read this from the AppSettings config section
+                    string appSetting = ConfigurationManager.AppSettings[secureProtocolAppSetting];
+                    SecurityProtocolType value;
+                    try {
+                        value = (SecurityProtocolType)Enum.Parse(typeof(SecurityProtocolType), appSetting);
+                        ValidateSecurityProtocol(value);
+                        s_SecurityProtocolType = value;
+                    }
+                    catch (ArgumentNullException) { }
+                    catch (ArgumentException) { }
+                    catch (NotSupportedException) { }
+                }
+
+                disableStrongCrypto = disableStrongCryptoInternal;
+                disableStrongCryptoInitialized = true;
             }
         }
 #endif // !FEATURE_PAL

@@ -17,6 +17,8 @@ namespace System.Drawing {
     using System.Globalization;
     using System.Runtime.Versioning;
 
+    using DpiHelper = System.Windows.Forms.DpiHelper;
+
     /// <include file='doc\ToolboxBitmapAttribute.uex' path='docs/doc[@for="ToolboxBitmapAttribute"]/*' />
     /// <devdoc>
     ///     ToolboxBitmapAttribute defines the images associated with
@@ -39,17 +41,17 @@ namespace System.Drawing {
         /// </devdoc>
         private Image largeImage;
 
-        /// <include file='doc\ToolboxBitmapAttribute.uex' path='docs/doc[@for="ToolboxBitmapAttribute.largeDim"]/*' />
+        /// <include file='doc\ToolboxBitmapAttribute.uex' path='docs/doc[@for="ToolboxBitmapAttribute.largeSize"]/*' />
         /// <devdoc>
         ///     The default size of the large image.
         /// </devdoc>
-        private static readonly Point largeDim = new Point(32, 32);
+        private static readonly Size largeSize = new Size(32, 32);
 
-        /// <include file='doc\ToolboxBitmapAttribute.uex' path='docs/doc[@for="ToolboxBitmapAttribute.largeDim"]/*' />
+        /// <include file='doc\ToolboxBitmapAttribute.uex' path='docs/doc[@for="ToolboxBitmapAttribute.smallSize"]/*' />
         /// <devdoc>
         ///     The default size of the large image.
         /// </devdoc>
-        private static readonly Point smallDim = new Point(16, 16);
+        private static readonly Size smallSize = new Size(16, 16);
 
         // Used to help cache the last result of BitmapSelector.GetFileName
         private static string lastOriginalFileName;
@@ -172,7 +174,6 @@ namespace System.Drawing {
             if ((large && largeImage == null) ||
                 (!large && smallImage == null)) {
 
-                Point largeDim = new Point(32, 32);
                 Image img = null;
                 if (large) {
                     img = largeImage;
@@ -187,7 +188,7 @@ namespace System.Drawing {
 
                 //last resort for large images.
                 if (large && largeImage == null && smallImage != null) {
-                    img = new Bitmap((Bitmap)smallImage, largeDim.X, largeDim.Y);
+                    img = new Bitmap((Bitmap)smallImage, largeSize.Width, largeSize.Height);
                 }
 
                 Bitmap b = img as Bitmap;
@@ -227,8 +228,12 @@ namespace System.Drawing {
                 return null;
             }
             Icon ico = new Icon(stream);
-            Icon sizedico = new Icon(ico, large ? new Size(largeDim.X, largeDim.Y):new Size(smallDim.X, smallDim.Y));
-            return sizedico.ToBitmap();
+            Icon sizedico = new Icon(ico, large ? largeSize : smallSize);
+            Bitmap b = sizedico.ToBitmap();
+            if (DpiHelper.IsScalingRequired) {
+                DpiHelper.ScaleBitmapLogicalToDevice(ref b);
+            }
+            return b;
         }
 
         // Cache the last result of BitmapSelector.GetFileName because we commonly load images twice
@@ -271,6 +276,10 @@ namespace System.Drawing {
                     else if (!large) {
                         //we only read small from non-ico files.
                         image = Image.FromFile(imageFile);
+                        Bitmap b = image as Bitmap;
+                        if (DpiHelper.IsScalingRequired) {
+                            DpiHelper.ScaleBitmapLogicalToDevice(ref b);
+                        }
                     }
                 }
             } catch (Exception e) {            
@@ -300,7 +309,12 @@ namespace System.Drawing {
                 img = b;
                 MakeBackgroundAlphaZero(b);
                 if (large) {
-                    img = new Bitmap(b, largeDim.X, largeDim.Y);
+                    img = new Bitmap(b, largeSize.Width , largeSize.Height);
+                }
+                if (DpiHelper.IsScalingRequired) {
+                    b = (Bitmap)img;
+                    DpiHelper.ScaleBitmapLogicalToDevice(ref b);
+                    img = b;
                 }
             }
             return img;

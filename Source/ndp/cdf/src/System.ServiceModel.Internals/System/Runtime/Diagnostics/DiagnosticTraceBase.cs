@@ -330,7 +330,23 @@ namespace System.Runtime.Diagnostics
 
         protected static string CreateSourceString(object source)
         {
-            return source.GetType().ToString() + "/" + source.GetHashCode().ToString(CultureInfo.CurrentCulture);
+            var traceSourceStringProvider = source as ITraceSourceStringProvider;
+            if (traceSourceStringProvider != null)
+            {
+                return traceSourceStringProvider.GetSourceString();
+            }
+
+            return CreateDefaultSourceString(source);
+        }
+
+        internal static string CreateDefaultSourceString(object source)
+        {
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
+
+            return String.Format(CultureInfo.CurrentCulture, "{0}/{1}", source.GetType().ToString(), source.GetHashCode());
         }
 
         protected static void AddExceptionToTraceString(XmlWriter xml, Exception exception)

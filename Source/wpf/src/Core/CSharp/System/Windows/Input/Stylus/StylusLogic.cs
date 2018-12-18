@@ -3168,6 +3168,11 @@ namespace System.Windows.Input
                     // We need to know when the dispatcher shuts down in order to clean
                     // up references to PenThreads held in the TabletDeviceCollection.
                     _inputManager.Value.Dispatcher.ShutdownFinished += _shutdownHandler;
+
+                    // Set the initial _lastSeenDeviceCount value so we can detect an invalid
+                    // WM_TABLET_DELETED message.  Note this initialization must be done after
+                    // _tabletDeviceCollection is initialized, since it is used by GetDeviceCount().
+                    _lastSeenDeviceCount = GetDeviceCount();
                 }
                 return _tabletDeviceCollection;
             }
@@ -3530,6 +3535,9 @@ namespace System.Windows.Input
             {
                 TabletDeviceCollection tabletDeviceCollection = TabletDevices;
 
+                // Update the last seen device count.
+                _lastSeenDeviceCount = GetDeviceCount();
+
                 // When we receive the first WM_TABLET_ADDED message without being enabled,
                 // we have to update our TabletDevices at once and enable StylusLogic
                 if ( !_inputEnabled )
@@ -3572,6 +3580,42 @@ namespace System.Windows.Input
         }
 
         /// <SecurityNote>
+        ///     Critical: This code calls SecurityCritical code (PenThreadPool.GetPenThreadForPenContext,
+        ///               and PenThread.WorkerGetTabletsInfo) and accesses SecurityCritical data via
+        ///               TabletDevices.
+        ///               Called by StylusLogic.OnTabletAdded, StylusLogic.OnTabletRemoved, and in the
+        ///               first call to the StylusLogic.TabletDevices getter.
+        /// </SecurityNote>
+        [SecurityCritical]
+        private int GetDeviceCount()
+        {
+            PenThread penThread = null;
+
+            // Get a PenThread by mimicking a subset of the code in TabletDeviceCollection.UpdateTablets().
+            TabletDeviceCollection tabletDeviceCollection = TabletDevices;
+            if (tabletDeviceCollection != null && tabletDeviceCollection.Count > 0)
+            {
+                penThread = tabletDeviceCollection[0].PenThread;
+            }
+            if (penThread == null)
+            {
+                penThread = PenThreadPool.GetPenThreadForPenContext(null);
+            }
+
+            // Use the PenThread to get the full, unfiltered tablets info to see how many there are.
+            TabletDeviceInfo [] tabletdevices = penThread.WorkerGetTabletsInfo();
+            return tabletdevices.Length;
+        }
+
+        // Dev11 #659672:  The wParam index to WM_TABLET_ADDED/DELETED may be invalid, since Windows
+        // sometimes sends these messages out of order.  As a result, we can't trust that these values
+        // are correct.  To help determine when they are invalid, we keep track of the number of tablets
+        // and simply do a full reset any time we get a DELETED notification without a proper change in count.
+        // We only need to check for this issue in DELETED because ADDED already has a check for duplicate
+        // or invalid index values.
+        private int _lastSeenDeviceCount = 0;
+
+        /// <SecurityNote>
         ///     Critical: This code calls SecurityCritical code (PenContexts.RemoveContext and
         ///              TabletDeviceCollection.HandleTabletRemoved) and accesses SecurityCritical data
         ///              __penContextsMap.
@@ -3588,15 +3632,39 @@ namespace System.Windows.Input
                 {
                     if (_tabletDeviceCollection != null)
                     {
-                        uint tabletIndex = _tabletDeviceCollection.HandleTabletRemoved(wisptisIndex);
-
-                        if (tabletIndex != UInt32.MaxValue)
+                        // Dev11 #659672:  If the device count hasn't simply been decremented since we last
+                        // checked, then this tablet removed notice appears to have come out of order.  Force
+                        // a complete rebuild of the TabletDevices when this happens.
+                        int currentDeviceCount = GetDeviceCount();
+                        if (currentDeviceCount != _lastSeenDeviceCount - 1)
                         {
-                            foreach (PenContexts contexts in __penContextsMap.Values)
+                            // rebuild all contexts and tablet collection
+                            foreach ( PenContexts contexts in __penContextsMap.Values )
                             {
-                                contexts.RemoveContext(tabletIndex);
+                                contexts.Disable(false /*shutdownWorkerThread*/);
+                            }
+
+                            TabletDevices.UpdateTablets();
+
+                            foreach ( PenContexts contexts in __penContextsMap.Values )
+                            {
+                                contexts.Enable();
                             }
                         }
+                        else
+                        {
+                            uint tabletIndex = _tabletDeviceCollection.HandleTabletRemoved(wisptisIndex);
+
+                            if (tabletIndex != UInt32.MaxValue)
+                            {
+                                foreach (PenContexts contexts in __penContextsMap.Values)
+                                {
+                                    contexts.RemoveContext(tabletIndex);
+                                }
+                            }
+                        }
+
+                        _lastSeenDeviceCount = currentDeviceCount;
                     }
                 }
             }

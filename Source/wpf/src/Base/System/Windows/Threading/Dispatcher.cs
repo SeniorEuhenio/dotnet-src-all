@@ -1097,7 +1097,7 @@ namespace System.Windows.Threading
 
                 if (EventTrace.IsEnabled(EventTrace.Keyword.KeywordDispatcher | EventTrace.Keyword.KeywordPerf, EventTrace.Level.Info))
                 {
-                    EventTrace.EventProvider.TraceEvent(EventTrace.Event.WClientUIContextPost, EventTrace.Keyword.KeywordDispatcher | EventTrace.Keyword.KeywordPerf, EventTrace.Level.Info, operation.Priority, operation.Name);
+                    EventTrace.EventProvider.TraceEvent(EventTrace.Event.WClientUIContextPost, EventTrace.Keyword.KeywordDispatcher | EventTrace.Keyword.KeywordPerf, EventTrace.Level.Info, operation.Priority, operation.Name, operation.Id);
                 }
             }
             else
@@ -2112,7 +2112,7 @@ namespace System.Windows.Threading
 
                 if (EventTrace.IsEnabled(EventTrace.Keyword.KeywordDispatcher | EventTrace.Keyword.KeywordPerf, EventTrace.Level.Info))
                 {
-                    EventTrace.EventProvider.TraceEvent(EventTrace.Event.WClientUIContextPromote, EventTrace.Keyword.KeywordDispatcher | EventTrace.Keyword.KeywordPerf, EventTrace.Level.Info, priority, operation.Name);
+                    EventTrace.EventProvider.TraceEvent(EventTrace.Event.WClientUIContextPromote, EventTrace.Keyword.KeywordDispatcher | EventTrace.Keyword.KeywordPerf, EventTrace.Level.Info, priority, operation.Name, operation.Id);
                 }
             }
 
@@ -2152,7 +2152,7 @@ namespace System.Windows.Threading
 
                 if (EventTrace.IsEnabled(EventTrace.Keyword.KeywordDispatcher | EventTrace.Keyword.KeywordPerf, EventTrace.Level.Info))
                 {
-                    EventTrace.EventProvider.TraceEvent(EventTrace.Event.WClientUIContextAbort, EventTrace.Keyword.KeywordDispatcher | EventTrace.Keyword.KeywordPerf, EventTrace.Level.Info, operation.Priority, operation.Name);
+                    EventTrace.EventProvider.TraceEvent(EventTrace.Event.WClientUIContextAbort, EventTrace.Keyword.KeywordDispatcher | EventTrace.Keyword.KeywordPerf, EventTrace.Level.Info, operation.Priority, operation.Name, operation.Id);
                 }
 
             }
@@ -2208,7 +2208,7 @@ namespace System.Windows.Threading
 
                 if (EventTrace.IsEnabled(EventTrace.Keyword.KeywordDispatcher | EventTrace.Keyword.KeywordPerf, EventTrace.Level.Info))
                 {
-                    EventTrace.EventProvider.TraceEvent(EventTrace.Event.WClientUIContextDispatchBegin, EventTrace.Keyword.KeywordDispatcher | EventTrace.Keyword.KeywordPerf, EventTrace.Level.Info, op.Priority, op.Name);
+                    EventTrace.EventProvider.TraceEvent(EventTrace.Event.WClientUIContextDispatchBegin, EventTrace.Keyword.KeywordDispatcher | EventTrace.Keyword.KeywordPerf, EventTrace.Level.Info, op.Priority, op.Name, op.Id);
                     eventlogged = true;
                 }
 

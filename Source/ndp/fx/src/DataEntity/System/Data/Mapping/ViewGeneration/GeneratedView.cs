@@ -14,6 +14,7 @@ namespace System.Data.Mapping.ViewGeneration
     using System.Data.Common.CommandTrees.Internal;
     using System.Data.Common.EntitySql;
     using System.Data.Common.Utils;
+    using System.Data.Entity.Util;
     using System.Data.Mapping.ViewGeneration.Utils;
     using System.Data.Metadata.Edm;
     using System.Data.Query.InternalTrees;
@@ -254,8 +255,7 @@ namespace System.Data.Mapping.ViewGeneration
                 Debug.Assert(!String.IsNullOrEmpty(eSQL), "eSQL query is not specified");
                 commandTree = (DbQueryCommandTree)ExternalCalls.CompileView(eSQL, mappingItemCollection, compilationMode);
 
-                // For non user-specified views, perform simplification.
-                if (!isUserSpecified)
+                if (!isUserSpecified || AppSettings.SimplifyUserSpecifiedViews)
                 {
                     commandTree = ViewSimplifier.SimplifyView(extent, commandTree);
                 }

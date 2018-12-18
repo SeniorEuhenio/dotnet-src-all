@@ -209,7 +209,7 @@ internal class BuildProvidersCompiler {
                 
         // Build all the satellite assemblies
         if (_satelliteAssemblyBuilders != null) {
-            int maxConcurrent = Math.Max(1, Math.Min(_satelliteAssemblyBuilders.Count, AppSettings.MaxConcurrentCompilations));
+            int maxConcurrent = Math.Min(_satelliteAssemblyBuilders.Count, CompilationUtil.MaxConcurrentCompilations);
             try {
                 Parallel.ForEach(_satelliteAssemblyBuilders.Values.Cast<AssemblyBuilder>(),
                     new ParallelOptions { MaxDegreeOfParallelism = maxConcurrent },
@@ -755,7 +755,7 @@ internal class WebDirectoryBatchCompiler {
 
     private void CompileAssemblyBuilderParallel(ICollection assemblyBuilders) {
 
-        int maxConcurrent = Math.Min(assemblyBuilders.Count, AppSettings.MaxConcurrentCompilations);
+        int maxConcurrent = Math.Min(assemblyBuilders.Count, CompilationUtil.MaxConcurrentCompilations);
 
         if (maxConcurrent < 2) {
             // Not using Parallel.ForEach to avoid performance penalty

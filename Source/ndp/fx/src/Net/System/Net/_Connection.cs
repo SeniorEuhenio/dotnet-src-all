@@ -6,6 +6,7 @@
 
 namespace System.Net {
 
+    using System;
     using System.Collections;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -222,6 +223,13 @@ namespace System.Net {
 
         private const int CRLFSize = 2;
         private const long c_InvalidContentLength = -2L;
+        
+        //
+        // Buffer manager that allocates and reuses 4k buffers.
+        //
+        private const int CachedBufferSize = 4096;
+        private static PinnableBufferCache s_PinnableBufferCache = new PinnableBufferCache("System.Net.Connection", CachedBufferSize);
+        
         //
         // Little status line holder.
         //
@@ -264,6 +272,7 @@ namespace System.Net {
 
         internal int                m_IISVersion = -1; //-1 means unread
         private byte[]              m_ReadBuffer;
+        private bool                m_ReadBufferFromPinnableCache; // If we get our m_readBuffer from the Pinnable cache we have to explicitly free it
         private int                 m_BytesRead;
         private int                 m_BytesScanned;
         private int                 m_TotalResponseHeadersLength;
@@ -463,7 +472,8 @@ namespace System.Net {
             }
             m_ResponseData = new CoreResponseData();
             m_ConnectionGroup = connectionGroup;
-            m_ReadBuffer = new byte[4096];    // Using a fixed 4k read buffer.
+            m_ReadBuffer = s_PinnableBufferCache.AllocateBuffer();
+            m_ReadBufferFromPinnableCache = true;
             m_ReadState = ReadState.Start;
             m_WaitList = new List<WaitListItem>();
             m_WriteList = new ArrayList();
@@ -478,6 +488,39 @@ namespace System.Net {
             m_ReadDone = true;
             m_WriteDone = true;
             m_Error = WebExceptionStatus.Success;
+            if (PinnableBufferCacheEventSource.Log.IsEnabled())
+            {
+                PinnableBufferCacheEventSource.Log.DebugMessage1("CTOR: In System.Net.Connection.Connnection", this.GetHashCode());
+            }
+        }
+
+        ~Connection() {
+            if (m_ReadBufferFromPinnableCache)
+            {
+                if (PinnableBufferCacheEventSource.Log.IsEnabled())
+                {
+                    PinnableBufferCacheEventSource.Log.DebugMessage1("DTOR: ERROR Needing to Free m_ReadBuffer in Connection Destructor", m_ReadBuffer.GetHashCode());
+                }
+            }
+            FreeReadBuffer();
+        }
+
+        // If the buffer came from the the pinnable cache, return it to the cache.
+        // NOTE: This method is called from this object's finalizer and should not access any member objects.
+        void FreeReadBuffer() {
+            if (m_ReadBufferFromPinnableCache) {
+                s_PinnableBufferCache.FreeBuffer(m_ReadBuffer);
+                m_ReadBufferFromPinnableCache = false;
+            }
+            m_ReadBuffer = null;
+        }
+
+        protected override void Dispose(bool disposing) {
+            if (PinnableBufferCacheEventSource.Log.IsEnabled()) {
+                PinnableBufferCacheEventSource.Log.DebugMessage1("In System.Net.Connection.Dispose()", this.GetHashCode());
+            }
+            FreeReadBuffer();
+            base.Dispose(disposing);
         }
 
         internal int BusyCount {
@@ -627,6 +670,7 @@ namespace System.Net {
                         PrepareCloseConnectionSocket(ref returnResult);
                         // Hard Close the socket.
                         Close(0);
+                        FreeReadBuffer();	// Do it after close completes to insure buffer not in use
                     }
                 }
                 else {
@@ -1197,7 +1241,15 @@ namespace System.Net {
                 Buffer.BlockCopy(buffer, bufferOffset, buffer, 0, bufferCount);
             }
 
-            m_ReadBuffer = buffer;
+            // If we had to reallocate the buffer, we are going to clobber the one that was allocated from the pin friendly cache.  
+            // give it back
+            if (m_ReadBuffer != buffer)
+            {
+                // if m_ReadBuffer is from the pinnable cache, give it back
+                FreeReadBuffer();
+                m_ReadBuffer = buffer;
+            }
+
             m_BytesScanned = 0;
             m_BytesRead = bufferCount;
         }
@@ -2690,6 +2742,7 @@ quit:
                 PrepareCloseConnectionSocket(ref result);
                 // Hard Close the socket.
                 Close(0);
+                FreeReadBuffer();	// Do it after close completes to insure buffer not in use
 #if DEBUG
                 }
                 catch (Exception exception)
@@ -2730,6 +2783,7 @@ quit:
             lock (this)
             {
                 Close(0);
+                FreeReadBuffer();	// Do it after close completes to insure buffer not in use
             }
 
             GlobalLog.Leave("Connection#" + ValidationHelper.HashString(this) + "::Abort", "isAbortState:" + isAbortState.ToString());
@@ -2948,6 +3002,7 @@ quit:
                 m_RemovedFromConnectionList = true;
                 ConnectionGroup.Disassociate(this);
             }
+
             GlobalLog.Leave("Connection#" + ValidationHelper.HashString(this) + "::PrepareCloseConnectionSocket");
         }
 
@@ -3016,6 +3071,7 @@ quit:
                 // This will kill the socket
                 // Must be done inside the lock.  (Stream Close() isn't threadsafe.)
                 Close(0);
+                FreeReadBuffer();	// Do it after close completes to insure buffer not in use
             }
         }
 
@@ -3365,6 +3421,9 @@ quit:
                             //
                             byte[] newReadBuffer = new byte[m_ReadBuffer.Length * 2 /*+ ReadBufferSize*/];
                             Buffer.BlockCopy(m_ReadBuffer, 0, newReadBuffer, 0, m_BytesRead);
+
+                            // if m_ReadBuffer is from the pinnable cache, give it back
+                            FreeReadBuffer();
                             m_ReadBuffer = newReadBuffer;
                         }
                         else

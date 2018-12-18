@@ -891,7 +891,15 @@ namespace System.Windows
             DependencyObject hostElement = context as DependencyObject;
             if (hostElement == null)
             {
-                hostElement = new DependencyObject();   // at least pick up the default namespaces
+                if (FrameworkCompatibilityPreferences.TargetsDesktop_V4_0)
+                {
+                    // app targets 4.0.  Return null, for compat (Dev11 730107)
+                    return null;
+                }
+                else
+                {
+                    hostElement = new DependencyObject();   // at least pick up the default namespaces
+                }
             }
 
             var wpfSharedSchemaContext = XamlReader.BamlSharedSchemaContext;

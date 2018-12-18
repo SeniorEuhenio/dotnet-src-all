@@ -2388,14 +2388,22 @@ namespace System.Windows.Controls
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
-                    if (args.OldItems.Count != 1)
-                        throw new NotSupportedException(SR.Get(SRID.RangeActionsNotSupported));
+                    // Don't check arguments if app targets 4.0, for compat (Dev11 726682)
+                    if (!FrameworkCompatibilityPreferences.TargetsDesktop_V4_0)
+                    {
+                        if (args.OldItems.Count != 1)
+                            throw new NotSupportedException(SR.Get(SRID.RangeActionsNotSupported));
+                    }
                     OnItemReplaced(args.OldItems[0], args.NewItems[0], args.NewStartingIndex);
                     break;
 
                 case NotifyCollectionChangedAction.Move:
-                    if (args.OldItems.Count != 1)
-                        throw new NotSupportedException(SR.Get(SRID.RangeActionsNotSupported));
+                    // Don't check arguments if app targets 4.0, for compat (Dev11 726682)
+                    if (!FrameworkCompatibilityPreferences.TargetsDesktop_V4_0)
+                    {
+                        if (args.OldItems.Count != 1)
+                            throw new NotSupportedException(SR.Get(SRID.RangeActionsNotSupported));
+                    }
                     OnItemMoved(args.OldItems[0], args.OldStartingIndex, args.NewStartingIndex);
                     break;
 

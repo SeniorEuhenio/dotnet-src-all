@@ -1036,12 +1036,16 @@ namespace MS.Internal
             }
         }
 
+        // *** DEAD CODE  Only used in VSP45 compat mode ***
         internal static void ApplyCorrectionFactorToPixelHeaderSize(
             ItemsControl scrollingItemsControl,
             FrameworkElement virtualizingElement,
             Panel itemsHost,
             ref Size headerSize)
         {
+            if (!VirtualizingStackPanel.IsVSP45Compat)
+                return;
+
             bool shouldApplyItemsCorrectionFactor = itemsHost != null && itemsHost.IsVisible;
             if (shouldApplyItemsCorrectionFactor)
             {
@@ -1054,13 +1058,18 @@ namespace MS.Internal
             }
             headerSize.Width = Math.Max(virtualizingElement.DesiredSize.Width, headerSize.Width);
         }
+        // *** END DEAD CODE ***
 
+        // *** DEAD CODE  Only used in VSP45 compat mode ***
         internal static HierarchicalVirtualizationItemDesiredSizes ApplyCorrectionFactorToItemDesiredSizes(
             FrameworkElement virtualizingElement,
             Panel itemsHost)
         {
             HierarchicalVirtualizationItemDesiredSizes itemDesiredSizes =
                 GroupItem.HierarchicalVirtualizationItemDesiredSizesField.GetValue(virtualizingElement);
+
+            if (!VirtualizingStackPanel.IsVSP45Compat)
+                return itemDesiredSizes;
 
             if (itemsHost != null && itemsHost.IsVisible)
             {
@@ -1127,13 +1136,18 @@ namespace MS.Internal
             }
             return itemDesiredSizes;
         }
+        // *** END DEAD CODE ***
 
+        // *** DEAD CODE  Only used in VSP45 compat mode ***
         internal static void ComputeCorrectionFactor(
             ItemsControl scrollingItemsControl,
             FrameworkElement virtualizingElement,
             Panel itemsHost,
             FrameworkElement headerElement)
         {
+            if (!VirtualizingStackPanel.IsVSP45Compat)
+                return;
+
             Rect parentRect = new Rect(new Point(), virtualizingElement.DesiredSize);
             bool remeasure = false;
 
@@ -1193,7 +1207,7 @@ namespace MS.Internal
                     }
                 }
             }
-        }
+        }// *** END DEAD CODE ***
 
         // This class reprents an item value that arises from a non-local source (e.g. current-value)
         private class ModifiedItemValue
@@ -1499,7 +1513,8 @@ namespace MS.Internal
             ItemValueStorageField.GlobalIndex,
             TreeViewItem.IsExpandedProperty.GlobalIndex,
             Expander.IsExpandedProperty.GlobalIndex,
-            GroupItem.DesiredPixelItemsSizeCorrectionFactorField.GlobalIndex};
+            GroupItem.DesiredPixelItemsSizeCorrectionFactorField.GlobalIndex,
+            VirtualizingStackPanel.ItemsHostInsetProperty.GlobalIndex};
     }
 }
 

@@ -3216,6 +3216,13 @@ DWORD SNIQueryInfo(  UINT QType, __out VOID * pbQInfo)
 			}	
 			break;
 #endif
+#ifdef SNI_BASED_CLIENT
+
+		case SNI_QUERY_TCP_SKIP_IO_COMPLETION_ON_SUCCESS:
+
+			*(BOOL *)pbQInfo = Tcp::s_fSkipCompletionPort;
+			break;
+#endif
 
 		default:
 			//this assertion is used to catch unexpected coding errors.
@@ -3768,6 +3775,13 @@ DWORD SNISetInfo( __out SNI_Conn * pConn, UINT QType, __in VOID * pbQInfo)
 			}
 			
 			break;
+
+#ifdef SNI_BASED_CLIENT
+		case SNI_QUERY_TCP_SKIP_IO_COMPLETION_ON_SUCCESS:
+			
+			Tcp::s_fSkipCompletionPort = *(BOOL *)pbQInfo;
+			break;
+#endif
 
 		default :
 			//This assertion is used to catch unexpected coding errors.

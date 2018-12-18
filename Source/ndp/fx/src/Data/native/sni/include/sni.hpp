@@ -192,6 +192,10 @@ typedef enum
 	SNI_QUERY_CONN_CHANNEL_PROVIDES_AUTHENTICATION_CONTEXT,
 	SNI_QUERY_CONN_PEERID,
 	SNI_QUERY_CONN_SUPPORTS_[....]_OVER_ASYNC,
+#ifdef SNI_BASED_CLIENT
+	// NOTE: Keep all conditional QTypes at the end of the enum
+	SNI_QUERY_TCP_SKIP_IO_COMPLETION_ON_SUCCESS,
+#endif
 } QTypes;
 
 //----------------------------------------------------------------------------

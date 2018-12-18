@@ -496,6 +496,7 @@ ref class  SNINativeMethodWrapper
             SNI_QUERY_CONN_CONSUMERCONNID    = ::SNI_QUERY_CONN_CONSUMERCONNID,
             SNI_QUERY_CONN_SNIUCI        = ::SNI_QUERY_CONN_SNIUCI,
             SNI_QUERY_LOCALDB_HMODULE        = ::SNI_QUERY_LOCALDB_HMODULE,
+            SNI_QUERY_TCP_SKIP_IO_COMPLETION_ON_SUCCESS = ::SNI_QUERY_TCP_SKIP_IO_COMPLETION_ON_SUCCESS,
 
         };
 
@@ -962,7 +963,7 @@ internal:
             DWORD _qType = static_cast<DWORD>(qType);
 
             // we should not be calling this method with SNI_QUERY_CERTIFICATE or unsupported qType
-            Debug::Assert(_qType == SNI_QUERY_CLIENT_ENCRYPT_POSSIBLE || _qType == SNI_QUERY_SERVER_ENCRYPT_POSSIBLE, "qType is unsupported or unknown");
+            Debug::Assert(_qType == SNI_QUERY_CLIENT_ENCRYPT_POSSIBLE || _qType == SNI_QUERY_SERVER_ENCRYPT_POSSIBLE || _qType == SNI_QUERY_TCP_SKIP_IO_COMPLETION_ON_SUCCESS, "qType is unsupported or unknown");
             int result=::SNIQueryInfo ( _qType,  &_qInfo);
             qInfo = _qInfo;
             return result;

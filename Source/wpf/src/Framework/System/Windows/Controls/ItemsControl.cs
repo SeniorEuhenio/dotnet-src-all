@@ -1836,6 +1836,15 @@ namespace System.Windows.Controls
             {
                 // We might be virtualized, try to de-virtualize the item.
                 // Note: There is opportunity here to make a public OM.
+                //
+                // Call UpdateLayout first, in case there is a pending Measure
+                // that replaces the ItemsHost with a different panel.   We should
+                // forward the request to the correct panel, of course.  (Dev11 739520)
+                if (!FrameworkCompatibilityPreferences.GetVSP45Compat())
+                {
+                    UpdateLayout();
+                }
+
                 VirtualizingPanel itemsHost = ItemsHost as VirtualizingPanel;
                 if (itemsHost != null)
                 {
@@ -3430,6 +3439,15 @@ namespace System.Windows.Controls
             return item;
         }
 
+        // A version of Object.Equals with paranoia for UnsetValue, to avoid problems
+        // with classes that implement Object.Equals poorly, as in Dev11 439664, 746174
+        internal static bool EqualsEx(object o1, object o2)
+        {
+            if (DependencyProperty.UnsetValue == o1)    return (o1 == o2);
+            if (DependencyProperty.UnsetValue == o2)    return false;
+            return Object.Equals(o1, o2);
+        }
+
         #endregion
 
         #region ItemInfo
@@ -3503,7 +3521,7 @@ namespace System.Windows.Controls
                 {
                     resolvePendingContainers = true;
                 }
-                else if (!Object.Equals(info.Item,
+                else if (!ItemsControl.EqualsEx(info.Item,
                             container.ReadLocalValue(ItemContainerGenerator.ItemForItemContainerProperty)))
                 {
                     info.Container = null;
@@ -3739,13 +3757,8 @@ namespace System.Windows.Controls
                 if (this.IsRemoved || that.IsRemoved)
                     return false;
 
-                // items must match (the paranoia for UnsetValue is to avoid problems with
-                // classes that implement Object.Equals poorly, as in Dev11 439664)
-                if (this.Item == DependencyProperty.UnsetValue && that.Item != DependencyProperty.UnsetValue)
-                    return false;
-                if (that.Item == DependencyProperty.UnsetValue && this.Item != DependencyProperty.UnsetValue)
-                    return false;
-                if (!Object.Equals(this.Item, that.Item))
+                // items must match
+                if (!ItemsControl.EqualsEx(this.Item, that.Item))
                     return false;
 
                 // Key matches anything, except Unresolved when matchUnresovled is false

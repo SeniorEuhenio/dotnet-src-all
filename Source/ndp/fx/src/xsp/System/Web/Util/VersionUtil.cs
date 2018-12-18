@@ -20,6 +20,7 @@ namespace System.Web.Util {
         public static readonly Version Framework40 = new Version(4, 0);
         public static readonly Version Framework45 = new Version(4, 5);
         public static readonly Version Framework451 = new Version(4, 5, 1);
+        public static readonly Version Framework452 = new Version(4, 5, 2);
 
         // Convenience accessor for the "default" framework version; various configuration
         // switches can use this as a default value. This value must only be bumped during

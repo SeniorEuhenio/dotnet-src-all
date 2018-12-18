@@ -4405,8 +4405,22 @@ namespace System.Windows.Forms {
              RightToLeft origRightToLeft; // The combo box's RTL value when we were created
 
              private const int WhiteFillRectWidth = 5; // used for making the button look smaller than it is
-            
+     
+             private static bool isScalingInitialized = false;
+             private static int OFFSET_2PIXELS = 2;
+             protected static int Offset2X = OFFSET_2PIXELS;
+             protected static int Offset2Y = OFFSET_2PIXELS;
+           
              public FlatComboAdapter(ComboBox comboBox, bool smallButton) {
+
+                 if (!isScalingInitialized) {
+                     if (DpiHelper.IsScalingRequired) {
+                         Offset2X = DpiHelper.LogicalToDeviceUnitsX(OFFSET_2PIXELS);
+                         Offset2Y = DpiHelper.LogicalToDeviceUnitsY(OFFSET_2PIXELS);
+                     }
+                     isScalingInitialized = true;
+                 }
+
                  clientRect = comboBox.ClientRectangle;
                  int dropDownButtonWidth = System.Windows.Forms.SystemInformation.HorizontalScrollBarArrowWidth;
                  outerBorder = new Rectangle(clientRect.Location, new Size(clientRect.Width - 1, clientRect.Height - 1));
@@ -4551,9 +4565,9 @@ namespace System.Windows.Forms {
                  }
              
                  g.FillPolygon(brush, new Point[] {
-                     new Point(middle.X - 2, middle.Y - 1),
-                     new Point(middle.X + 3, middle.Y - 1),
-                     new Point(middle.X, middle.Y + 2)
+                     new Point(middle.X - Offset2X, middle.Y - 1),
+                     new Point(middle.X + Offset2X + 1, middle.Y - 1),
+                     new Point(middle.X, middle.Y + Offset2Y)
                  });
              }
              

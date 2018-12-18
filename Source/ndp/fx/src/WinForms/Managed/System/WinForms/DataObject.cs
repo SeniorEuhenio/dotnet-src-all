@@ -876,7 +876,16 @@ namespace System.Windows.Forms {
                 hr = SaveStringToHandle(medium.unionmember, data.ToString(), false);
             }
             else if (format.Equals(DataFormats.Html)) {
-                 hr = SaveHtmlToHandle(medium.unionmember, data.ToString());
+                if (WindowsFormsUtils.TargetsAtLeast_v4_5) {
+                    hr = SaveHtmlToHandle(medium.unionmember, data.ToString());
+                }
+                else {
+                    // This will return UTF-8 strings as an array of ANSI characters, which makes it the wrong behavior.
+                    // Since there are enough samples online how to workaround that, we will continue to return the
+                    // incorrect value to applications targeting netfx 4.0
+                    // DevDiv2 bug 862524
+                    hr = SaveStringToHandle(medium.unionmember, data.ToString(), false);
+                }
             }
             else if (format.Equals(DataFormats.UnicodeText)) {
                  hr = SaveStringToHandle(medium.unionmember, data.ToString(), true);
@@ -1447,7 +1456,16 @@ namespace System.Windows.Forms {
                         data = ReadStringFromHandle(hglobal, false);
                     }
                     else if (format.Equals(DataFormats.Html)) {
-                        data = ReadHtmlFromHandle(hglobal);
+                        if (WindowsFormsUtils.TargetsAtLeast_v4_5) {
+                            data = ReadHtmlFromHandle(hglobal);
+                        }
+                        else {
+                            // This will return UTF-8 strings as an array of ANSI characters, which makes it the wrong behavior.
+                            // Since there are enough samples online how to workaround that, we will continue to return the
+                            // incorrect value to applications targeting netfx 4.0
+                            // DevDiv2 bug 862524
+                            data = ReadStringFromHandle(hglobal, false);
+                        }
                     }
 
                     else if (format.Equals(DataFormats.UnicodeText)) {

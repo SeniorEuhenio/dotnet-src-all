@@ -396,7 +396,7 @@ namespace System.ServiceModel.Channels
             }
         }
 
-        class BinaryMessageEncoder : MessageEncoder, ICompressedMessageEncoder
+        class BinaryMessageEncoder : MessageEncoder, ICompressedMessageEncoder, ITraceSourceStringProvider
         {
             const string SupportedCompressionTypesMessageProperty = "BinaryMessageEncoder.SupportedCompressionTypes";
 
@@ -988,6 +988,11 @@ namespace System.ServiceModel.Channels
                     }
                 }
                 return compressionFormat;
+            }
+
+            string ITraceSourceStringProvider.GetSourceString()
+            {
+                return base.GetTraceSourceString();
             }
         }
 

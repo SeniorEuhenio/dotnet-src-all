@@ -125,6 +125,12 @@ namespace System.Web {
             }
         }
 
+        public virtual bool HeadersWritten {
+            get {
+                throw new NotImplementedException();
+            }
+        }
+
         public virtual Encoding HeaderEncoding {
             set {
                 throw new NotImplementedException();
@@ -221,6 +227,15 @@ namespace System.Web {
             }
         }
 
+        public virtual bool SuppressDefaultCacheControlHeader {
+            get {
+                throw new NotImplementedException();
+            }
+            set {
+                throw new NotImplementedException();
+            }
+        }
+
         public virtual bool SuppressFormsAuthenticationRedirect {
             get {
                 throw new NotImplementedException();
@@ -274,6 +289,11 @@ namespace System.Web {
         }
 
         public virtual void AddHeader(String name, String value) {
+            throw new NotImplementedException();
+        }
+
+        [SuppressMessage("Microsoft.Design", "CA1030:UseEventsWhereAppropriate", Justification = @"The normal event pattern doesn't work between HttpResponse and HttpResponseBase since the signatures differ.")]
+        public virtual ISubscriptionToken AddOnSendingHeaders(Action<HttpContextBase> callback) {
             throw new NotImplementedException();
         }
 

@@ -1742,18 +1742,21 @@ namespace System.Windows.Forms {
                     return;
                 }
 
+                // onUpDown method calls customer's ValueCHanged event handler which might enter the message loop and 
+                // process the mouse button up event, which results in timer being disposed 
                 OnUpDown(new UpDownEventArgs((int)pushed));
 
-                // Accelerate timer.
-                this.timerInterval *= 7;
-                this.timerInterval /= 10;
+                if (timer != null) {
+                    // Accelerate timer.
+                    this.timerInterval *= 7;
+                    this.timerInterval /= 10;
 
-                if (this.timerInterval < 1)
-                {
-                    this.timerInterval = 1;
-                }
+                    if (this.timerInterval < 1) {
+                        this.timerInterval = 1;
+                    }
 
-                timer.Interval = this.timerInterval;
+                    timer.Interval = this.timerInterval;
+                } 
             }
 
             internal class UpDownButtonsAccessibleObject : ControlAccessibleObject {

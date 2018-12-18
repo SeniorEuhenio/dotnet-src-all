@@ -3277,7 +3277,57 @@ Debug.Assert(lineCount == LineCount);
                 width = _referenceSize.Width;
             }
 
-            width = Math.Max(0.0, width - (Padding.Left + Padding.Right));
+            bool usingReferenceWidth = DoubleUtil.AreClose(width, _referenceSize.Width);
+            double paddingWidth = Padding.Left + Padding.Right;
+
+            width = Math.Max(0.0, width - paddingWidth);
+
+            // We want FormatLine to make the same decisions it made during Measure,
+            // otherwise text can be truncated or trimmed when it shouldn't be.
+            // (Dev11 3730, 129411, 176225, 176757, 449825, 464329, 480994, 701673)
+            // The problem arises when the TextBox has no declared width, so its
+            // render size is the same as its desired size.
+            //
+            // During Measure, LineServices computes the text width in "ideal"
+            // coordinates (integer), TextLine converts this to "real" coordinates
+            // (double-precision floating-point), and TextBlock then adds the
+            // padding to yield the desired size.  At render time (or hit-test,
+            // or others), this is reversed:  starting with the render size,
+            // subtract the padding, then convert from "real" to "ideal".  We want
+            // the result to be the same as the original text width, but there are
+            // two ways this can fail:
+            //   a) in display-mode, conversion from ideal to real involves rounding
+            //      to a multiple of the pixel size.  This can cause the final
+            //      width to fall short of the original by as much as half a pixel.
+            //   b) (width - padding) + padding  might be different from width,
+            //      due to floating-point arithmetic error.
+            // In either case, if the final width is even slightly smaller than the
+            // original text width, LineServices might think there is not enough
+            // room to format the entire line.
+            //
+            // The following code protects against these errors by adjusting
+            // the wrapping width upward by a slight amount.  But only if there
+            // may have been some loss.
+
+            // No adjustment is needed if we're starting with the same width
+            // Measure was given, or if the width is zero
+            if (!usingReferenceWidth && width != 0.0)
+            {
+                TextFormattingMode textFormattingMode = TextOptions.GetTextFormattingMode(this);
+                if (textFormattingMode == TextFormattingMode.Display)
+                {
+                    // case a: rounding to pixel boundaries can lose up to half a pixel,
+                    // as adjusted for the current DPI setting
+                    width += 0.5 / MS.Internal.FontCache.Util.PixelsPerDip;
+                }
+
+                if (paddingWidth != 0.0)
+                {
+                    // case b: if padding is involved, add a tiny amount to
+                    // protect against roundoff error
+                    width += 0.00000000001;
+                }
+            }
 
             // Make sure that TextFormatter limitations are not exceeded.
             TextDpi.EnsureValidLineWidth(ref width);

@@ -2239,14 +2239,14 @@ namespace MS.Utility
                 case Event.WClientUICommitChannel:
                 case Event.WClientUceNotifyPresent:
                 case Event.WClientScheduleRender:
-                case Event.WClientUIContextDispatchBegin:
                 case Event.WClientUIContextDispatchEnd:
-                case Event.WClientUIContextPost:
-                case Event.WClientUIContextAbort:
-                case Event.WClientUIContextPromote:
                 case Event.WClientUIContextIdle:
                     return 2;
                 case Event.WClientLayoutBegin:
+                case Event.WClientUIContextDispatchBegin:
+                case Event.WClientUIContextPost:
+                case Event.WClientUIContextAbort:
+                case Event.WClientUIContextPromote:
                     return 3;
                 default: throw new ArgumentException(SR.Get(SRID.InvalidEvent),"arg");
             }

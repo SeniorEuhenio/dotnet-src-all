@@ -312,6 +312,33 @@ namespace System.Windows.Threading
         }
 
         /// <summary>
+        ///     ID of this operation.
+        /// </summary>
+        /// <returns>
+        ///     Returns a "roaming" ID. This ID changes as the object is relocated by the GC.
+        ///     However ETW tools listening for events containing these "roaming" IDs will be
+        ///     able to account for the movements by listening for CLR's GC ETW events, and
+        ///     will therefore be able to track this identity across the lifetime of the object.
+        /// </returns>
+        internal long Id
+        {
+            [SecurityCritical]
+            get
+            {
+                long addr;
+                unsafe
+                {
+                    // we need a non-readonly field of a pointer-compatible type (using _priority)
+                    fixed (DispatcherPriority* pb = &this._priority)
+                    {
+                        addr = (long) pb;
+                    }
+                }
+                return addr;
+            }
+        }
+        
+        /// <summary>
         ///     Returns the result of the operation if it has completed.
         /// </summary>
         public object Result 

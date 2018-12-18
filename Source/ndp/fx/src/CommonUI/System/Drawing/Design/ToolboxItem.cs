@@ -26,6 +26,8 @@ namespace System.Drawing.Design {
     using System.Diagnostics.CodeAnalysis;
     using System.Runtime.Versioning;
 
+    using DpiHelper = System.Windows.Forms.DpiHelper;
+
     /// <include file='doc\ToolboxItem.uex' path='docs/doc[@for="ToolboxItem"]/*' />
     /// <devdoc>
     ///    <para> Provides a base implementation of a toolbox item.</para>
@@ -39,7 +41,12 @@ namespace System.Drawing.Design {
         
         private static object EventComponentsCreated = new object();
         private static object EventComponentsCreating = new object();
-        
+
+        private static bool isScalingInitialized = false;
+        private const int ICON_DIMENSION = 16;
+        private static int iconWidth = ICON_DIMENSION;
+        private static int iconHeight = ICON_DIMENSION;
+
         private bool locked;
         private LockableDictionary properties;
         private ToolboxComponentsCreatedEventHandler  componentsCreatedEvent;
@@ -50,6 +57,13 @@ namespace System.Drawing.Design {
         ///    Initializes a new instance of the ToolboxItem class.
         /// </devdoc>
         public ToolboxItem() {
+            if (!isScalingInitialized) {
+                if (DpiHelper.IsScalingRequired) {
+                    iconWidth = DpiHelper.LogicalToDeviceUnitsX(ICON_DIMENSION);
+                    iconHeight = DpiHelper.LogicalToDeviceUnitsY(ICON_DIMENSION);
+                }
+                isScalingInitialized = true;
+            }
         }
         
         /// <include file='doc\ToolboxItem.uex' path='docs/doc[@for="ToolboxItem.ToolboxItem1"]/*' />
@@ -58,7 +72,7 @@ namespace System.Drawing.Design {
         /// </devdoc>
         [ResourceExposure(ResourceScope.Process)]
         [ResourceConsumption(ResourceScope.Process)]
-        public ToolboxItem(Type toolType) {
+        public ToolboxItem(Type toolType) : this() {
             Initialize(toolType);
         }
         
@@ -67,7 +81,7 @@ namespace System.Drawing.Design {
         ///     Initializes a new instance of the <see cref='System.Drawing.Design.ToolboxItem'/>
         ///     class using the specified serialization information.
         /// </devdoc>
-        private ToolboxItem(SerializationInfo info, StreamingContext context) {
+        private ToolboxItem(SerializationInfo info, StreamingContext context) : this() {
             Deserialize(info, context);
         }
 
@@ -747,8 +761,8 @@ namespace System.Drawing.Design {
                     if (attr != null) {
                         Bitmap itemBitmap = attr.GetImage(type, false) as Bitmap;
                         // make sure this thing is 16x16
-                        if (itemBitmap != null && (itemBitmap.Width != 16 || itemBitmap.Height != 16)) {
-                            itemBitmap = new Bitmap(itemBitmap, new Size(16, 16));
+                        if (itemBitmap != null && (itemBitmap.Width != iconWidth || itemBitmap.Height != iconHeight)) {
+                            itemBitmap = new Bitmap(itemBitmap, new Size(iconWidth, iconHeight));
                         }
 
                         Bitmap = itemBitmap;

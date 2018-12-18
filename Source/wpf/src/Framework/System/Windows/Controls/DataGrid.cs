@@ -3163,6 +3163,14 @@ namespace System.Windows.Controls
                         // if this operation succeeded. Please see Dev11 bug 329417 for details.
 
                         cellContainer = CurrentCellContainer;
+
+                        // the BeginEditCommand may move focus off this DataGrid,
+                        // which sets CurrentCellContainer to null.  In that case,
+                        // return false.  (Dev11 715113)
+                        if (cellContainer == null)
+                        {
+                            return false;
+                        }
                     }
 
                     return cellContainer.IsEditing;
@@ -5908,14 +5916,14 @@ namespace System.Windows.Controls
                             if (newCell != null &&
                                 newCell.RowDataItem == currentCellContainer.RowDataItem)
                             {
-                                DataGridCell realNewCell = TryFindCell(ItemInfoFromContainer(newCell.RowOwner), newCell.Column);
+                                DataGridCell realNewCell = TryFindCell(newCell.RowDataItem, newCell.Column);
 
                                 // Forcing an UpdateLayout since the generation of the new row
                                 // container which was removed earlier is done in measure.
                                 if (realNewCell == null)
                                 {
                                     UpdateLayout();
-                                    realNewCell = TryFindCell(ItemInfoFromContainer(newCell.RowOwner), newCell.Column);
+                                    realNewCell = TryFindCell(newCell.RowDataItem, newCell.Column);
                                 }
                                 if (realNewCell != null && realNewCell != newCell)
                                 {

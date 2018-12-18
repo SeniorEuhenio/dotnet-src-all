@@ -315,7 +315,7 @@ namespace System.Web {
             return ((IServiceProvider)_context).GetService(serviceType);
         }
 
-        private static Action<HttpContext> WrapCallback(Action<HttpContextBase> callback) {
+        internal static Action<HttpContext> WrapCallback(Action<HttpContextBase> callback) {
             if (callback != null) {
                 return context => callback(new HttpContextWrapper(context));
             }
