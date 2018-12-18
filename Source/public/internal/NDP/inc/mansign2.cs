@@ -24,6 +24,15 @@ using _FILETIME = System.Runtime.InteropServices.ComTypes.FILETIME;
 
 namespace System.Deployment.Internal.CodeSigning
 {
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    internal struct BLOBHEADER 
+    {
+        internal byte bType;
+        internal byte bVersion;
+        internal short reserved;
+        internal uint aiKeyAlg;
+    };
+
     internal class ManifestSignedXml2 : SignedXml
     {
         private bool m_verify = false;
@@ -91,6 +100,7 @@ namespace System.Deployment.Internal.CodeSigning
 
     internal class SignedCmiManifest2
     {
+        private static int s_publicKeyOffset;
         private XmlDocument m_manifestDom = null;
         private CmiStrongNameSignerInfo m_strongNameSignerInfo = null;
         private CmiAuthenticodeSignerInfo m_authenticodeSignerInfo = null;
@@ -558,9 +568,16 @@ namespace System.Deployment.Internal.CodeSigning
                 RSACryptoServiceProvider p = (RSACryptoServiceProvider)certificate.PublicKey.Key;
                 byte[] certificatePublicKey = p.ExportCspBlob(false);
                 bool noMatch = false;
+                // To allow keys which differ by key usage only, we skip over the BLOBHEADER of the key,
+                // and start comparing bytes at the RSAPUBKEY structure.
+                if (s_publicKeyOffset == 0) 
+                {
+                    s_publicKeyOffset = Marshal.SizeOf(typeof(BLOBHEADER));
+                }
+
                 if (signingPublicKey.Length == certificatePublicKey.Length)
                 {
-                    for (int i = 0; i < signingPublicKey.Length; i++)
+                    for (int i = s_publicKeyOffset; i < signingPublicKey.Length; i++)
                     {
                         if (signingPublicKey[i] != certificatePublicKey[i])
                         {
@@ -1184,6 +1201,13 @@ namespace System.Deployment.Internal.CodeSigning
         internal static RSACryptoServiceProvider GetFixedRSACryptoServiceProvider(RSACryptoServiceProvider oldCsp, bool useSha256)
         {
             if (!useSha256)
+            {
+                return oldCsp;
+            }
+
+            // 3rd party crypto providers in general don't need to be forcefully upgraded.
+            // This is not an ideal way to check for that but is the best we have available.
+            if (!oldCsp.CspKeyContainerInfo.ProviderName.StartsWith("Microsoft", StringComparison.Ordinal)) 
             {
                 return oldCsp;
             }

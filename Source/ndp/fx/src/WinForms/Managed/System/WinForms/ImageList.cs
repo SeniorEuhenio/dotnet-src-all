@@ -50,6 +50,11 @@ namespace System.Windows.Forms {
         private const int INITIAL_CAPACITY = 4;
         private const int GROWBY = 4;
 
+        private const int MAX_DIMENSION = 256;
+        private static int maxImageWidth = MAX_DIMENSION;
+        private static int maxImageHeight = MAX_DIMENSION;
+        private static bool isScalingInitialized;
+
         private NativeImageList nativeImageList;
 
         // private int himlTemp;
@@ -79,6 +84,13 @@ namespace System.Windows.Forms {
         ///     pixels
         /// </devdoc>
         public ImageList() { // DO NOT DELETE -- AUTOMATION BP 1
+            if (!isScalingInitialized) {
+                if (DpiHelper.IsScalingRequired) {
+                    maxImageWidth = DpiHelper.LogicalToDeviceUnitsX(MAX_DIMENSION);
+                    maxImageHeight = DpiHelper.LogicalToDeviceUnitsY(MAX_DIMENSION);
+                }
+                isScalingInitialized = true;
+            }
         }
 
         /// <include file='doc\ImageList.uex' path='docs/doc[@for="ImageList.ImageList1"]/*' />
@@ -86,7 +98,7 @@ namespace System.Windows.Forms {
         ///     Creates a new ImageList Control with a default image size of 16x16
         ///     pixels and adds the ImageList to the passed in container.
         /// </devdoc>
-        public ImageList(IContainer container) {
+        public ImageList(IContainer container) : this() {
             if (container == null) {
                 throw new ArgumentNullException("container");
             }
@@ -252,12 +264,12 @@ namespace System.Windows.Forms {
                 // based on image size x bpp.  Restrict this to a reasonable maximum
                 // to keep people's systems from crashing.
                 //
-                if (value.Width <= 0 || value.Width > 256) {
-                    throw new ArgumentOutOfRangeException("ImageSize", SR.GetString(SR.InvalidBoundArgument, "ImageSize.Width", value.Width.ToString(CultureInfo.CurrentCulture), (1).ToString(CultureInfo.CurrentCulture), "256"));
+                if (value.Width <= 0 || value.Width > maxImageWidth) {
+                    throw new ArgumentOutOfRangeException("ImageSize", SR.GetString(SR.InvalidBoundArgument, "ImageSize.Width", value.Width.ToString(CultureInfo.CurrentCulture), (1).ToString(CultureInfo.CurrentCulture), maxImageWidth.ToString()));
                 }
 
-                if (value.Height <= 0 || value.Height > 256) {
-                    throw new ArgumentOutOfRangeException("ImageSize", SR.GetString(SR.InvalidBoundArgument, "ImageSize.Height", value.Height.ToString(CultureInfo.CurrentCulture), (1).ToString(CultureInfo.CurrentCulture), "256"));
+                if (value.Height <= 0 || value.Height > maxImageHeight) {
+                    throw new ArgumentOutOfRangeException("ImageSize", SR.GetString(SR.InvalidBoundArgument, "ImageSize.Height", value.Height.ToString(CultureInfo.CurrentCulture), (1).ToString(CultureInfo.CurrentCulture), maxImageHeight.ToString()));
                 }
 
                 if (imageSize.Width != value.Width || imageSize.Height != value.Height) {

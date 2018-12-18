@@ -17,6 +17,7 @@ namespace System.Security.Cryptography.Xml
     using Microsoft.Win32;
     using System.Collections;
     using System.Diagnostics;
+    using System.Globalization;
     using System.IO;
     using System.Security.Cryptography.X509Certificates;
     using System.Security.Permissions;
@@ -165,34 +166,63 @@ namespace System.Security.Cryptography.Xml
             return settings;
         }
 
+        private static int? xmlDsigSearchDepth = null;
+        /// <summary>
+        /// Function get the XML Dsig recursion limit. This function defines the
+        /// default limit in case, limit is not defined by developer or admin then
+        /// it returns the default value.
+        /// </summary>
+        [RegistryPermission(SecurityAction.Assert, Unrestricted = true)]
+        [SecuritySafeCritical]
+        internal static int GetXmlDsigSearchDepth() {
+            if (xmlDsigSearchDepth.HasValue) {
+                return xmlDsigSearchDepth.Value;
+            }
+            //Keeping the default recursion limit to 20. It should be
+            //within limits of real world scenarios. Keeping this number low
+            //will preserve some stack space
+            const int defaultMaxXmlDsigSearchDepth = (int)20;
+            const string regValueName = "SignedDigitalSignatureXmlMaxDepth";
+            int maxXmlDsigSearchDepth = defaultMaxXmlDsigSearchDepth;
+            try {
+                using (RegistryKey securityRegKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\.NETFramework\Security", false)) {
+                    if (securityRegKey != null){
+                        object regValue = securityRegKey.GetValue(regValueName);
+                        if (regValue != null){
+                            RegistryValueKind valueKind = securityRegKey.GetValueKind(regValueName);
+                            if (valueKind == RegistryValueKind.DWord || valueKind == RegistryValueKind.QWord){
+                                maxXmlDsigSearchDepth = (int)Convert.ToInt64(regValue, CultureInfo.InvariantCulture);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (SecurityException) { /* we could not open the registry key - that's fine, we can proceed with the default depth limit that is hardcoded above */ }
+            xmlDsigSearchDepth = maxXmlDsigSearchDepth;
+            return xmlDsigSearchDepth.Value;
+        }
+
         private static long? maxCharactersFromEntities = null;
         // Allow machine admins to specify an entity expansion limit. This is used to prevent
         // entity expansion denial of service attacks.
         // Falls back to a default if none is specified.
         [RegistryPermission(SecurityAction.Assert, Unrestricted = true)]
         [SecuritySafeCritical]
-        internal static long GetMaxCharactersFromEntities()
-        {
-            if (maxCharactersFromEntities.HasValue)
-            {
+        internal static long GetMaxCharactersFromEntities() {
+            if (maxCharactersFromEntities.HasValue) {
                 return maxCharactersFromEntities.Value;
             }
 
             long maxCharacters = (long)1e7;
             const string regValueName = "SignedXmlMaxCharactersFromEntities";
-            try
-            {
-                using (RegistryKey securityRegKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\.NETFramework\Security", false))
-                {
-                    if (securityRegKey != null)
-                    {
+            try {
+                using (RegistryKey securityRegKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\.NETFramework\Security", false)) {
+                    if (securityRegKey != null) {
                         object regValue = securityRegKey.GetValue(regValueName);
-                        if (regValue != null)
-                        {
+                        if (regValue != null) {
                             RegistryValueKind valueKind = securityRegKey.GetValueKind(regValueName);
-                            if (valueKind == RegistryValueKind.DWord || valueKind == RegistryValueKind.QWord)
-                            {
-                                maxCharacters = Convert.ToInt64(regValue);
+                            if (valueKind == RegistryValueKind.DWord || valueKind == RegistryValueKind.QWord) {
+                                maxCharacters = Convert.ToInt64(regValue, CultureInfo.InvariantCulture);
                             }
                         }
                     }

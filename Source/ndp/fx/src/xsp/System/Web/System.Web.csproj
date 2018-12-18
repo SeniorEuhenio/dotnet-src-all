@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{08ebc8e2-b653-4d46-989f-633abab8ebdf}</ProjectGuid>
+    <ProjectGuid>{6a36d565-8a5f-41fa-8245-4a49dfc23278}</ProjectGuid>
     <OutputPath>.</OutputPath>
     <OutputType>Library</OutputType>
     <AssemblyName>System.Web</AssemblyName>
@@ -20,55 +20,55 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\clr\src\bcl\mscorlib.csproj">
-      <Project>{edd76f80-29f6-4590-a3ef-f885b38da1b0}</Project>
+      <Project>{224f6f5b-c254-4b89-95cd-b690effa845e}</Project>
       <Name>mscorlib</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\System.csproj">
-      <Project>{e4fae737-f889-49a8-8db5-92488fc98c22}</Project>
+      <Project>{41970311-a2a7-4957-b118-3e82738754bb}</Project>
       <Name>System</Name>
     </ProjectReference>
     <ProjectReference Include="..\DataAnnotations\System.ComponentModel.DataAnnotations.csproj">
-      <Project>{1a76ad9e-8c1c-43e1-8ed8-47b7e14d0bbb}</Project>
+      <Project>{9b5e900a-4b44-4962-93a8-827a95fd1b55}</Project>
       <Name>System.ComponentModel.DataAnnotations</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Configuration\System.Configuration.csproj">
-      <Project>{d0e5c1bb-46f1-4fbe-9d9b-4d089d88ae09}</Project>
+      <Project>{c8acffc3-9a67-4b99-b153-3456d8d6a9e2}</Project>
       <Name>System.Configuration</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Core\System.Core.csproj">
-      <Project>{39be40c7-445f-4b45-869c-b23a2e23fde2}</Project>
+      <Project>{8237366e-c580-4edf-9fbc-6bc04dd169c7}</Project>
       <Name>System.Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\data\System.Data.csproj">
-      <Project>{9840a00f-f4ef-456f-9bab-d2f2d41fe20c}</Project>
+      <Project>{43a395d8-b07e-4166-a2ec-54449a6112aa}</Project>
       <Name>System.Data</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\System.Drawing.csproj">
-      <Project>{d5c689ab-f8f6-43bd-aa96-6bea230fdb80}</Project>
+      <Project>{25f1569b-f36d-466e-8854-89f1b79cd829}</Project>
       <Name>System.Drawing</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Caching\System.Runtime.Caching.csproj">
-      <Project>{94833606-4765-4c09-a6fb-2eb4f3da6b62}</Project>
+      <Project>{5d4af018-9839-4ea2-bc89-64ebe086cab6}</Project>
       <Name>System.Runtime.Caching</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\clr\src\managedlibraries\security\System.Security.csproj">
-      <Project>{07cda927-7d1e-472e-b3b7-a07277345f84}</Project>
+      <Project>{fbc0d97a-d604-4806-aa26-4fb7c017f571}</Project>
       <Name>System.Security</Name>
     </ProjectReference>
     <ProjectReference Include="..\ApplicationServices\System.Web.ApplicationServices.csproj">
-      <Project>{dc16f369-d47a-4c5a-a415-fc69e1b7e389}</Project>
+      <Project>{7190cc4f-be3d-478b-9f1c-8f0f7666bff6}</Project>
       <Name>System.Web.ApplicationServices</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\cdf\src\NetFx20\System.Web.Services\System.Web.Services.csproj">
-      <Project>{4cd44674-f3f4-4f30-ab64-a7f4b0439151}</Project>
+      <Project>{d475f02b-f7e2-467f-9553-e1ae2b0a7bab}</Project>
       <Name>System.Web.Services</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Xml\System.Xml.csproj">
-      <Project>{cfe60703-bdf5-402e-b545-c675c65ae9c8}</Project>
+      <Project>{e8f114a4-6ee9-49ae-9129-c5d7579eb5e9}</Project>
       <Name>System.Xml</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\XLinq\System.Xml.Linq.csproj">
-      <Project>{87f1dcdc-561c-4632-a51f-2cb068ecbb88}</Project>
+      <Project>{b2264e1e-916e-43cf-9880-7fbc48493ee4}</Project>
       <Name>System.Xml.Linq</Name>
     </ProjectReference>
   </ItemGroup>
@@ -86,6 +86,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\..\..\..\InternalApis\NDP_Common\inc\StrongNameHelpers.cs" />
+    <Compile Include="..\..\..\..\..\..\IntraPartitionAPIs\xsp\PerfCounterEnum.cs" />
     <Compile Include="..\..\..\misc\ConfigPathUtility.cs" />
     <Compile Include="..\..\..\misc\InvariantComparer.cs" />
     <Compile Include="..\..\..\Misc\SecurityUtils.cs" />
@@ -504,6 +505,7 @@
     <Compile Include="Hosting\SimpleApplicationHost.cs" />
     <Compile Include="Hosting\SimpleWorkerRequest.cs" />
     <Compile Include="Hosting\SuspendManager.cs" />
+    <Compile Include="Hosting\TlsTokenBindingInfo.cs" />
     <Compile Include="Hosting\VirtualPathProvider.cs" />
     <Compile Include="HtmlString.cs" />
     <Compile Include="HttpApplication.cs" />
@@ -557,6 +559,7 @@
     <Compile Include="IPrincipalContainer.cs" />
     <Compile Include="IRequestCompletedNotifier.cs" />
     <Compile Include="ISubscriptionToken.cs" />
+    <Compile Include="ITlsTokenBindingInfo.cs" />
     <Compile Include="LegacyAspNetSynchronizationContext.cs" />
     <Compile Include="Management\AppDomainResourcePerfCounters.cs" />
     <Compile Include="Management\BufferedWebEventProvider.cs" />
@@ -1458,6 +1461,7 @@
     <Compile Include="UI\WebControls\RouteParameter.cs" />
     <Compile Include="UI\WebControls\Scrollbars.cs" />
     <Compile Include="UI\WebControls\SelectedDatesCollection.cs" />
+    <Compile Include="UI\WebControls\SelectResult.cs" />
     <Compile Include="UI\WebControls\SendMailErrorEventArgs.cs" />
     <Compile Include="UI\WebControls\SendMailErrorEventHandler.cs" />
     <Compile Include="UI\WebControls\ServerValidateEventArgs.cs" />
@@ -1746,6 +1750,7 @@
     <Compile Include="Util\FileUtil.cs" />
     <Compile Include="Util\GCUtil.cs" />
     <Compile Include="Util\HashCodeCombiner.cs" />
+    <Compile Include="Util\HeapAllocHandle.cs" />
     <Compile Include="Util\hresults.cs" />
     <Compile Include="Util\HttpEncoder.cs" />
     <Compile Include="Util\HttpEncoderUtility.cs" />
@@ -1786,6 +1791,7 @@
     <Compile Include="Util\SynchronizationHelper.cs" />
     <Compile Include="Util\SystemInfo.cs" />
     <Compile Include="Util\TaskExtensions.cs" />
+    <Compile Include="Util\TlsTokenBindingHandle.cs" />
     <Compile Include="Util\Transactions.cs" />
     <Compile Include="Util\UriUtil.cs" />
     <Compile Include="Util\UrlPath.cs" />

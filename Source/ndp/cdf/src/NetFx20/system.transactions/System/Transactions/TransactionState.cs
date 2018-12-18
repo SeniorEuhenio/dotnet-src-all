@@ -643,7 +643,7 @@ namespace System.Transactions
 
         internal virtual void BeginCommit( InternalTransaction tx, bool asyncCommit, AsyncCallback asyncCallback, object asyncState )
         {
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
 
@@ -651,13 +651,13 @@ namespace System.Transactions
         {
             Debug.Assert( false, string.Format( null, "Invalid Event for State; Current State: {0}", this.GetType() ));
 
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
 
         internal virtual void Rollback( InternalTransaction tx, Exception e )
         {
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
 
@@ -669,7 +669,7 @@ namespace System.Transactions
             Transaction atomicTransaction
             )
         {
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
 
@@ -681,7 +681,7 @@ namespace System.Transactions
             Transaction atomicTransaction
             )
         {
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
         
 
@@ -692,7 +692,7 @@ namespace System.Transactions
             Transaction atomicTransaction
             )
         {
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
 
@@ -703,7 +703,7 @@ namespace System.Transactions
             Transaction atomicTransaction
             )
         {
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
 
@@ -733,13 +733,13 @@ namespace System.Transactions
         
         internal virtual void AddOutcomeRegistrant( InternalTransaction tx, TransactionCompletedEventHandler transactionCompletedDelegate )
         {
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
 
         internal virtual void GetObjectData( InternalTransaction tx, SerializationInfo serializationInfo, StreamingContext context )
         {
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
 
@@ -749,7 +749,7 @@ namespace System.Transactions
             Transaction atomicTransaction
             )
         {
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
 
@@ -765,13 +765,13 @@ namespace System.Transactions
 
         internal virtual void CreateBlockingClone( InternalTransaction tx )
         {
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
 
         internal virtual void CreateAbortingClone( InternalTransaction tx )
         {
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
 
@@ -891,14 +891,14 @@ namespace System.Transactions
         internal virtual void Phase0VolatilePrepareDone( InternalTransaction tx )
         {
             Debug.Assert( false, string.Format( null, "Invalid Event for State; Current State: {0}", this.GetType() ));
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
         
         internal virtual void Phase1VolatilePrepareDone( InternalTransaction tx )
         {
             Debug.Assert( false, string.Format( null, "Invalid Event for State; Current State: {0}", this.GetType() ));
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
 
@@ -928,7 +928,7 @@ namespace System.Transactions
 
         internal virtual void Promote( InternalTransaction tx )
         {
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
 
@@ -941,7 +941,7 @@ namespace System.Transactions
             Transaction atomicTransaction
             )
         {
-            throw TransactionException.CreateTransactionStateException(SR.GetString(SR.TraceSourceLtm), tx.innerException);
+            throw TransactionException.CreateTransactionStateException(SR.GetString(SR.TraceSourceLtm), tx.innerException, tx.DistributedTxId);
         }
 
         internal virtual void DisposeRoot(InternalTransaction tx)
@@ -2034,7 +2034,7 @@ namespace System.Transactions
 
         private TransactionException CreateTransactionAbortedException( InternalTransaction tx )
         {
-            return TransactionAbortedException.Create( SR.GetString( SR.TraceSourceLtm), SR.GetString( SR.TransactionAborted ), tx.innerException );
+            return TransactionAbortedException.Create( SR.GetString( SR.TraceSourceLtm), SR.GetString( SR.TransactionAborted ), tx.innerException, tx.DistributedTxId);
         }
     }
 
@@ -2094,7 +2094,7 @@ namespace System.Transactions
 
         internal override void Rollback( InternalTransaction tx, Exception e )
         {
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
 
@@ -2158,25 +2158,25 @@ namespace System.Transactions
 
         internal override void Rollback( InternalTransaction tx, Exception e )
         {
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
 
         internal override void EndCommit(InternalTransaction tx)
         {
-            throw TransactionInDoubtException.Create( SR.GetString( SR.TraceSourceBase), tx.innerException );
+            throw TransactionInDoubtException.Create( SR.GetString( SR.TraceSourceBase), SR.GetString(SR.TransactionIndoubt), tx.innerException, tx.DistributedTxId);
         }
 
 
         internal override void CheckForFinishedTransaction( InternalTransaction tx )
         {
-            throw TransactionInDoubtException.Create( SR.GetString( SR.TraceSourceBase), tx.innerException );
+            throw TransactionInDoubtException.Create(SR.GetString(SR.TraceSourceBase), SR.GetString(SR.TransactionIndoubt), tx.innerException, tx.DistributedTxId);
         }
 
 
         internal override void GetObjectData( InternalTransaction tx, SerializationInfo serializationInfo, StreamingContext context )
         {
-            throw TransactionInDoubtException.Create( SR.GetString( SR.TraceSourceBase), tx.innerException );
+            throw TransactionInDoubtException.Create(SR.GetString(SR.TraceSourceBase), SR.GetString(SR.TransactionIndoubt), tx.innerException, tx.DistributedTxId);
         }
     }
 
@@ -2375,7 +2375,14 @@ namespace System.Transactions
 
         internal override Guid get_Identifier( InternalTransaction tx )
         {
-            return tx.PromotedTransaction.Identifier;
+            if (tx != null && tx.PromotedTransaction != null)
+            {
+                return tx.PromotedTransaction.Identifier;
+            }
+            else
+            {
+                return Guid.Empty;
+            }
         }
 
 
@@ -2690,7 +2697,7 @@ namespace System.Transactions
             if ( tx.outcomeSource.isoLevel == IsolationLevel.Snapshot )
             {
                 throw TransactionException.CreateInvalidOperationException( SR.GetString( SR.TraceSourceLtm ), 
-                    SR.GetString( SR.CannotPromoteSnapshot ), null );
+                    SR.GetString( SR.CannotPromoteSnapshot ), null);
             }
             
             // Set the transaction state
@@ -2951,7 +2958,7 @@ namespace System.Transactions
         internal override void BeginCommit( InternalTransaction tx, bool asyncCommit, AsyncCallback asyncCallback, object asyncState )
         {
             // Don't allow this again.
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
 
@@ -3019,7 +3026,7 @@ namespace System.Transactions
         internal override void BeginCommit( InternalTransaction tx, bool asyncCommit, AsyncCallback asyncCallback, object asyncState )
         {
             // Don't allow this again.
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
 
@@ -3173,13 +3180,13 @@ namespace System.Transactions
 
         internal override void CreateBlockingClone( InternalTransaction tx )
         {
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
 
         internal override void CreateAbortingClone( InternalTransaction tx )
         {
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
 
@@ -3224,25 +3231,25 @@ namespace System.Transactions
 
         internal override Enlistment EnlistVolatile( InternalTransaction tx, IEnlistmentNotification enlistmentNotification, EnlistmentOptions enlistmentOptions, Transaction atomicTransaction )
         {
-            throw new TransactionException( SR.GetString(SR.TooLate) );
+            throw TransactionException.Create(SR.GetString(SR.TooLate), tx == null ? Guid.Empty : tx.DistributedTxId);
         }
 
 
         internal override Enlistment EnlistVolatile( InternalTransaction tx, ISinglePhaseNotification enlistmentNotification, EnlistmentOptions enlistmentOptions, Transaction atomicTransaction )
         {
-            throw new TransactionException( SR.GetString(SR.TooLate) );
+            throw TransactionException.Create(SR.GetString(SR.TooLate), tx == null ? Guid.Empty : tx.DistributedTxId);
         }
 
 
         internal override Enlistment EnlistDurable( InternalTransaction tx, Guid resourceManagerIdentifier, IEnlistmentNotification enlistmentNotification, EnlistmentOptions enlistmentOptions, Transaction atomicTransaction )
         {
-            throw new TransactionException( SR.GetString(SR.TooLate) );
+            throw TransactionException.Create(SR.GetString(SR.TooLate), tx == null ? Guid.Empty : tx.DistributedTxId);
         }
 
 
         internal override Enlistment EnlistDurable( InternalTransaction tx, Guid resourceManagerIdentifier, ISinglePhaseNotification enlistmentNotification, EnlistmentOptions enlistmentOptions, Transaction atomicTransaction )
         {
-            throw new TransactionException( SR.GetString(SR.TooLate) );
+            throw TransactionException.Create(SR.GetString(SR.TooLate), tx == null ? Guid.Empty : tx.DistributedTxId);
         }
     }
 
@@ -3269,19 +3276,19 @@ namespace System.Transactions
         internal override void BeginCommit( InternalTransaction tx, bool asyncCommit, AsyncCallback asyncCallback, object asyncState )
         {
             // Don't allow this again.
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
 
         internal override void CreateBlockingClone( InternalTransaction tx )
         {
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
 
         internal override void CreateAbortingClone( InternalTransaction tx )
         {
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
 
@@ -3402,8 +3409,9 @@ namespace System.Transactions
             {
                 throw TransactionException.CreateInvalidOperationException(
                     SR.GetString( SR.TraceSourceLtm ), 
-                    SR.GetString(SR.UnexpectedFailureOfThreadPool), 
-                    null
+                    SR.GetString(SR.UnexpectedFailureOfThreadPool),
+                    null,
+                    tx == null ? Guid.Empty : tx.DistributedTxId
                     );
             }
         }
@@ -3442,13 +3450,13 @@ namespace System.Transactions
 
         internal override void CreateBlockingClone( InternalTransaction tx )
         {
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
 
         internal override void CreateAbortingClone( InternalTransaction tx )
         {
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
         internal override Guid get_Identifier( InternalTransaction tx )
@@ -3547,19 +3555,19 @@ namespace System.Transactions
 
         internal override void BeginCommit( InternalTransaction tx, bool asyncCommit, AsyncCallback asyncCallback, object asyncState )
         {
-            throw TransactionAbortedException.Create( SR.GetString( SR.TraceSourceLtm), tx.innerException );
+            throw TransactionAbortedException.Create( SR.GetString( SR.TraceSourceLtm), SR.GetString(SR.TransactionAborted), tx.innerException, tx.DistributedTxId);
         }
 
 
         internal override void CreateBlockingClone( InternalTransaction tx )
         {
-            throw TransactionAbortedException.Create( SR.GetString( SR.TraceSourceLtm), tx.innerException );
+            throw TransactionAbortedException.Create(SR.GetString(SR.TraceSourceLtm), SR.GetString(SR.TransactionAborted), tx.innerException, tx.DistributedTxId);
         }
 
 
         internal override void CreateAbortingClone( InternalTransaction tx )
         {
-            throw TransactionAbortedException.Create( SR.GetString( SR.TraceSourceLtm), tx.innerException );
+            throw TransactionAbortedException.Create(SR.GetString(SR.TraceSourceLtm), SR.GetString(SR.TransactionAborted), tx.innerException, tx.DistributedTxId);
         }
 
 
@@ -3583,12 +3591,12 @@ namespace System.Transactions
 
         internal override void ChangeStatePromotedPhase0( InternalTransaction tx )
         {
-            throw new TransactionAbortedException( tx.innerException );
+            throw new TransactionAbortedException(tx.innerException, tx.DistributedTxId);
         }
 
         internal override void ChangeStatePromotedPhase1( InternalTransaction tx )
         {
-            throw new TransactionAbortedException( tx.innerException );
+            throw new TransactionAbortedException(tx.innerException, tx.DistributedTxId);
         }
 
         internal override void ChangeStatePromotedAborted( InternalTransaction tx )
@@ -3609,19 +3617,19 @@ namespace System.Transactions
             {
                 tx.innerException = tx.PromotedTransaction.InnerException;
             }
-            throw TransactionAbortedException.Create( SR.GetString( SR.TraceSourceLtm), tx.innerException );
+            throw TransactionAbortedException.Create(SR.GetString(SR.TraceSourceLtm), SR.GetString(SR.TransactionAborted), tx.innerException, tx.DistributedTxId);
         }
 
 
         internal override void CheckForFinishedTransaction( InternalTransaction tx )
         {
-            throw new TransactionAbortedException( tx.innerException );
+            throw new TransactionAbortedException(tx.innerException, tx.DistributedTxId);
         }
 
 
         internal override void GetObjectData( InternalTransaction tx, SerializationInfo serializationInfo, StreamingContext context )
         {
-            throw TransactionAbortedException.Create( SR.GetString( SR.TraceSourceLtm), tx.innerException );
+            throw TransactionAbortedException.Create(SR.GetString(SR.TraceSourceLtm), SR.GetString(SR.TransactionAborted), tx.innerException, tx.DistributedTxId);
         }
 
 
@@ -3765,12 +3773,12 @@ namespace System.Transactions
 
         internal override void ChangeStatePromotedPhase0( InternalTransaction tx )
         {
-            throw TransactionInDoubtException.Create( SR.GetString( SR.TraceSourceBase), tx.innerException );
+            throw TransactionInDoubtException.Create(SR.GetString(SR.TraceSourceBase), SR.GetString(SR.TransactionIndoubt), tx.innerException, tx.DistributedTxId);
         }
 
         internal override void ChangeStatePromotedPhase1( InternalTransaction tx )
         {
-            throw TransactionInDoubtException.Create( SR.GetString( SR.TraceSourceBase), tx.innerException );
+            throw TransactionInDoubtException.Create(SR.GetString(SR.TraceSourceBase), SR.GetString(SR.TransactionIndoubt), tx.innerException, tx.DistributedTxId);
         }
 
 
@@ -3796,19 +3804,19 @@ namespace System.Transactions
             {
                 tx.innerException = tx.PromotedTransaction.InnerException;
             }
-            throw TransactionInDoubtException.Create( SR.GetString( SR.TraceSourceBase), tx.innerException );
+            throw TransactionInDoubtException.Create(SR.GetString(SR.TraceSourceBase), SR.GetString(SR.TransactionIndoubt), tx.innerException, tx.DistributedTxId);
         }
 
 
         internal override void CheckForFinishedTransaction( InternalTransaction tx )
         {
-            throw TransactionInDoubtException.Create( SR.GetString( SR.TraceSourceBase), tx.innerException );
+            throw TransactionInDoubtException.Create(SR.GetString(SR.TraceSourceBase), SR.GetString(SR.TransactionIndoubt), tx.innerException, tx.DistributedTxId);
         }
 
 
         internal override void GetObjectData( InternalTransaction tx, SerializationInfo serializationInfo, StreamingContext context )
         {
-            throw TransactionInDoubtException.Create( SR.GetString( SR.TraceSourceBase), tx.innerException );
+            throw TransactionInDoubtException.Create(SR.GetString(SR.TraceSourceBase), SR.GetString(SR.TransactionIndoubt), tx.innerException, tx.DistributedTxId);
         }
 
 
@@ -3839,8 +3847,8 @@ namespace System.Transactions
         {
             if ( tx.outcomeSource.isoLevel == IsolationLevel.Snapshot )
             {
-                throw TransactionException.CreateInvalidOperationException( SR.GetString( SR.TraceSourceLtm ), 
-                    SR.GetString( SR.CannotPromoteSnapshot ), null );
+                throw TransactionException.CreateInvalidOperationException( SR.GetString( SR.TraceSourceLtm ),
+                    SR.GetString(SR.CannotPromoteSnapshot), null, tx == null ? Guid.Empty : tx.DistributedTxId);
             }
 
             // Assign the state
@@ -4033,7 +4041,7 @@ namespace System.Transactions
 
         internal override TransactionStatus get_Status( InternalTransaction tx )
         {
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
 
@@ -4099,7 +4107,8 @@ namespace System.Transactions
                     throw TransactionException.CreateInvalidOperationException(
                             SR.GetString(SR.TraceSourceLtm),
                             SR.GetString(SR.PromotedReturnedInvalidValue),
-                            null
+                            null,
+                            tx.DistributedTxId
                             );
                 }
                 tx.attemptingPSPEPromote = true;
@@ -4118,7 +4127,8 @@ namespace System.Transactions
                         throw TransactionException.CreateInvalidOperationException(
                                 SR.GetString(SR.TraceSourceLtm),
                                 SR.GetString(SR.PromotedReturnedInvalidValue),
-                                null
+                                null,
+                                tx.DistributedTxId
                                 );
                     }
                     // The transaction has already transitioned to TransactionStatePromoted, so we don't want
@@ -4144,7 +4154,8 @@ namespace System.Transactions
                         throw TransactionException.CreateInvalidOperationException(
                                 SR.GetString(SR.TraceSourceLtm),
                                 SR.GetString(SR.PromotedReturnedInvalidValue),
-                                e
+                                e,
+                                tx.DistributedTxId
                                 );
                     }
 
@@ -4155,7 +4166,8 @@ namespace System.Transactions
                         throw TransactionException.CreateInvalidOperationException(
                                 SR.GetString(SR.TraceSourceLtm),
                                 SR.GetString(SR.PromotedTransactionExists),
-                                null
+                                null,
+                                tx.DistributedTxId
                                 );
                     }
                 }
@@ -4188,7 +4200,7 @@ namespace System.Transactions
             // This call is only allowed if we have an outstanding call to ITransactionPromoter.Promote.
             if (!tx.attemptingPSPEPromote)
             {
-                throw TransactionException.CreateTransactionStateException(SR.GetString(SR.TraceSourceLtm), tx.innerException);
+                throw TransactionException.CreateTransactionStateException(SR.GetString(SR.TraceSourceLtm), tx.innerException, tx.DistributedTxId);
             }
 
             if (promotableNotification != tx.promoter)
@@ -4196,7 +4208,8 @@ namespace System.Transactions
                 throw TransactionException.CreateInvalidOperationException(
                         SR.GetString(SR.TraceSourceLtm),
                         SR.GetString(SR.InvalidIPromotableSinglePhaseNotificationSpecified),
-                        null
+                        null,
+                        tx.DistributedTxId
                         );
             }
 
@@ -4313,7 +4326,7 @@ namespace System.Transactions
         internal override void BeginCommit( InternalTransaction tx, bool asyncCommit, AsyncCallback asyncCallback, object asyncState )
         {
             // Initiate the commit process.
-            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException );
+            throw TransactionException.CreateTransactionStateException( SR.GetString( SR.TraceSourceLtm ), tx.innerException, tx.DistributedTxId);
         }
 
 

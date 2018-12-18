@@ -15,7 +15,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Globalization;
 using System.Diagnostics;
+using System.IO;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -116,6 +118,11 @@ namespace System.Windows.Controls
         /// </summary>
         public virtual void LineUp()
         {
+            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+            {
+                ScrollTracer.Trace(this, ScrollTraceOp.LineUp);
+            }
+
             SetVerticalOffsetImpl(VerticalOffset - ((Orientation == Orientation.Vertical && !IsPixelBased) ? 1.0 : ScrollViewer._scrollLineDelta),
                 setAnchorInformation:true);
         }
@@ -127,6 +134,11 @@ namespace System.Windows.Controls
         /// </summary>
         public virtual void LineDown()
         {
+            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+            {
+                ScrollTracer.Trace(this, ScrollTraceOp.LineDown);
+            }
+
             SetVerticalOffsetImpl(VerticalOffset + ((Orientation == Orientation.Vertical && !IsPixelBased) ? 1.0 : ScrollViewer._scrollLineDelta),
                 setAnchorInformation:true);
         }
@@ -138,6 +150,11 @@ namespace System.Windows.Controls
         /// </summary>
         public virtual void LineLeft()
         {
+            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+            {
+                ScrollTracer.Trace(this, ScrollTraceOp.LineLeft);
+            }
+
             SetHorizontalOffsetImpl(HorizontalOffset - ((Orientation == Orientation.Horizontal && !IsPixelBased) ? 1.0 : ScrollViewer._scrollLineDelta),
                 setAnchorInformation:true);
         }
@@ -149,6 +166,11 @@ namespace System.Windows.Controls
         /// </summary>
         public virtual void LineRight()
         {
+            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+            {
+                ScrollTracer.Trace(this, ScrollTraceOp.LineRight);
+            }
+
             SetHorizontalOffsetImpl(HorizontalOffset + ((Orientation == Orientation.Horizontal && !IsPixelBased) ? 1.0 : ScrollViewer._scrollLineDelta),
                 setAnchorInformation:true);
         }
@@ -160,6 +182,11 @@ namespace System.Windows.Controls
         /// </summary>
         public virtual void PageUp()
         {
+            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+            {
+                ScrollTracer.Trace(this, ScrollTraceOp.PageUp);
+            }
+
             double delta = ViewportHeight;
             if (!IsPixelBased && (Orientation == Orientation.Vertical) && DoubleUtil.IsZero(delta))
             {
@@ -176,6 +203,11 @@ namespace System.Windows.Controls
         /// </summary>
         public virtual void PageDown()
         {
+            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+            {
+                ScrollTracer.Trace(this, ScrollTraceOp.PageDown);
+            }
+
             double delta = ViewportHeight;
             if (!IsPixelBased && (Orientation == Orientation.Vertical) && DoubleUtil.IsZero(delta))
             {
@@ -192,6 +224,11 @@ namespace System.Windows.Controls
         /// </summary>
         public virtual void PageLeft()
         {
+            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+            {
+                ScrollTracer.Trace(this, ScrollTraceOp.PageLeft);
+            }
+
             double delta = ViewportWidth;
             if (!IsPixelBased && (Orientation == Orientation.Horizontal) && DoubleUtil.IsZero(delta))
             {
@@ -208,6 +245,11 @@ namespace System.Windows.Controls
         /// </summary>
         public virtual void PageRight()
         {
+            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+            {
+                ScrollTracer.Trace(this, ScrollTraceOp.PageRight);
+            }
+
             double delta = ViewportWidth;
             if (!IsPixelBased && (Orientation == Orientation.Horizontal) && DoubleUtil.IsZero(delta))
             {
@@ -224,6 +266,11 @@ namespace System.Windows.Controls
         /// </summary>
         public virtual void MouseWheelUp()
         {
+            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+            {
+                ScrollTracer.Trace(this, ScrollTraceOp.MouseWheelUp);
+            }
+
             SetVerticalOffsetImpl(VerticalOffset - SystemParameters.WheelScrollLines * ((Orientation == Orientation.Vertical && !IsPixelBased) ? 1.0 : ScrollViewer._scrollLineDelta),
                 setAnchorInformation:true);
         }
@@ -235,6 +282,11 @@ namespace System.Windows.Controls
         /// </summary>
         public virtual void MouseWheelDown()
         {
+            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+            {
+                ScrollTracer.Trace(this, ScrollTraceOp.MouseWheelDown);
+            }
+
             SetVerticalOffsetImpl(VerticalOffset + SystemParameters.WheelScrollLines * ((Orientation == Orientation.Vertical && !IsPixelBased) ? 1.0 : ScrollViewer._scrollLineDelta),
                 setAnchorInformation:true);
         }
@@ -246,6 +298,11 @@ namespace System.Windows.Controls
         /// </summary>
         public virtual void MouseWheelLeft()
         {
+            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+            {
+                ScrollTracer.Trace(this, ScrollTraceOp.MouseWheelLeft);
+            }
+
             SetHorizontalOffsetImpl(HorizontalOffset - 3.0 * ((Orientation == Orientation.Horizontal && !IsPixelBased) ? 1.0 : ScrollViewer._scrollLineDelta),
                 setAnchorInformation:true);
         }
@@ -257,6 +314,11 @@ namespace System.Windows.Controls
         /// </summary>
         public virtual void MouseWheelRight()
         {
+            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+            {
+                ScrollTracer.Trace(this, ScrollTraceOp.MouseWheelRight);
+            }
+
             SetHorizontalOffsetImpl(HorizontalOffset + 3.0 * ((Orientation == Orientation.Horizontal && !IsPixelBased) ? 1.0 : ScrollViewer._scrollLineDelta),
                 setAnchorInformation:true);
         }
@@ -266,6 +328,13 @@ namespace System.Windows.Controls
         /// </summary>
         public void SetHorizontalOffset(double offset)
         {
+            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+            {
+                ScrollTracer.Trace(this, ScrollTraceOp.SetHorizontalOffset,
+                    offset,
+                    "delta:", offset - HorizontalOffset);
+            }
+
             ClearAnchorInformation(true /*shouldAbort*/);
             SetHorizontalOffsetImpl(offset, setAnchorInformation:false);
         }
@@ -339,6 +408,12 @@ namespace System.Windows.Controls
                     InvalidateArrange();
                     OnScrollChange();
                 }
+
+                if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+                {
+                    ScrollTracer.Trace(this, ScrollTraceOp.SetHOff,
+                        _scrollData._offset, _scrollData._extent, _scrollData._computedOffset);
+                }
             }
 
             if (setAnchorInformation)
@@ -352,6 +427,13 @@ namespace System.Windows.Controls
         /// </summary>
         public void SetVerticalOffset(double offset)
         {
+            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+            {
+                ScrollTracer.Trace(this, ScrollTraceOp.SetVerticalOffset,
+                    offset,
+                    "delta:", offset - VerticalOffset);
+            }
+
             ClearAnchorInformation(true /*shouldAbort*/);
             SetVerticalOffsetImpl(offset, setAnchorInformation:false);
         }
@@ -431,6 +513,12 @@ namespace System.Windows.Controls
             {
                 SetAnchorInformation(isHorizontalOffset:false);
             }
+
+            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+            {
+                ScrollTracer.Trace(this, ScrollTraceOp.SetVOff,
+                    _scrollData._offset, _scrollData._extent, _scrollData._computedOffset);
+            }
         }
 
         private void SetAnchorInformation(bool isHorizontalOffset)
@@ -465,7 +553,15 @@ namespace System.Windows.Controls
 
                             if (itemsControl != null)
                             {
+                                bool isTracing = ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this);
+
                                 double expectedDistanceBetweenViewports = (isHorizontal ? _scrollData._offset.X - _scrollData._computedOffset.X : _scrollData._offset.Y - _scrollData._computedOffset.Y);
+
+                                if (isTracing)
+                                {
+                                    ScrollTracer.Trace(this, ScrollTraceOp.BSetAnchor,
+                                        expectedDistanceBetweenViewports);
+                                }
 
                                 if (_firstContainerInViewport != null)
                                 {
@@ -514,6 +610,14 @@ namespace System.Windows.Controls
                                 {
                                     _expectedDistanceBetweenViewports += expectedDistanceBetweenViewports;
                                 }
+
+                                if (isTracing)
+                                {
+                                    ScrollTracer.Trace(this, ScrollTraceOp.ESetAnchor,
+                                        _expectedDistanceBetweenViewports,
+                                        _firstContainerInViewport,
+                                        _firstContainerOffsetFromViewport);
+                                }
                             }
                         }
                     }
@@ -539,6 +643,15 @@ namespace System.Windows.Controls
                 return;
             }
 
+            bool isTracing = ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this);
+            if (isTracing)
+            {
+                ScrollTracer.Trace(this, ScrollTraceOp.BOnAnchor,
+                    isAnchorOperationPending,
+                    _expectedDistanceBetweenViewports,
+                    _firstContainerInViewport);
+            }
+
             // when called asynchronously (isAnchorOperationPending=false),
             // this method depends on having valid layout state, which is normally
             // true at this point.  But it's not true if the layout manager switched
@@ -546,7 +659,12 @@ namespace System.Windows.Controls
             bool isVSP45Compat = IsVSP45Compat;
             if (!isVSP45Compat && !isAnchorOperationPending && (MeasureDirty || ArrangeDirty))
             {
-                Debug.Assert(AnchorOperationField.GetValue(this) == null, "anchor state is inconsistent");
+                Debug.Assert(AnchorOperationField.GetValue(this) != null, "anchor state is inconsistent");
+
+                if (isTracing)
+                {
+                    ScrollTracer.Trace(this, ScrollTraceOp.ROnAnchor);
+                }
 
                 CancelPendingAnchoredInvalidateMeasure();
 
@@ -571,6 +689,7 @@ namespace System.Windows.Controls
                 this,
                 null,
                 out currFirstContainerOffsetFromViewport);
+            Debug.Assert(currFirstContainerInViewport != null, "Cannot find container in viewport");
             double currFirstContainerOffset = FindScrollOffset(currFirstContainerInViewport);
 
             double actualDistanceBetweenViewports = (currFirstContainerOffset - currFirstContainerOffsetFromViewport) -
@@ -594,17 +713,24 @@ namespace System.Windows.Controls
                 // we dont need the anchor element any more. So clear it.
                 //
                 ClearAnchorInformation(isAnchorOperationPending /*shouldAbort*/);
+
+                if (isTracing)
+                {
+                    ScrollTracer.Trace(this, ScrollTraceOp.SOnAnchor,
+                        _scrollData._offset);
+                }
             }
             else
             {
                 bool remeasure = false;
+                double actualOffset, expectedOffset;
 
                 if (isHorizontal)
                 {
                     _scrollData._computedOffset.X = prevFirstContainerOffset - prevFirstContainerOffsetFromViewport;
 
-                    double actualOffset = _scrollData._computedOffset.X + actualDistanceBetweenViewports;
-                    double expectedOffset = _scrollData._computedOffset.X + _expectedDistanceBetweenViewports;
+                    actualOffset = _scrollData._computedOffset.X + actualDistanceBetweenViewports;
+                    expectedOffset = _scrollData._computedOffset.X + _expectedDistanceBetweenViewports;
 
                     if (DoubleUtil.LessThan(expectedOffset, 0) || DoubleUtil.GreaterThan(expectedOffset, _scrollData._extent.Width - _scrollData._viewport.Width))
                     {
@@ -622,8 +748,8 @@ namespace System.Windows.Controls
                 {
                     _scrollData._computedOffset.Y = prevFirstContainerOffset - prevFirstContainerOffsetFromViewport;
 
-                    double actualOffset = _scrollData._computedOffset.Y + actualDistanceBetweenViewports;
-                    double expectedOffset = _scrollData._computedOffset.Y + _expectedDistanceBetweenViewports;
+                    actualOffset = _scrollData._computedOffset.Y + actualDistanceBetweenViewports;
+                    expectedOffset = _scrollData._computedOffset.Y + _expectedDistanceBetweenViewports;
 
                     if (DoubleUtil.LessThan(expectedOffset, 0) || DoubleUtil.GreaterThan(expectedOffset, _scrollData._extent.Height - _scrollData._viewport.Height))
                     {
@@ -636,6 +762,12 @@ namespace System.Windows.Controls
                         remeasure = true;
                         _scrollData._offset.Y = expectedOffset;
                     }
+                }
+
+                if (isTracing)
+                {
+                    ScrollTracer.Trace(this, ScrollTraceOp.EOnAnchor,
+                        remeasure, expectedOffset, actualOffset, _scrollData._offset, _scrollData._computedOffset);
                 }
 
                 if (remeasure)
@@ -897,6 +1029,12 @@ namespace System.Windows.Controls
                 }
             }
 
+            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+            {
+                ScrollTracer.Trace(this, ScrollTraceOp.CFCIV,
+                    ContainerPath(result), firstContainerOffsetFromViewport);
+            }
+
             return result;
         }
 
@@ -1038,6 +1176,13 @@ namespace System.Windows.Controls
 
                 Vector oldOffset = _scrollData._offset;
                 _scrollData._offset = newOffset;
+
+                if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+                {
+                    ScrollTracer.Trace(this, ScrollTraceOp.MakeVisible,
+                        _scrollData._offset,
+                        _bringIntoViewLeafContainer);
+                }
 
                 OnViewportOffsetChanged(oldOffset, newOffset);
 
@@ -1529,10 +1674,15 @@ namespace System.Windows.Controls
 #endif
             List<double> previouslyMeasuredOffsets = null;
             double? lastPageSafeOffset = null;
+            double? lastPagePixelSize = null;
 
-            if (IsVSP45Compat || !IsScrollActive)
+            if (IsVSP45Compat)
             {
-                return MeasureOverrideImpl(constraint, ref lastPageSafeOffset, ref previouslyMeasuredOffsets, remeasure:false);
+                return MeasureOverrideImpl(constraint,
+                    ref lastPageSafeOffset,
+                    ref previouslyMeasuredOffsets,
+                    ref lastPagePixelSize,
+                    remeasure:false);
             }
             else
             {
@@ -1551,23 +1701,36 @@ namespace System.Windows.Controls
                 {
                     previouslyMeasuredOffsets = info.previouslyMeasuredOffsets;
                     lastPageSafeOffset = info.lastPageSafeOffset;
+                    lastPagePixelSize = info.lastPagePixelSize;
                 }
 
                 // Measure
-                Size result = MeasureOverrideImpl(constraint, ref lastPageSafeOffset, ref previouslyMeasuredOffsets, remeasure:false);
+                Size result = MeasureOverrideImpl(constraint,
+                    ref lastPageSafeOffset,
+                    ref previouslyMeasuredOffsets,
+                    ref lastPagePixelSize,
+                    remeasure:false);
 
                 // Save the offset information for the next Measure.  It's cleared
                 // when IsScrollActive is set to false (asynchronously).
-                info = new OffsetInformation();
-                info.previouslyMeasuredOffsets = previouslyMeasuredOffsets;
-                info.lastPageSafeOffset = lastPageSafeOffset;
-                OffsetInformationField.SetValue(this, info);
+                if (IsScrollActive)
+                {
+                    info = new OffsetInformation();
+                    info.previouslyMeasuredOffsets = previouslyMeasuredOffsets;
+                    info.lastPageSafeOffset = lastPageSafeOffset;
+                    info.lastPagePixelSize = lastPagePixelSize;
+                    OffsetInformationField.SetValue(this, info);
+                }
 
                 return result;
             }
         }
 
-        private Size MeasureOverrideImpl(Size constraint, ref double? lastPageSafeOffset, ref List<double> previouslyMeasuredOffsets, bool remeasure)
+        private Size MeasureOverrideImpl(Size constraint,
+            ref double? lastPageSafeOffset,
+            ref List<double> previouslyMeasuredOffsets,
+            ref double? lastPagePixelSize,
+            bool remeasure)
         {
             bool etwTracingEnabled = IsScrolling && EventTrace.IsEnabled(EventTrace.Keyword.KeywordGeneral, EventTrace.Level.Info);
             if (etwTracingEnabled)
@@ -1709,6 +1872,15 @@ namespace System.Windows.Controls
                     bool hasUniformOrAverageContainerSizeBeenSet;
                     double uniformOrAverageContainerSize = GetUniformOrAverageContainerSize(uniformSizeItemStorageProvider, parentItem, out hasUniformOrAverageContainerSizeBeenSet);
                     double computedUniformOrAverageContainerSize = uniformOrAverageContainerSize;
+
+                    if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+                    {
+                        ScrollTracer.Trace(this, ScrollTraceOp.BeginMeasure,
+                            constraint,
+                            "MC:", MeasureCaches,
+                            "reM:", remeasure,
+                            "acs:", uniformOrAverageContainerSize, areContainersUniformlySized, hasUniformOrAverageContainerSizeBeenSet);
+                    }
 
                     //
                     // Compute index and offset of first item in the viewport
@@ -2009,7 +2181,6 @@ namespace System.Windows.Controls
                                             // may insert containers at the beginning of the children
                                             // collection, which invalidates firstItemInViewportChildIndex.)
                                             if (!isVSP45Compat &&
-                                                IsScrolling &&
                                                 (firstContainerInViewport == null) &&
                                                 foundFirstItemInViewport &&
                                                 (i == startIndex))
@@ -2368,6 +2539,37 @@ namespace System.Windows.Controls
                     // Adjust the scroll offset, extent, etc.
                     // ===================================================================================
                     // ===================================================================================
+                    double effectiveOffset = 0.0;
+                    if (!isVSP45Compat && hasAverageContainerSizeChanged)
+                    {
+                        // revise the offset used for the viewport origin, for use
+                        // in future calls to InitializeViewport (part of Measure)
+                        effectiveOffset = ComputeEffectiveOffset(
+                            ref viewport,
+                            firstContainerInViewport,
+                            firstItemInViewportIndex,
+                            firstItemInViewportOffset,
+                            items,
+                            itemStorageProvider,
+                            virtualizationInfoProvider,
+                            isHorizontal,
+                            areContainersUniformlySized,
+                            uniformOrAverageContainerSize);
+
+                        // also revise the offset of the first container, for use in Arrange
+                        if (firstContainerInViewport != null)
+                        {
+                            double newOffset;
+                            ComputeDistance(items, itemStorageProvider, isHorizontal, areContainersUniformlySized, uniformOrAverageContainerSize, 0, _firstItemInExtendedViewportIndex, out newOffset);
+                            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+                            {
+                                ScrollTracer.Trace(this, ScrollTraceOp.ReviseArrangeOffset,
+                                    _firstItemInExtendedViewportOffset, newOffset);
+                            }
+                            _firstItemInExtendedViewportOffset = newOffset;
+                        }
+                    }
+
                     if (IsScrolling)
                     {
                         if (isVSP45Compat)
@@ -2395,6 +2597,7 @@ namespace System.Windows.Controls
                                 firstContainerInViewport,
                                 firstItemInViewportOffset,
                                 hasAverageContainerSizeChanged,
+                                effectiveOffset,
                                 ref stackPixelSize,
                                 ref stackLogicalSize,
                                 ref stackPixelSizeInViewport,
@@ -2403,6 +2606,7 @@ namespace System.Windows.Controls
                                 ref stackLogicalSizeInCacheBeforeViewport,
                                 ref remeasure,
                                 ref lastPageSafeOffset,
+                                ref lastPagePixelSize,
                                 ref previouslyMeasuredOffsets);
                         }
                     }
@@ -2449,12 +2653,22 @@ namespace System.Windows.Controls
                 }
             }
 
+            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+            {
+                ScrollTracer.Trace(this, ScrollTraceOp.EndMeasure,
+                    stackPixelSize, remeasure);
+            }
+
             if (remeasure)
             {
                 //
                 // Make another pass of MeasureOverride if remeasure is true.
                 //
-                return MeasureOverrideImpl(constraint, ref lastPageSafeOffset, ref previouslyMeasuredOffsets, remeasure);
+                return MeasureOverrideImpl(constraint,
+                                ref lastPageSafeOffset,
+                                ref previouslyMeasuredOffsets,
+                                ref lastPagePixelSize,
+                                remeasure);
             }
             else
             {
@@ -2534,6 +2748,12 @@ namespace System.Windows.Controls
                     // Fetch the owner for this panel. That could either be an ItemsControl or a GroupItem.
                     //
                     GetOwners(false /*shouldSetVirtualizationState*/, isHorizontal, out itemsControl, out groupItem, out itemStorageProvider, out virtualizationInfoProvider, out parentItem, out parentItemStorageProvider, out mustDisableVirtualization);
+
+                    if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+                    {
+                        ScrollTracer.Trace(this, ScrollTraceOp.BeginArrange,
+                            arrangeSize);
+                    }
 
                     // ===================================================================================
                     // ===================================================================================
@@ -2698,6 +2918,12 @@ namespace System.Windows.Controls
                             SetItemsHostInsetForChild(i, child, itemStorageProvider, isHorizontal);
                         }
                     }
+
+                    if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+                    {
+                        ScrollTracer.Trace(this, ScrollTraceOp.EndArrange,
+                            arrangeSize, _firstItemInExtendedViewportIndex, _firstItemInExtendedViewportOffset);
+                    }
                 }
             }
             finally
@@ -2718,6 +2944,15 @@ namespace System.Windows.Controls
         /// <param name="args">Event arguments</param>
         protected override void OnItemsChanged(object sender, ItemsChangedEventArgs args)
         {
+            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+            {
+                ScrollTracer.Trace(this, ScrollTraceOp.ItemsChanged,
+                    args.Action,
+                    "pos:", args.OldPosition, args.Position,
+                    "count:", args.ItemCount, args.ItemUICount,
+                    MeasureInProgress ? "MeasureInProgress" : String.Empty);
+            }
+
             if (MeasureInProgress)
             {
                 // If the Items collection changes during Measure, the measure state
@@ -3260,6 +3495,7 @@ namespace System.Windows.Controls
 
             mustDisableVirtualization = isScrolling ? MustDisableVirtualization : false;
 
+            ItemsControl parentItemsControl = null;
             DependencyObject itemsOwner = ItemsControl.GetItemsOwnerInternal(this, out itemsControl);
             if (itemsOwner != itemsControl)
             {
@@ -3268,7 +3504,7 @@ namespace System.Windows.Controls
             }
             else if (!isScrolling)
             {
-                ItemsControl parentItemsControl = ItemsControl.GetItemsOwnerInternal(VisualTreeHelper.GetParent(itemsControl)) as ItemsControl;
+                parentItemsControl = ItemsControl.GetItemsOwnerInternal(VisualTreeHelper.GetParent(itemsControl)) as ItemsControl;
                 if (parentItemsControl != null)
                 {
                     parentItem = parentItemsControl.ItemContainerGenerator.ItemFromContainer(itemsControl);
@@ -3301,6 +3537,12 @@ namespace System.Windows.Controls
 
             if (shouldSetVirtualizationState)
             {
+                // this is a good opportunity to set up tracing, if requested
+                if (ScrollTracer.IsEnabled && !ScrollTracer.IsConfigured(this))
+                {
+                    ScrollTracer.ConfigureTracing(this, itemsOwner, parentItem, itemsControl);
+                }
+
                 //
                 // Synchronize properties such as IsVirtualizing, IsRecycling & IsPixelBased
                 //
@@ -3332,7 +3574,6 @@ namespace System.Windows.Controls
                     if (!HasMeasured || oldIsPixelBased != IsPixelBased)
                     {
                         ClearItemValueStorageRecursive(itemStorageProvider, this);
-                        _scrollData._firstContainerInViewport = null;   // no longer valid after scroll unit changes
                     }
 
                     SetCacheLength(this, GetCacheLength(itemsControl));
@@ -3587,6 +3828,65 @@ namespace System.Windows.Controls
                 else
                 {
                     AdjustNonScrollingViewportForInset(isHorizontal, parentItem, parentItemStorageProvider, virtualizationInfoProvider, ref viewport, ref cacheSize, ref cacheUnit);
+
+                    // The viewport position may be expressed in an old coordinate system
+                    // relying on an old average container size.  Using that position would
+                    // produce bad results;  for example the first step in Measure computes
+                    // the first item that intersects the viewport - it uses the latest
+                    // average container size, and hence would choose the wrong item
+                    // (from user's point of view, the panel scrolls to a random place).
+                    //      To work around this, ComputeEffectiveOffset stores a list
+                    // of substitute offsets when the ave container size changes;
+                    // this instructs this method to replace an old offset with a new
+                    // one (appearing last) that's the equivalent in the current coordinate
+                    // system.
+                    //      This replacement stays in effect until the parent panel gives us
+                    // an offset from a more recent coordinate change, after which older
+                    // offsets won't appear again.   Or an offset that's not on the
+                    // list at all, which means a new scroll motion has started.
+                    DependencyObject container = virtualizationInfoProvider as DependencyObject;
+                    List<Double> offsetList = EffectiveOffsetInformationField.GetValue(container);
+                    if (offsetList != null)
+                    {
+                        if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+                        {
+                            object[] args = new object[offsetList.Count + 1];
+                            args[0] = viewport.Location;
+                            for (int i=0; i<offsetList.Count; ++i)
+                            {
+                                args[i+1] = offsetList[i];
+                            }
+                            ScrollTracer.Trace(this, ScrollTraceOp.UseSubstOffset,
+                                args);
+                        }
+
+                        // find the given offset on the list
+                        double offset = isHorizontal ? viewport.X : viewport.Y;
+                        int index = offsetList.IndexOf(offset);
+
+                        // if it appears, susbstitue the last offset
+                        if (index >= 0)
+                        {
+                            if (isHorizontal)
+                            {
+                                viewport.X = offsetList[offsetList.Count-1];
+                            }
+                            else
+                            {
+                                viewport.Y = offsetList[offsetList.Count-1];
+                            }
+
+                            // and remove offsets before the matching one -
+                            // they'll never be needed again
+                            offsetList.RemoveRange(0, index);
+                        }
+
+                        // if the list is no longer needed, discard it
+                        if (index < 0 || offsetList.Count <= 1)
+                        {
+                            EffectiveOffsetInformationField.ClearValue(container);
+                        }
+                    }
                 }
             }
             else
@@ -3630,15 +3930,6 @@ namespace System.Windows.Controls
                 // (this matters after a scroll-to-end, when the _offset
                 // is infinite)
                 _scrollData._offset = _scrollData._computedOffset;
-
-                // also record the first container and its offset from the viewport
-                _scrollData._firstContainerInViewport =
-                    ComputeFirstContainerInViewport(
-                        this,
-                        (Orientation == Orientation.Horizontal) ? FocusNavigationDirection.Right : FocusNavigationDirection.Down,
-                        this,
-                        null,
-                        out _scrollData._firstContainerOffsetFromViewport);
             }
         }
 
@@ -4568,7 +4859,98 @@ namespace System.Windows.Controls
                     }
                 }
             }
+
+            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+            {
+                ScrollTracer.Trace(this, ScrollTraceOp.CFIVIO,
+                    viewport, foundFirstItemInViewport, firstItemInViewportIndex, firstItemInViewportOffset);
+            }
         }
+
+
+        /// <summary>
+        /// After a measure pass, compute the effective offset - taking into account
+        /// changes to the average container size discovered during measure.  This
+        /// is the inverse of the previous method - ComputeFirstItemInViewportIndexAndOffset -
+        /// in the sense that it produces an offset that, if fed back into that method (with
+        /// the revised average container sizes), will yield the same result obtained
+        /// in the current measure pass.  That is, the same item will be selected
+        /// as the first item, and likewise for its sub-items.
+        /// </summary>
+        private double ComputeEffectiveOffset(
+            ref Rect viewport,
+            DependencyObject firstContainer,
+            int itemIndex,
+            double firstItemOffset,
+            IList items,
+            IContainItemStorage itemStorageProvider,
+            IHierarchicalVirtualizationAndScrollInfo virtualizationInfoProvider,
+            bool isHorizontal,
+            bool areContainersUniformlySized,
+            double uniformOrAverageContainerSize)
+        {
+            if (firstContainer == null)
+            {
+                return -1.0;    // undefined if no children in view
+            }
+
+            Debug.Assert(itemIndex < items.Count, "index out of range");
+            double oldOffset = isHorizontal ? viewport.X : viewport.Y;
+            double newOffset;
+
+            // start with the effective offset of the first item
+            ComputeDistance(items, itemStorageProvider, isHorizontal,
+                areContainersUniformlySized, uniformOrAverageContainerSize,
+                0, itemIndex, out newOffset);
+
+            // add the offset within the first item
+            newOffset += (oldOffset - firstItemOffset);
+
+            // if the item's container has recorded a substitute offset,
+            // adjust newOffset by the same amount.   This has the effect of
+            // giving the child panel the offset it wants the next time this
+            // panel measures the child.
+            List<Double> childOffsetList = EffectiveOffsetInformationField.GetValue(firstContainer);
+            if (childOffsetList != null)
+            {
+                int count = childOffsetList.Count;
+                newOffset += (childOffsetList[count-1] - childOffsetList[0]);
+            }
+
+            // record the answer (when not a top-level panel), for use by InitializeViewport.
+            DependencyObject container = virtualizationInfoProvider as DependencyObject;
+            if (container != null && oldOffset != newOffset)
+            {
+                // preserve the existing old offsets, if any, in case there are
+                // multiple calls to measure this panel before the parent
+                // adjusts to the change in our coordinate system, or calls from
+                // a parent who set its own offset using an older offset from here
+                List<Double> offsetList = EffectiveOffsetInformationField.GetValue(container);
+                if (offsetList == null)
+                {
+                    offsetList = new List<Double>(2);
+                    offsetList.Add(oldOffset);
+                }
+
+                offsetList.Add(newOffset);
+
+                if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+                {
+                    object[] args = new object[offsetList.Count];
+                    for (int i=0; i<offsetList.Count; ++i)
+                    {
+                        args[i] = offsetList[i];
+                    }
+                    ScrollTracer.Trace(this, ScrollTraceOp.StoreSubstOffset,
+                        args);
+                }
+
+                EffectiveOffsetInformationField.SetValue(container, offsetList);
+            }
+
+            return newOffset;
+        }
+
 
         /// <summary>
         /// DesiredSize is normally computed by summing up the size of all items we've generated.  Pixel-based virtualization uses a 'full' desired size.
@@ -6065,7 +6447,7 @@ namespace System.Windows.Controls
                     }
                 }
 
-                if (DoubleUtil.GreaterThan(numContainerSizes, 0))
+                if (numContainerSizes > 0)
                 {
                     if (IsPixelBased)
                     {
@@ -6086,6 +6468,12 @@ namespace System.Windows.Controls
             else
             {
                 uniformOrAverageContainerSize = computedUniformOrAverageContainerSize;
+            }
+
+            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+            {
+                ScrollTracer.Trace(this, ScrollTraceOp.SyncAveSize,
+                    uniformOrAverageContainerSize, areContainersUniformlySized, hasAverageContainerSizeChanged);
             }
         }
 
@@ -6244,7 +6632,9 @@ namespace System.Windows.Controls
                 }
                 else
                 {
+                    object oldValue = itemStorageProvider.ReadItemValue(item, UniformOrAverageContainerSizeProperty);
                     itemStorageProvider.StoreItemValue(item, UniformOrAverageContainerSizeProperty, value);
+                    result = !Object.Equals(oldValue, value);
                 }
             }
 
@@ -7635,6 +8025,18 @@ namespace System.Windows.Controls
                 Debug.Assert(startIndex >= 0 && count > 0);
                 Debug.Assert(children == _realizedChildren, "the given child list must be the _realizedChildren list when recycling");
 
+                if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+                {
+                    List<String> list = new List<String>(count);
+                    for (int i=0; i<count; ++i)
+                    {
+                        list.Add(ContainerPath((DependencyObject)children[startIndex + i]));
+                    }
+
+                    ScrollTracer.Trace(this, ScrollTraceOp.RecycleChildren,
+                        startIndex, count, list);
+                }
+
                 ((IRecyclingItemContainerGenerator)generator).Recycle(new GeneratorPosition(startIndex, 0), count);
 
                 // The call to Recycle has caused the ItemContainerGenerator to remove some items
@@ -7643,6 +8045,18 @@ namespace System.Windows.Controls
             }
             else
             {
+                if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+                {
+                    List<String> list = new List<String>(count);
+                    for (int i=0; i<count; ++i)
+                    {
+                        list.Add(ContainerPath((DependencyObject)children[startIndex + i]));
+                    }
+
+                    ScrollTracer.Trace(this, ScrollTraceOp.RemoveChildren,
+                        startIndex, count, list);
+                }
+
                 // Remove the desired range of children
                 VirtualizingPanel.RemoveInternalChildRange((UIElementCollection)children, startIndex, count);
                 generator.Remove(new GeneratorPosition(startIndex, 0), count);
@@ -7735,7 +8149,6 @@ namespace System.Windows.Controls
         /// <summary>
         ///     Sets the scolling Data
         /// </summary>
-        /// <returns>The return value indicates if the offset changed or not</returns>
         // This is the 4.5.1+ version of the method.  Fixes many bugs.
         private void SetAndVerifyScrollingData(
             bool isHorizontal,
@@ -7744,6 +8157,7 @@ namespace System.Windows.Controls
             UIElement firstContainerInViewport,
             double firstContainerOffsetFromViewport,
             bool hasAverageContainerSizeChanged,
+            double newOffset,
             ref Size stackPixelSize,
             ref Size stackLogicalSize,
             ref Size stackPixelSizeInViewport,
@@ -7752,6 +8166,7 @@ namespace System.Windows.Controls
             ref Size stackLogicalSizeInCacheBeforeViewport,
             ref bool remeasure,
             ref double? lastPageSafeOffset,
+            ref double? lastPagePixelSize,
             ref List<double> previouslyMeasuredOffsets)
         {
             Debug.Assert(IsScrolling, "ScrollData must only be set on a scrolling panel.");
@@ -7892,77 +8307,104 @@ namespace System.Windows.Controls
             }
 #endif
 
+            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+            {
+                ScrollTracer.Trace(this, ScrollTraceOp.SVSDBegin,
+                    IsScrollActive, MeasureCaches,
+                    _scrollData._offset, computedViewportOffset, extentSize, viewportSize);
+
+                if (hasAverageContainerSizeChanged)
+                {
+                    ScrollTracer.Trace(this, ScrollTraceOp.SVSDBegin,
+                        "acs:", UniformOrAverageContainerSize);
+                }
+            }
+
             // remember whether the viewport was moved from the end of the list
             // (do this before changing computedViewportOffset)
             bool wasViewportOffsetCoerced =
-                isHorizontal ? !DoubleUtil.AreClose(computedViewportOffset.X, _scrollData._offset.X)
-                             : !DoubleUtil.AreClose(computedViewportOffset.Y, _scrollData._offset.Y);
-
-            bool computedViewportOffsetWasAdjusted = false;
+                isHorizontal ? (!DoubleUtil.AreClose(computedViewportOffset.X, _scrollData._offset.X) ||
+                                (IsScrollActive && computedViewportOffset.X > 0.0 && DoubleUtil.GreaterThanOrClose(computedViewportOffset.X, _scrollData.Extent.Width-_scrollData.Viewport.Width)))
+                             : (!DoubleUtil.AreClose(computedViewportOffset.Y, _scrollData._offset.Y) ||
+                                (IsScrollActive && computedViewportOffset.Y > 0.0 && DoubleUtil.GreaterThanOrClose(computedViewportOffset.Y, _scrollData.Extent.Height-_scrollData.Viewport.Height)));
+            bool discardOffsets = false;
 
             // when the average container size changes during a measure pass, all
             // scroll offsets are potentially changed.  Treat this as if we had
             // actually measured using the new scroll offset, provided that there's
             // enough information available to compute it.
-            if (hasAverageContainerSizeChanged &&
-                (IsVirtualizing && !IsScrollActive))
+            if (hasAverageContainerSizeChanged && newOffset >= 0.0)
             {
-                GetFirstContainerAndOffsetFromViewport(isHorizontal, ref firstContainerInViewport, ref firstContainerOffsetFromViewport);
-
-                if (firstContainerInViewport != null)
+                if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
                 {
-                    double newOffset = FindScrollOffset(firstContainerInViewport) -
-                        firstContainerOffsetFromViewport;
+                    ScrollTracer.Trace(this, ScrollTraceOp.AdjustOffset,
+                        newOffset, computedViewportOffset);
+                }
 
-                    if (isHorizontal)
+                if (isHorizontal)
+                {
+                    if (!LayoutDoubleUtil.AreClose(computedViewportOffset.X, newOffset))
                     {
-                        if (!LayoutDoubleUtil.AreClose(computedViewportOffset.X, newOffset))
+                        computedViewportOffset.X = newOffset;
+                        offsetForScrollViewerRemeasure.X = newOffset;
+
+                        discardOffsets = true;
+
+                        // if the new offset is close to the end, treat it like
+                        // a scroll to the end
+                        if (DoubleUtil.GreaterThan(newOffset + viewportSize.Width, extentSize.Width))
                         {
-                            computedViewportOffsetWasAdjusted = true;
-                            computedViewportOffset.X = newOffset;
-                            offsetForScrollViewerRemeasure.X = newOffset;
-
-                            // All saved offsets are now meaningless.  Discard them.
-                            if (previouslyMeasuredOffsets != null)
-                            {
-                                previouslyMeasuredOffsets.Clear();
-                            }
-                            lastPageSafeOffset = null;
-
-                            // if the new offset is close to the end, treat it like
-                            // a scroll to the end
-                            if (DoubleUtil.GreaterThan(newOffset + viewportSize.Width, extentSize.Width))
-                            {
-                                wasViewportOffsetCoerced = true;
-                                IsScrollActive = true;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (!LayoutDoubleUtil.AreClose(computedViewportOffset.Y, newOffset))
-                        {
-                            computedViewportOffsetWasAdjusted = true;
-                            computedViewportOffset.Y = newOffset;
-                            offsetForScrollViewerRemeasure.Y = newOffset;
-
-                            // All saved offsets are now meaningless.  Discard them.
-                            if (previouslyMeasuredOffsets != null)
-                            {
-                                previouslyMeasuredOffsets.Clear();
-                            }
-                            lastPageSafeOffset = null;
-
-                            // if the new offset is close to the end, treat it like
-                            // a scroll to the end
-                            if (DoubleUtil.GreaterThan(newOffset + viewportSize.Height, extentSize.Height))
-                            {
-                                wasViewportOffsetCoerced = true;
-                                IsScrollActive = true;
-                            }
+                            wasViewportOffsetCoerced = true;
+                            IsScrollActive = true;
                         }
                     }
                 }
+                else
+                {
+                    if (!LayoutDoubleUtil.AreClose(computedViewportOffset.Y, newOffset))
+                    {
+                        computedViewportOffset.Y = newOffset;
+                        offsetForScrollViewerRemeasure.Y = newOffset;
+
+                        // if the new offset is close to the end, treat it like
+                        // a scroll to the end
+                        if (DoubleUtil.GreaterThan(newOffset + viewportSize.Height, extentSize.Height))
+                        {
+                            wasViewportOffsetCoerced = true;
+                            IsScrollActive = true;
+                        }
+                    }
+                }
+            }
+
+            // similarly, if we're scrolling to the end and using the last safe offset,
+            // and the pixel size in the viewport changes (because of a size change
+            // within the children), discard the saved offsets and start looking for
+            // a better candidate
+            if (lastPagePixelSize.HasValue && !lastPageSafeOffset.HasValue &&
+                !DoubleUtil.AreClose(isHorizontal ? stackPixelSizeInViewport.Width : stackPixelSizeInViewport.Height,
+                                    (double)lastPagePixelSize))
+            {
+                discardOffsets = true;
+                wasViewportOffsetCoerced = true;
+
+                if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+                {
+                    ScrollTracer.Trace(this, ScrollTraceOp.LastPageSizeChange,
+                        computedViewportOffset,
+                        stackPixelSizeInViewport, lastPagePixelSize);
+                }
+            }
+
+            if (discardOffsets)
+            {
+                // All saved offsets are now meaningless.  Discard them.
+                if (previouslyMeasuredOffsets != null)
+                {
+                    previouslyMeasuredOffsets.Clear();
+                }
+                lastPageSafeOffset = null;
+                lastPagePixelSize = null;
             }
 
             // Detect changes to the viewportSize, extentSize, and computedViewportOffset
@@ -8017,6 +8459,12 @@ namespace System.Windows.Controls
                         }
                     }
                 }
+
+                if (scrollViewerWillRemeasure && ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+                {
+                    ScrollTracer.Trace(this, ScrollTraceOp.ScrollBarChangeVisibility,
+                        viewportOffset);
+                }
             }
 
             //
@@ -8039,6 +8487,12 @@ namespace System.Windows.Controls
                     //
                     if (!IsPixelBased && lastPageSafeOffset.HasValue && !DoubleUtil.AreClose((double)lastPageSafeOffset, computedViewportOffset.X))
                     {
+                        if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+                        {
+                            ScrollTracer.Trace(this, ScrollTraceOp.RemeasureCycle,
+                                viewportOffset.X, lastPageSafeOffset);
+                        }
+
                         viewportOffset.X = (double)lastPageSafeOffset;
                         lastPageSafeOffset = null;
                         remeasure = true;
@@ -8059,12 +8513,25 @@ namespace System.Windows.Controls
                             // When navigating to the last page remember the smallest offset that
                             // was able to display the last item in the collection
                             //
-                            lastPageSafeOffset = lastPageSafeOffset.HasValue ? Math.Min(computedViewportOffset.X, (double)lastPageSafeOffset) : computedViewportOffset.X;
+                            if (!lastPageSafeOffset.HasValue || computedViewportOffset.X < (double)lastPageSafeOffset)
+                            {
+                                lastPageSafeOffset = computedViewportOffset.X;
+                                lastPagePixelSize = stackPixelSizeInViewport.Width;
+                            }
 
                             double approxSizeOfLogicalUnit = stackPixelSizeInViewport.Width / stackLogicalSizeInViewport.Width;
                             double proposedViewportSize = Math.Floor(viewport.Width / approxSizeOfLogicalUnit);
                             if (DoubleUtil.GreaterThan(proposedViewportSize, viewportSize.Width))
                             {
+                                if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+                                {
+                                    ScrollTracer.Trace(this, ScrollTraceOp.RemeasureEndExpandViewport,
+                                        "off:", computedViewportOffset.X, lastPageSafeOffset,
+                                        "pxSz:", stackPixelSizeInViewport.Width, viewport.Width,
+                                        "itSz:", stackLogicalSizeInViewport.Width, viewportSize.Width,
+                                        "newVpSz:", proposedViewportSize);
+                                }
+
                                 viewportOffset.X = Double.PositiveInfinity;
                                 viewportSize.Width = proposedViewportSize;
                                 remeasure = true;
@@ -8079,8 +8546,16 @@ namespace System.Windows.Controls
                         if (!remeasure && wasViewportOffsetCoerced && viewportSizeChanged &&
                             !DoubleUtil.AreClose(_scrollData._viewport.Width, viewportSize.Width))
                         {
+                            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+                            {
+                                ScrollTracer.Trace(this, ScrollTraceOp.RemeasureEndChangeOffset,
+                                    "off:", computedViewportOffset.X,
+                                    "vpSz:", _scrollData._viewport.Width, viewportSize.Width,
+                                    "newOff:", _scrollData._offset);
+                            }
+
                             remeasure = true;
-                            viewportOffset.X = _scrollData._offset.X;
+                            viewportOffset.X = Double.PositiveInfinity;
                             StorePreviouslyMeasuredOffset(ref previouslyMeasuredOffsets, computedViewportOffset.X);
 
                             if (DoubleUtil.AreClose(viewportSize.Width, 0))
@@ -8104,6 +8579,14 @@ namespace System.Windows.Controls
                               ( DoubleUtil.GreaterThan(computedViewportOffset.X, 0.0) &&
                                 DoubleUtil.GreaterThan(computedViewportOffset.X, extentSize.Width - viewportSize.Width))))
                         {
+                            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+                            {
+                                ScrollTracer.Trace(this, ScrollTraceOp.RemeasureEndExtentChanged,
+                                    "off:", computedViewportOffset.X,
+                                    "ext:", _scrollData._extent.Width, extentSize.Width,
+                                    "vpSz:", viewportSize.Width);
+                            }
+
                             remeasure = true;
                             viewportOffset.X = Double.PositiveInfinity;
                             StorePreviouslyMeasuredOffset(ref previouslyMeasuredOffsets, computedViewportOffset.X);
@@ -8144,6 +8627,14 @@ namespace System.Windows.Controls
                                     }
                                 }
 
+                                if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this) && remeasure)
+                                {
+                                    ScrollTracer.Trace(this, ScrollTraceOp.RemeasureRatio,
+                                        "expRat:", _scrollData._offset.X, _scrollData._extent.Width, (_scrollData._offset.X/_scrollData._extent.Width),
+                                        "actRat:", computedViewportOffset.X, extentSize.Width, (computedViewportOffset.X/extentSize.Width),
+                                        "newOff:", viewportOffset.X);
+                                }
+
                                 // preserve "scrolling-to-end" state
                                 if (wasViewportOffsetCoerced)
                                 {
@@ -8170,6 +8661,12 @@ namespace System.Windows.Controls
                     //
                     if (!IsPixelBased && lastPageSafeOffset.HasValue && !DoubleUtil.AreClose((double)lastPageSafeOffset, computedViewportOffset.Y))
                     {
+                        if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+                        {
+                            ScrollTracer.Trace(this, ScrollTraceOp.RemeasureCycle,
+                                viewportOffset.Y, lastPageSafeOffset);
+                        }
+
                         viewportOffset.Y = (double)lastPageSafeOffset;
                         lastPageSafeOffset = null;
                         remeasure = true;
@@ -8190,12 +8687,25 @@ namespace System.Windows.Controls
                             // When navigating to the last page remember the smallest offset that
                             // was able to display the last item in the collection
                             //
-                            lastPageSafeOffset = lastPageSafeOffset.HasValue ? Math.Min(computedViewportOffset.Y, (double)lastPageSafeOffset) : computedViewportOffset.Y;
+                            if (!lastPageSafeOffset.HasValue || computedViewportOffset.Y < (double)lastPageSafeOffset)
+                            {
+                                lastPageSafeOffset = computedViewportOffset.Y;
+                                lastPagePixelSize = stackPixelSizeInViewport.Height;
+                            }
 
                             double approxSizeOfLogicalUnit = stackPixelSizeInViewport.Height / stackLogicalSizeInViewport.Height;
                             double proposedViewportSize = Math.Floor(viewport.Height / approxSizeOfLogicalUnit);
                             if (DoubleUtil.GreaterThan(proposedViewportSize, viewportSize.Height))
                             {
+                                if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+                                {
+                                    ScrollTracer.Trace(this, ScrollTraceOp.RemeasureEndExpandViewport,
+                                        "off:", computedViewportOffset.Y, lastPageSafeOffset,
+                                        "pxSz:", stackPixelSizeInViewport.Height, viewport.Height,
+                                        "itSz:", stackLogicalSizeInViewport.Height, viewportSize.Height,
+                                        "newVpSz:", proposedViewportSize);
+                                }
+
                                 viewportOffset.Y = Double.PositiveInfinity;
                                 viewportSize.Height = proposedViewportSize;
                                 remeasure = true;
@@ -8210,8 +8720,16 @@ namespace System.Windows.Controls
                         if (!remeasure && wasViewportOffsetCoerced && viewportSizeChanged &&
                             !DoubleUtil.AreClose(_scrollData._viewport.Height, viewportSize.Height))
                         {
+                            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+                            {
+                                ScrollTracer.Trace(this, ScrollTraceOp.RemeasureEndChangeOffset,
+                                    "off:", computedViewportOffset.Y,
+                                    "vpSz:", _scrollData._viewport.Height, viewportSize.Height,
+                                    "newOff:", _scrollData._offset);
+                            }
+
                             remeasure = true;
-                            viewportOffset.Y = _scrollData._offset.Y;
+                            viewportOffset.Y = Double.PositiveInfinity;
                             StorePreviouslyMeasuredOffset(ref previouslyMeasuredOffsets, computedViewportOffset.Y);
 
                             if (DoubleUtil.AreClose(viewportSize.Height, 0))
@@ -8235,6 +8753,14 @@ namespace System.Windows.Controls
                               ( DoubleUtil.GreaterThan(computedViewportOffset.Y, 0.0) &&
                                 DoubleUtil.GreaterThan(computedViewportOffset.Y, extentSize.Height - viewportSize.Height))))
                         {
+                            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+                            {
+                                ScrollTracer.Trace(this, ScrollTraceOp.RemeasureEndExtentChanged,
+                                    "off:", computedViewportOffset.Y,
+                                    "ext:", _scrollData._extent.Height, extentSize.Height,
+                                    "vpSz:", viewportSize.Height);
+                            }
+
                             remeasure = true;
                             viewportOffset.Y = Double.PositiveInfinity;
                             StorePreviouslyMeasuredOffset(ref previouslyMeasuredOffsets, computedViewportOffset.Y);
@@ -8270,8 +8796,15 @@ namespace System.Windows.Controls
                                     {
                                         remeasure = true;
                                         viewportOffset.Y = Math.Floor((extentSize.Height * Math.Floor(_scrollData._offset.Y)) / _scrollData._extent.Height);
-                                        StorePreviouslyMeasuredOffset(ref previouslyMeasuredOffsets, computedViewportOffset.Y);
                                     }
+                                }
+
+                                if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this) && remeasure)
+                                {
+                                    ScrollTracer.Trace(this, ScrollTraceOp.RemeasureRatio,
+                                        "expRat:", _scrollData._offset.Y, _scrollData._extent.Height, (_scrollData._offset.Y/_scrollData._extent.Height),
+                                        "actRat:", computedViewportOffset.Y, extentSize.Height, (computedViewportOffset.Y/extentSize.Height),
+                                        "newOff:", viewportOffset.Y);
                                 }
 
                                 // preserve "scrolling-to-end" state
@@ -8294,31 +8827,16 @@ namespace System.Windows.Controls
                 IsScrollActive = true;
             }
 
-            // if we adjusted computedViewportOffset (because the average container
-            // size changed during this measure pass), the offset stored for the
-            // first container is no longer valid.  Recompute it now, so that
-            // Arrange will place the containers in the right place. (But if
-            // another measure pass is about to happen, don't bother - the measure
-            // pass recomputes it anyway.)
-            if (computedViewportOffsetWasAdjusted)
-            {
-                if (!scrollViewerWillRemeasure && !remeasure)
-                {
-                    IList children = RealizedChildren;
-                    if (0 <= _firstItemInExtendedViewportChildIndex &&
-                        _firstItemInExtendedViewportChildIndex < children.Count)
-                    {
-                        Visual child = children[_firstItemInExtendedViewportChildIndex] as Visual;
-                        if (child != null)
-                        {
-                            double childOffset = FindScrollOffset(child);
-                            _firstItemInExtendedViewportOffset = childOffset;
-                        }
-                    }
-                }
-            }
-
             viewportSizeChanged = !DoubleUtil.AreClose(viewportSize, _scrollData._viewport);
+
+            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+            {
+                ScrollTracer.Trace(this, ScrollTraceOp.SVSDEnd,
+                    "off:", _scrollData._offset, viewportOffset,
+                    "ext:", _scrollData._extent, extentSize,
+                    "co:", _scrollData._computedOffset, computedViewportOffset,
+                    "vp:", _scrollData._viewport, viewportSize);
+            }
 
             // Update data and fire scroll change notifications
             if (viewportSizeChanged || extentSizeChanged || computedViewportOffsetChanged)
@@ -8346,98 +8864,6 @@ namespace System.Windows.Controls
             }
 
             _scrollData._offset = viewportOffset;
-        }
-
-        // Find the first leaf container in the viewport, and its offset.
-        // This is called by the top level (scrolling) panel from SetAndVerifyScrollingData,
-        // when a change to the average container size has made all the existing
-        // scroll offsets suspect.  Therefore it must work without using any of
-        // the existing scroll offsets.
-        private void GetFirstContainerAndOffsetFromViewport(bool isHorizontal,
-            ref UIElement firstContainerInViewport,
-            ref double firstContainerOffsetFromViewport)
-        {
-            // We record the answer at the end of every scroll
-            // operation. Use the recorded answer, provided it is still valid
-
-            UIElement recordedAnswer = _scrollData._firstContainerInViewport;
-            if (recordedAnswer != null)
-            {
-                // verify that the recorded first container is still a visible descendant
-                if (recordedAnswer.IsVisible &&
-                    recordedAnswer.IsDescendantOf(this))
-                {
-                    firstContainerInViewport = recordedAnswer;
-                    firstContainerOffsetFromViewport = _scrollData._firstContainerOffsetFromViewport;
-                    return;
-                }
-                else
-                {
-                    // un-record an answer that is no longer valid
-                    _scrollData._firstContainerInViewport = null;
-                }
-            }
-
-            // If the recorded answer doesn't work, search through the tree to find
-            // an acceptable container with which we can get our bearings again.
-
-            // As the measure pass descends recursively through the tree, it records
-            // the viewport in each TreeViewItem or GroupItem (IHierarchicalVirtualizationAndScrollInfo),
-            // expressed in the local coordinates of that element.  We use the
-            // deepest one of these we can find, to get a container whose scroll
-            // offset includes changes at all levels.   If no containers can be
-            // found this way, we fall back to the top-level container discovered
-            // at the beginning of measuring the scrolling panel (the caller initializes
-            // the output parameters accordingly).
-
-            VirtualizingStackPanel panel = this;
-            for (;;)
-            {
-                IHierarchicalVirtualizationAndScrollInfo container = null;
-
-                // find the first child container whose content overlaps the viewport,
-                // i.e. the last one whose viewport's origin (in local coords) is positive.
-                UIElementCollection children = panel.InternalChildren;
-                for (int i=0; i<children.Count; ++i)
-                {
-                    UIElement child = children[i];
-                    IHierarchicalVirtualizationAndScrollInfo hvsi = GetVirtualizingChild(child);
-                    if (hvsi != null)
-                    {
-                        double localViewportOrigin = isHorizontal ? hvsi.Constraints.Viewport.X : hvsi.Constraints.Viewport.Y;
-                        if (DoubleUtil.LessThan(0.0, localViewportOrigin))
-                        {
-                            // record a new best answer
-                            firstContainerInViewport = child;
-                            firstContainerOffsetFromViewport = -localViewportOrigin;
-
-                            container = hvsi;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-                }
-
-                // if the container can have virtualized children, continue the search
-                // with those children
-                if (container != null)
-                {
-                    panel = container.ItemsHost as VirtualizingStackPanel;
-                    if (panel == null ||
-                        !panel.IsVisible ||
-                        panel.Orientation != this.Orientation ||
-                        container.MustDisableVirtualization)
-                    {
-                        break;
-                    }
-                }
-                else
-                {
-                    break;
-                }
-            }
         }
 
         // *** DEAD CODE This method is only called in VSP45-compat mode ***
@@ -9535,6 +9961,16 @@ namespace System.Windows.Controls
 
             set
             {
+                if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+                {
+                    bool oldValue = GetBoolField(BoolField.IsScrollActive);
+                    if (value != oldValue)
+                    {
+                        ScrollTracer.Trace(this, ScrollTraceOp.IsScrollActive,
+                            value);
+                    }
+                }
+
                 SetBoolField(BoolField.IsScrollActive, value);
             }
         }
@@ -9705,6 +10141,7 @@ namespace System.Windows.Controls
         private static readonly UncommonField<DispatcherOperation> AnchoredInvalidateMeasureOperationField = new UncommonField<DispatcherOperation>();
         private static readonly UncommonField<DispatcherOperation> ClearIsScrollActiveOperationField = new UncommonField<DispatcherOperation>();
         private static readonly UncommonField<OffsetInformation> OffsetInformationField = new UncommonField<OffsetInformation>();
+        private static readonly UncommonField<List<Double>> EffectiveOffsetInformationField = new UncommonField<List<Double>>();
 
         #endregion
 
@@ -9772,22 +10209,6 @@ namespace System.Windows.Controls
 
             internal Size _maxDesiredSize;      // Hold onto the maximum desired size to avoid re-laying out the parent ScrollViewer.
 
-            // Size changes can change the effective scroll offset of every item, by
-            // changing the average container size.  When this happens outside of
-            // a scroll operation (e.g. by collapsing/expanding a TreeViewItem or
-            // GroupItem, or adding/removing items) we need some way to recover
-            // the viewport offset with respect to the new sizes.  This can't be
-            // done purely at measure time, as the changes may originate in a
-            // deeply nested container (in hierarchical scenarios) - by the time
-            // they percolate up to the top-level scrolling panel, the nested
-            // panels have typically replaced their offsets with new ones, which
-            // makes it impossible to find the original offsets.  Instead, we
-            // record, after each scolling operation, the first container in the
-            // viewport and its offset from the viewport.  SetAndVerifyScrollData
-            // uses this to change the offset so as to produce no visible scrolling.
-            internal FrameworkElement _firstContainerInViewport;     // possibly nested
-            internal double  _firstContainerOffsetFromViewport;
-
             public Vector Offset
             {
                 get
@@ -9848,7 +10269,834 @@ namespace System.Windows.Controls
         {
             public List<double> previouslyMeasuredOffsets { get; set; }
             public double? lastPageSafeOffset { get; set; }
+            public double? lastPagePixelSize { get; set; }
         }
+
+        #region ScrollTracer
+
+        // NOTE The binary output is read by the StfViewer tool (wpf\src\tools\StfViewer).
+        // Any changes that affect the binary output should have corresponding
+        // changes in the tool.
+
+        // a "black box" (flight data recorder) for diagnosing scrolling bugs
+        private class ScrollTracer
+        {
+            #region static members
+
+            const int s_StfFormatVersion = 0;   // Format of output file
+
+            static string _targetName;
+            static ScrollTracer()
+            {
+                _targetName = FrameworkCompatibilityPreferences.GetScrollingTraceTarget();
+
+                string s = FrameworkCompatibilityPreferences.GetScrollingTraceFile();
+                int flushDepth = 0;
+                if (!String.IsNullOrEmpty(s))
+                {
+                    int i = s.IndexOf(';');
+                    if (i >= 0)
+                    {
+                        bool b = Int32.TryParse(s.Substring(i+1), NumberStyles.Integer, CultureInfo.InvariantCulture, out flushDepth);
+                        s = s.Substring(0, i);
+                    }
+                }
+
+                _fileName = s;
+                _flushDepth = flushDepth;
+
+                _isEnabled = (_targetName != null);
+            }
+
+            static bool _isEnabled;
+            internal static bool IsEnabled { get { return _isEnabled; } }
+
+            static ItemsControl _target;
+            static void SetTarget(ItemsControl target, bool overwriteExistingTarget)
+            {
+                if (overwriteExistingTarget)
+                {
+                    System.Threading.Interlocked.Exchange<ItemsControl>(ref _target, target);
+                }
+                else
+                {
+                    System.Threading.Interlocked.CompareExchange<ItemsControl>(ref _target, target, null);
+                }
+                _isEnabled = (_target != null);
+            }
+
+            // for use from VS Immediate window
+            internal static bool SetTarget(object o)
+            {
+                ItemsControl target = o as ItemsControl;
+                if (target != null || o == null)
+                {
+                    SetTarget(target, overwriteExistingTarget:true);
+                }
+                return (_target == o);
+            }
+
+            static ScrollTracer GetActiveTracer()
+            {
+                ScrollTracer tracer = null;
+                if (_target != null)
+                {
+                    Panel itemsHost = _target.ItemsHost;
+                    ScrollTracingInfo sti = ScrollTracingInfoField.GetValue(itemsHost);
+                    tracer = (sti != null) ? sti.ScrollTracer : null;
+                }
+                return tracer;
+            }
+
+            static string _fileName;
+            static int _flushDepth;
+            static BinaryWriter _writer;
+
+            // for use from VS Immediate window
+            internal static void SetFileAndDepth(string filename, int flushDepth)
+            {
+                _fileName = filename;
+                _flushDepth = flushDepth;
+
+                // get active tracer (if any)
+                ScrollTracer tracer = GetActiveTracer();
+
+                // flush and close existing file
+                if (_writer != null)
+                {
+                    if (tracer != null)
+                    {
+                        tracer.Flush(-1);
+                    }
+
+                    _writer.Close();
+                    _writer = null;
+                }
+
+                // open a new file
+                OpenTraceFile();
+
+                // restart active tracer
+                if (tracer != null)
+                {
+                    tracer._flushIndex = 0;
+                }
+            }
+
+            // open a trace file, if not already open
+            static void OpenTraceFile()
+            {
+                if (_writer == null)
+                {
+                    string filename = _fileName;
+
+                    if (String.IsNullOrEmpty(filename) || filename == "default")
+                    {
+                        filename = "ScrollTrace.stf";
+                    }
+
+                    if (filename != "none")
+                    {
+                        _writer = new BinaryWriter(File.Open(filename, FileMode.Create));
+                        _writer.Write((int)s_StfFormatVersion);
+                    }
+                }
+            }
+
+            // for use from VS Immediate window
+            static void Flush()
+            {
+                ScrollTracer tracer = GetActiveTracer();
+                if (tracer != null)
+                {
+                    tracer.Flush(-1);
+                }
+            }
+
+            // for use from VS Immediate window
+            static void Mark(params object[] args)
+            {
+                ScrollTracer tracer = GetActiveTracer();
+                if (tracer != null)
+                {
+                    tracer.AddTrace(null, ScrollTraceOp.Mark, _nullInfo,
+                        args);
+                }
+            }
+
+            internal static bool IsConfigured(VirtualizingStackPanel vsp)
+            {
+                ScrollTracingInfo sti = ScrollTracingInfoField.GetValue(vsp);
+                return (sti != null);
+            }
+
+            private static ScrollTracingInfo _nullInfo = new ScrollTracingInfo(null, -1, null, null, null, -1);
+
+            internal static void ConfigureTracing(VirtualizingStackPanel vsp,
+                                            DependencyObject itemsOwner,
+                                            object parentItem,
+                                            ItemsControl itemsControl)
+            {
+                Debug.Assert(!IsConfigured(vsp));
+
+                ScrollTracer tracer = null;
+
+                if (itemsControl.Name == _targetName)
+                {
+                    SetTarget(itemsControl, overwriteExistingTarget:false);
+                }
+
+                ScrollTracingInfo sti = _nullInfo;  // default - do nothing
+
+                if (parentItem == vsp)
+                {
+                    // top level VSP
+                    if (itemsOwner == _target)
+                    {
+                        tracer = new ScrollTracer(itemsControl, vsp);
+                    }
+
+                    if (tracer != null)
+                    {
+                        sti = new ScrollTracingInfo(tracer, 0, itemsOwner as FrameworkElement, null, null, 0);
+                    }
+                }
+                else
+                {
+                    // inner VSP
+
+                    VirtualizingStackPanel parent = VisualTreeHelper.GetParent(itemsOwner) as VirtualizingStackPanel;
+                    if (parent != null)
+                    {
+                        ScrollTracingInfo parentInfo = ScrollTracingInfoField.GetValue(parent);
+                        if (parentInfo != null)
+                        {
+                            tracer = parentInfo.ScrollTracer;
+                            if (tracer != null)
+                            {
+                                ItemContainerGenerator generator = parent.ItemContainerGenerator as ItemContainerGenerator;
+                                int itemIndex = (generator != null) ? generator.IndexFromContainer(itemsOwner, returnLocalIndex:true) : -1;
+                                sti = new ScrollTracingInfo(tracer, parentInfo.Depth + 1, itemsOwner as FrameworkElement, parent, parentItem, itemIndex);
+                            }
+                        }
+                    }
+
+                }
+
+                ScrollTracingInfoField.SetValue(vsp, sti);
+            }
+
+            internal static bool IsTracing(VirtualizingStackPanel vsp)
+            {
+                ScrollTracingInfo sti = ScrollTracingInfoField.GetValue(vsp);
+                return (sti != null && sti.ScrollTracer != null);
+            }
+
+            internal static void Trace(VirtualizingStackPanel vsp, ScrollTraceOp op, params object[] args)
+            {
+                ScrollTracingInfo sti = ScrollTracingInfoField.GetValue(vsp);
+                ScrollTracer tracer = sti.ScrollTracer;
+                Debug.Assert(tracer != null, "Trace called when not tracing");
+
+                if (ShouldIgnore(op, sti))
+                    return;
+
+                tracer.AddTrace(vsp, op, sti, args);
+            }
+
+            private static bool ShouldIgnore(ScrollTraceOp op, ScrollTracingInfo sti)
+            {
+                return (op == ScrollTraceOp.NoOp);
+            }
+
+            private static string DisplayType(object o)
+            {
+                System.Text.StringBuilder sb = new System.Text.StringBuilder();
+                bool needSeparator = false;
+                bool isWPFControl = false;
+                for (Type t = o.GetType(); !isWPFControl && t != null; t = t.BaseType)
+                {
+                    if (needSeparator)
+                    {
+                        sb.Append("/");
+                    }
+
+                    string name = t.ToString();
+                    isWPFControl = name.StartsWith("System.Windows.Controls.");
+                    if (isWPFControl)
+                    {
+                        name = name.Substring(24);  // 24 == length of "s.w.c."
+                    }
+
+                    sb.Append(name);
+                    needSeparator = true;
+                }
+
+                return sb.ToString();
+            }
+
+            private static string BuildDetail(object[] args)
+            {
+                int length = (args != null) ? args.Length : 0;
+                if (length == 0)
+                    return String.Empty;
+                else
+                    return String.Format(CultureInfo.InvariantCulture, s_format[length], args);
+            }
+
+            private static string[] s_format = new string[] {
+                "",
+                "{0}",
+                "{0} {1}",
+                "{0} {1} {2}",
+                "{0} {1} {2} {3}",
+                "{0} {1} {2} {3} {4} ",
+                "{0} {1} {2} {3} {4} {5}",
+                "{0} {1} {2} {3} {4} {5} {6}",
+                "{0} {1} {2} {3} {4} {5} {6} {7}",
+                "{0} {1} {2} {3} {4} {5} {6} {7} {8}",
+                "{0} {1} {2} {3} {4} {5} {6} {7} {8} {9}",
+                "{0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10}",
+                "{0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11}",
+                "{0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12}",
+                "{0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} {13}",
+            };
+
+            #endregion static members
+
+            #region instance members
+
+            private int _depth=0;       // depth of op stack
+            private int _flushIndex=0;  // where last flush ended
+
+            private void Push()     { ++_depth; }
+            private void Pop()      { --_depth; }
+            private void Pop(ScrollTraceRecord record)  { --_depth; record.ChangeOpDepth(-1); }
+
+            private List<ScrollTraceRecord> _traceList = new List<ScrollTraceRecord>();
+
+            private ScrollTracer(ItemsControl itemsControl, VirtualizingStackPanel vsp)
+            {
+                itemsControl.LayoutUpdated += new EventHandler(OnLayoutUpdated);
+
+                Application app = Application.Current;
+                if (app != null)
+                {
+                    app.DispatcherUnhandledException -= OnUnhandledException;
+                    app.DispatcherUnhandledException += OnUnhandledException;
+                }
+
+                // set up file output
+                OpenTraceFile();
+
+                // write identifying information to the file
+                IdentifyTrace(itemsControl, vsp);
+            }
+
+            // in case of unhandled exception, flush pending info to the file
+            void OnUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+            {
+                Application app = sender as Application;
+                if (app != null)
+                {
+                    app.DispatcherUnhandledException -= OnUnhandledException;   // avoid re-entrancy
+                }
+
+                if (_writer != null)
+                {
+                    Flush(_flushDepth);
+                    _writer.Close();
+                    _writer = null;
+                }
+            }
+
+            private void IdentifyTrace(ItemsControl ic, VirtualizingStackPanel vsp)
+            {
+                AddTrace(null, ScrollTraceOp.ID, _nullInfo,
+                    DisplayType(ic),
+                    "Items:", ic.Items.Count,
+                    "Panel:", DisplayType(vsp));
+
+                AddTrace(null, ScrollTraceOp.ID, _nullInfo,
+                    "IsVirt:", VirtualizingPanel.GetIsVirtualizing(ic),
+                    "IsVirtWhenGroup:", VirtualizingPanel.GetIsVirtualizingWhenGrouping(ic),
+                    "VirtMode:", VirtualizingPanel.GetVirtualizationMode(ic),
+                    "ScrollUnit:", VirtualizingPanel.GetScrollUnit(ic),
+                    "CacheLen:", VirtualizingPanel.GetCacheLength(ic), VirtualizingPanel.GetCacheLengthUnit(ic));
+
+                AddTrace(null, ScrollTraceOp.ID, _nullInfo,
+                    "CanContentScroll:", ScrollViewer.GetCanContentScroll(ic),
+                    "IsDeferredScrolling:", ScrollViewer.GetIsDeferredScrollingEnabled(ic),
+                    "PanningMode:", ScrollViewer.GetPanningMode(ic),
+                    "HSBVisibility:", ScrollViewer.GetHorizontalScrollBarVisibility(ic),
+                    "VSBVisibility:", ScrollViewer.GetVerticalScrollBarVisibility(ic));
+
+                DataGrid dg = ic as DataGrid;
+                if (dg != null)
+                {
+                    AddTrace(null, ScrollTraceOp.ID, _nullInfo,
+                        "EnableRowVirt:", dg.EnableRowVirtualization,
+                        "EnableColVirt:", dg.EnableColumnVirtualization,
+                        "Columns:", dg.Columns.Count,
+                        "FrozenCols:", dg.FrozenColumnCount);
+                }
+            }
+
+            private void AddTrace(VirtualizingStackPanel vsp, ScrollTraceOp op, ScrollTracingInfo sti, params object[] args)
+            {
+                ScrollTraceRecord record = new ScrollTraceRecord(op, vsp, sti.Depth, sti.ItemIndex, _depth, BuildDetail(args));
+                _traceList.Add(record);
+
+                switch (op)
+                {
+                    default:
+                        break;
+
+                    case ScrollTraceOp.BeginMeasure:
+                        Push();
+                        break;
+
+                    case ScrollTraceOp.EndMeasure:
+                        Pop(record);
+                        record.Snapshot = vsp.TakeSnapshot();
+                        Flush(sti.Depth);
+                        break;
+
+                    case ScrollTraceOp.BeginArrange:
+                        Push();
+                        break;
+
+                    case ScrollTraceOp.EndArrange:
+                        Pop(record);
+                        record.Snapshot = vsp.TakeSnapshot();
+                        Flush(sti.Depth);
+                        break;
+
+                    case ScrollTraceOp.BSetAnchor:
+                        Push();
+                        break;
+
+                    case ScrollTraceOp.ESetAnchor:
+                        Pop(record);
+                        break;
+
+                    case ScrollTraceOp.BOnAnchor:
+                        Push();
+                        break;
+
+                    case ScrollTraceOp.ROnAnchor:
+                        Pop(record);
+                        break;
+
+                    case ScrollTraceOp.SOnAnchor:
+                        Pop();
+                        break;
+
+                    case ScrollTraceOp.EOnAnchor:
+                        Pop(record);
+                        break;
+
+                    case ScrollTraceOp.RecycleChildren:
+                    case ScrollTraceOp.RemoveChildren:
+                        record.RevirtualizedChildren = args[2] as List<String>;
+                        break;
+                }
+
+                if (_flushDepth < 0)
+                {
+                    Flush(_flushDepth);
+                }
+            }
+
+            private void OnLayoutUpdated(object sender, EventArgs e)
+            {
+                AddTrace(null, ScrollTraceOp.LayoutUpdated, _nullInfo, null);
+            }
+
+            private void Flush(int depth)
+            {
+                if (_writer != null && depth <= _flushDepth)
+                {
+                    for (; _flushIndex < _traceList.Count; ++_flushIndex)
+                    {
+                        _traceList[_flushIndex].Write(_writer);
+                    }
+
+                    _writer.Flush();
+                }
+            }
+
+            #endregion instance members
+        }
+
+        #endregion ScrollTracer
+
+        #region ScrollTracingInfo
+
+        // dynamic data associated with a VSP that's being traced
+        private class ScrollTracingInfo
+        {
+            internal ScrollTracer   ScrollTracer    { get; private set; }
+            internal int            Depth           { get; private set; }
+            internal FrameworkElement Owner         { get; private set; }
+            internal VirtualizingStackPanel Parent  { get; private set; }
+            internal object         ParentItem      { get; private set; }
+            internal int            ItemIndex       { get; private set; }
+
+            internal ScrollTracingInfo(ScrollTracer tracer, int depth, FrameworkElement owner, VirtualizingStackPanel parent, object parentItem, int itemIndex)
+            {
+                ScrollTracer = tracer;
+                Depth = depth;
+                Owner = owner;
+                Parent = parent;
+                ParentItem = parentItem;
+                ItemIndex = itemIndex;
+            }
+        }
+
+        static readonly UncommonField<ScrollTracingInfo>
+            ScrollTracingInfoField = new UncommonField<ScrollTracingInfo>();
+
+        #endregion ScrollTracingInfo
+
+        #region ScrollTraceRecord and opcodes
+
+        private enum ScrollTraceOp: ushort
+        {
+            NoOp,
+            ID,
+            Mark,
+
+            LineUp,
+            LineDown,
+            LineLeft,
+            LineRight,
+            PageUp,
+            PageDown,
+            PageLeft,
+            PageRight,
+            MouseWheelUp,
+            MouseWheelDown,
+            MouseWheelLeft,
+            MouseWheelRight,
+            SetHorizontalOffset,
+            SetVerticalOffset,
+            SetHOff,
+            SetVOff,
+            MakeVisible,
+
+            BeginMeasure,
+            EndMeasure,
+            BeginArrange,
+            EndArrange,
+            LayoutUpdated,
+
+            BSetAnchor,
+            ESetAnchor,
+            BOnAnchor,
+            ROnAnchor,              // Reschedule
+            SOnAnchor,              // Success
+            EOnAnchor,
+
+            RecycleChildren,
+            RemoveChildren,
+            ItemsChanged,
+
+            IsScrollActive,
+
+            CFCIV,                  // ComputeFirstContainerInViewport
+            CFIVIO,                 // ComputeFirstItemInViewportIndexAndOffset
+            SyncAveSize,
+
+            StoreSubstOffset,
+            UseSubstOffset,
+            ReviseArrangeOffset,
+
+            SVSDBegin,              // SetAndVerifyScrollingData
+            AdjustOffset,               // Adjust offset after ave. container size change
+            ScrollBarChangeVisibility,  // Scroll bar visibility changed
+            RemeasureCycle,             // cycle detected while scroll-to-end
+            RemeasureEndExpandViewport, // expand viewport near end of list
+            RemeasureEndChangeOffset,   // change offset to be at end of list
+            RemeasureEndExtentChanged,  // extent changed, change offset at end of list
+            RemeasureRatio,             // preserve offset/extent ratio
+            RecomputeFirstOffset,       // recalculate _firstItemInExtendedViewportOffset
+            LastPageSizeChange,         // pixel size for last page changed
+            SVSDEnd,                // End - report new offset, extent, compoff, vp
+        }
+
+        private class ScrollTraceRecord
+        {
+            internal ScrollTraceRecord(ScrollTraceOp op, VirtualizingStackPanel vsp,
+                int vspDepth, int itemIndex, int opDepth, string detail)
+            {
+                Op = op;
+                VSP = vsp;
+                VDepth = vspDepth;
+                ItemIndex = itemIndex;
+                OpDepth = opDepth;
+                Detail = detail;
+            }
+
+            internal ScrollTraceOp          Op          { get; private set; }
+            internal int                    OpDepth     { get; private set; }
+            internal VirtualizingStackPanel VSP         { get; private set; }
+            internal int                    VDepth      { get; private set; }
+            internal int                    ItemIndex   { get; private set; }
+            internal string                 Detail      { get; set; }
+
+            object _extraData;
+
+            internal Snapshot Snapshot
+            {
+                get { return _extraData as Snapshot; }
+                set { _extraData = value; }
+            }
+
+            internal List<String> RevirtualizedChildren
+            {
+                get { return _extraData as List<String>; }
+                set { _extraData = value; }
+            }
+
+            internal void ChangeOpDepth(int delta)      { OpDepth += delta; }
+
+            public override string ToString()
+            {
+                return String.Format(CultureInfo.InvariantCulture, "{0} {1} {2} {3} {4}",
+                    OpDepth, VDepth, ItemIndex, Op, Detail);
+            }
+
+            internal void Write(BinaryWriter writer)
+            {
+                writer.Write((ushort)Op);
+                writer.Write(OpDepth);
+                writer.Write(VDepth);
+                writer.Write(ItemIndex);
+                writer.Write(Detail);
+
+                Snapshot snapshot;
+                List<String> children;
+
+                if ((snapshot = Snapshot) != null)
+                {
+                    writer.Write((byte)1);
+                    Snapshot.Write(writer, VSP);
+                }
+                else if ((children = RevirtualizedChildren) != null)
+                {
+                    int n = children.Count;
+                    writer.Write((byte)2);
+                    writer.Write(n);
+                    for (int i=0; i<n; ++i)
+                    {
+                        writer.Write(children[i]);
+                    }
+                }
+                else
+                {
+                    writer.Write((byte)0);
+                }
+            }
+        }
+
+        #endregion ScrollTraceRecord and opcodes
+
+        #region Snapshot
+
+        // a snapshot of the state of the VSP
+        private class Snapshot
+        {
+            internal ScrollData  _scrollData;
+            internal BoolField   _boolFieldStore;
+            internal bool?       _areContainersUniformlySized;
+            internal double?     _uniformOrAverageContainerSize;
+            internal List<ChildInfo> _realizedChildren;
+            internal int         _firstItemInExtendedViewportChildIndex;
+            internal int         _firstItemInExtendedViewportIndex;
+            internal double      _firstItemInExtendedViewportOffset;
+            internal int         _actualItemsInExtendedViewportCount;
+            internal Rect        _viewport;
+            internal int         _itemsInExtendedViewportCount;
+            internal Rect        _extendedViewport;
+            internal Size        _previousStackPixelSizeInViewport;
+            internal Size        _previousStackLogicalSizeInViewport;
+            internal Size        _previousStackPixelSizeInCacheBeforeViewport;
+            internal FrameworkElement _firstContainerInViewport;
+            internal double      _firstContainerOffsetFromViewport;
+            internal double      _expectedDistanceBetweenViewports;
+            internal DependencyObject _bringIntoViewContainer;
+            internal DependencyObject _bringIntoViewLeafContainer;
+
+            internal void Write(BinaryWriter writer, VirtualizingStackPanel vsp)
+            {
+                if (_scrollData == null)
+                {
+                    writer.Write(false);
+                }
+                else
+                {
+                    writer.Write(true);
+                    WriteVector(writer, ref _scrollData._offset);
+                    WriteSize(writer, ref _scrollData._extent);
+                    WriteVector(writer, ref _scrollData._computedOffset);
+                }
+
+                writer.Write((byte)_boolFieldStore);
+                writer.Write(!(_areContainersUniformlySized == false));
+                writer.Write(_uniformOrAverageContainerSize.HasValue ? (double)_uniformOrAverageContainerSize : -1.0d);
+                writer.Write(_firstItemInExtendedViewportChildIndex);
+                writer.Write(_firstItemInExtendedViewportIndex);
+                writer.Write(_firstItemInExtendedViewportOffset);
+                writer.Write(_actualItemsInExtendedViewportCount);
+                WriteRect(writer, ref _viewport);
+                writer.Write(_itemsInExtendedViewportCount);
+                WriteRect(writer, ref _extendedViewport);
+                WriteSize(writer, ref _previousStackPixelSizeInViewport);
+                WriteSize(writer, ref _previousStackLogicalSizeInViewport);
+                WriteSize(writer, ref _previousStackPixelSizeInCacheBeforeViewport);
+                writer.Write(vsp.ContainerPath(_firstContainerInViewport));
+                writer.Write(_firstContainerOffsetFromViewport);
+                writer.Write(_expectedDistanceBetweenViewports);
+                writer.Write(vsp.ContainerPath(_bringIntoViewContainer));
+                writer.Write(vsp.ContainerPath(_bringIntoViewLeafContainer));
+
+                writer.Write(_realizedChildren.Count);
+                for (int i=0; i<_realizedChildren.Count; ++i)
+                {
+                    ChildInfo ci = _realizedChildren[i];
+                    writer.Write(ci._itemIndex);
+                    WriteSize(writer, ref ci._desiredSize);
+                    WriteRect(writer, ref ci._arrangeRect);
+                    WriteThickness(writer, ref ci._inset);
+                }
+            }
+
+            private static void WriteRect(BinaryWriter writer, ref Rect rect)
+            {
+                writer.Write(rect.Left);
+                writer.Write(rect.Top);
+                writer.Write(rect.Width);
+                writer.Write(rect.Height);
+            }
+
+            private static void WriteSize(BinaryWriter writer, ref Size size)
+            {
+                writer.Write(size.Width);
+                writer.Write(size.Height);
+            }
+
+            private static void WriteVector(BinaryWriter writer, ref Vector vector)
+            {
+                writer.Write(vector.X);
+                writer.Write(vector.Y);
+            }
+
+            private static void WriteThickness(BinaryWriter writer, ref Thickness thickness)
+            {
+                writer.Write(thickness.Left);
+                writer.Write(thickness.Top);
+                writer.Write(thickness.Right);
+                writer.Write(thickness.Bottom);
+            }
+        }
+
+        private class ChildInfo
+        {
+            internal int         _itemIndex;
+            internal Size        _desiredSize;
+            internal Rect        _arrangeRect;
+            internal Thickness   _inset;
+
+            public override string ToString()
+            {
+                return String.Format(CultureInfo.InvariantCulture, "{0} ds: {1} ar: {2} in: {3}",
+                    _itemIndex, _desiredSize, _arrangeRect, _inset);
+            }
+        }
+
+        private Snapshot TakeSnapshot()
+        {
+            Snapshot s = new Snapshot();
+
+            if (IsScrolling)
+            {
+                s._scrollData = new ScrollData();
+                s._scrollData._offset = _scrollData._offset;
+                s._scrollData._extent = _scrollData._extent;
+                s._scrollData._computedOffset = _scrollData._computedOffset;
+                s._scrollData._viewport = _scrollData._viewport;
+            }
+
+            s._boolFieldStore                               = _boolFieldStore;
+            s._areContainersUniformlySized                  = AreContainersUniformlySized;
+            s._uniformOrAverageContainerSize                = UniformOrAverageContainerSize;
+            s._firstItemInExtendedViewportChildIndex        = _firstItemInExtendedViewportChildIndex;
+            s._firstItemInExtendedViewportIndex             = _firstItemInExtendedViewportIndex;
+            s._firstItemInExtendedViewportOffset            = _firstItemInExtendedViewportOffset;
+            s._actualItemsInExtendedViewportCount           = _actualItemsInExtendedViewportCount;
+            s._viewport                                     = _viewport;
+            s._itemsInExtendedViewportCount                 = _itemsInExtendedViewportCount;
+            s._extendedViewport                             = _extendedViewport;
+            s._previousStackPixelSizeInViewport             = _previousStackPixelSizeInViewport;
+            s._previousStackLogicalSizeInViewport           = _previousStackLogicalSizeInViewport;
+            s._previousStackPixelSizeInCacheBeforeViewport  = _previousStackPixelSizeInCacheBeforeViewport;
+            s._firstContainerInViewport                     = _firstContainerInViewport;
+            s._firstContainerOffsetFromViewport             = _firstContainerOffsetFromViewport;
+            s._expectedDistanceBetweenViewports             = _expectedDistanceBetweenViewports;
+            s._bringIntoViewContainer                       = _bringIntoViewContainer;
+            s._bringIntoViewLeafContainer                   = _bringIntoViewLeafContainer;
+
+            ItemContainerGenerator g = Generator as ItemContainerGenerator;
+            List<ChildInfo> list = new List<ChildInfo>();
+            foreach (UIElement child in RealizedChildren)
+            {
+                ChildInfo info = new ChildInfo();
+                info._itemIndex = g.IndexFromContainer(child, returnLocalIndex:true);
+                info._desiredSize = child.DesiredSize;
+                info._arrangeRect = child.PreviousArrangeRect;
+                info._inset = (Thickness)child.GetValue(ItemsHostInsetProperty);
+                list.Add(info);
+            }
+            s._realizedChildren = list;
+
+            return s;
+        }
+
+        private string ContainerPath(DependencyObject container)
+        {
+            if (container == null)
+                return String.Empty;
+
+            VirtualizingStackPanel vsp = VisualTreeHelper.GetParent(container) as VirtualizingStackPanel;
+            if (vsp == null)
+            {
+                return "{Disconnected}";
+            }
+            else if (vsp == this)
+            {
+                ItemContainerGenerator g = Generator as ItemContainerGenerator;
+                return String.Format(CultureInfo.InvariantCulture, "{0}", g.IndexFromContainer(container, returnLocalIndex:true));
+            }
+            else
+            {
+                ItemContainerGenerator g = vsp.Generator as ItemContainerGenerator;
+                int localIndex = g.IndexFromContainer(container, returnLocalIndex:true);
+                DependencyObject parentContainer = ItemsControl.ContainerFromElement(null, vsp);
+                if (parentContainer == null)
+                {
+                    return String.Format(CultureInfo.InvariantCulture, "{0}", localIndex);
+                }
+                else
+                {
+                    return String.Format(CultureInfo.InvariantCulture, "{0}.{1}",
+                        ContainerPath(parentContainer), localIndex);
+                }
+
+            }
+        }
+
+        #endregion Snapshot
 
         #endregion Private Structures Classes
     }

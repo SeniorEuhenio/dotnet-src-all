@@ -1502,7 +1502,7 @@ namespace System.Transactions.Oletx
                      ( OletxVolatileEnlistmentState.InDoubt != state )
                    )
                 {
-                    throw TransactionException.CreateEnlistmentStateException( SR.GetString( SR.TraceSourceOletx ), null );
+                    throw TransactionException.CreateEnlistmentStateException( SR.GetString( SR.TraceSourceOletx ), null, this.DistributedTxId );
                 }
 
                 state = OletxVolatileEnlistmentState.Done;
@@ -1549,7 +1549,7 @@ namespace System.Transactions.Oletx
             {
                 if ( OletxVolatileEnlistmentState.Preparing != state )
                 {
-                    throw TransactionException.CreateEnlistmentStateException( SR.GetString( SR.TraceSourceOletx ), null );
+                    throw TransactionException.CreateEnlistmentStateException( SR.GetString( SR.TraceSourceOletx ), null, this.DistributedTxId );
                 }
 
                 state = OletxVolatileEnlistmentState.Prepared;
@@ -1648,7 +1648,7 @@ namespace System.Transactions.Oletx
             {
                 if ( OletxVolatileEnlistmentState.Preparing != state )
                 {
-                    throw TransactionException.CreateEnlistmentStateException( SR.GetString( SR.TraceSourceOletx ), null );
+                    throw TransactionException.CreateEnlistmentStateException( SR.GetString( SR.TraceSourceOletx ), null, this.DistributedTxId );
                 }
 
                 // There are no more notifications that need to happen on this enlistment.
@@ -1711,7 +1711,7 @@ namespace System.Transactions.Oletx
         byte[] IPromotedEnlistment.GetRecoveryInformation()
         {
             throw TransactionException.CreateInvalidOperationException( SR.GetString( SR.TraceSourceOletx ),
-                SR.GetString( SR.VolEnlistNoRecoveryInfo), null );
+                SR.GetString( SR.VolEnlistNoRecoveryInfo), null, this.DistributedTxId );
         }
         
         InternalEnlistment IPromotedEnlistment.InternalEnlistment

@@ -1398,7 +1398,7 @@ namespace MS.Internal.AutomationProxies
             return x >= rc.left && x < rc.right && y >= rc.top && y < rc.bottom;
         }
 
-        internal static bool ReadProcessMemory(MS.Internal.AutomationProxies.SafeProcessHandle hProcess, IntPtr source, IntPtr dest, IntPtr size, out int bytesRead)
+        internal static bool ReadProcessMemory(MS.Internal.AutomationProxies.SafeProcessHandle hProcess, IntPtr source, IntPtr dest, IntPtr size, out IntPtr bytesRead)
         {
             bool result = UnsafeNativeMethods.ReadProcessMemory(hProcess, source, dest, size, out bytesRead);
             int lastWin32Error = Marshal.GetLastWin32Error();
@@ -1411,7 +1411,7 @@ namespace MS.Internal.AutomationProxies
             return result;
         }
 
-        internal static bool ReadProcessMemory(MS.Internal.AutomationProxies.SafeProcessHandle hProcess, IntPtr source, MS.Internal.AutomationProxies.SafeCoTaskMem destAddress, IntPtr size, out int bytesRead)
+        internal static bool ReadProcessMemory(MS.Internal.AutomationProxies.SafeProcessHandle hProcess, IntPtr source, MS.Internal.AutomationProxies.SafeCoTaskMem destAddress, IntPtr size, out IntPtr bytesRead)
         {
             bool result = UnsafeNativeMethods.ReadProcessMemory(hProcess, source, destAddress, size, out bytesRead);
             int lastWin32Error = Marshal.GetLastWin32Error();
@@ -1825,7 +1825,7 @@ namespace MS.Internal.AutomationProxies
             return result;
         }
 
-        internal static bool WriteProcessMemory(MS.Internal.AutomationProxies.SafeProcessHandle hProcess, IntPtr dest, IntPtr sourceAddress, IntPtr size, out int bytesWritten)
+        internal static bool WriteProcessMemory(MS.Internal.AutomationProxies.SafeProcessHandle hProcess, IntPtr dest, IntPtr sourceAddress, IntPtr size, out IntPtr bytesWritten)
         {
             bool result = UnsafeNativeMethods.WriteProcessMemory(hProcess, dest, sourceAddress, size, out bytesWritten);
             int lastWin32Error = Marshal.GetLastWin32Error();

@@ -1779,6 +1779,13 @@ Exit:
         // Adds a line visual to the visual tree.
         private void AttachVisualChild(TextBoxLineDrawingVisual lineVisual)
         {
+            // Ideally we should add visual to a collection before calling AddVisualChild.
+            // So that VisualDiagnostics.OnVisualChildChanged can get correct child index.
+            // However it is not clear what can regress. We'll use _parentIndex.
+            // Note that there is a comment in Visual.cs stating that _parentIndex should
+            // be set to -1 in DEBUG builds when child is removed. We are not going to 
+            // honor it. There is no _parentIndex == -1 validation is performed anywhere.
+            lineVisual._parentIndex = _visualChildren.Count;
             AddVisualChild(lineVisual);
             _visualChildren.Add(lineVisual);
         }

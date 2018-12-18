@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{2852424c-b5ef-4641-bab5-20be2a1a4a7a}</ProjectGuid>
+    <ProjectGuid>{133748dd-0b3c-4405-be9d-72d73a500d8d}</ProjectGuid>
     <OutputPath>.</OutputPath>
     <OutputType>Library</OutputType>
     <AssemblyName>System.Numerics</AssemblyName>
@@ -20,7 +20,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\clr\src\bcl\mscorlib.csproj">
-      <Project>{edd76f80-29f6-4590-a3ef-f885b38da1b0}</Project>
+      <Project>{224f6f5b-c254-4b89-95cd-b690effa845e}</Project>
       <Name>mscorlib</Name>
     </ProjectReference>
   </ItemGroup>
@@ -34,7 +34,20 @@
     <Compile Include="System\Numerics\BigIntegerBuilder.cs" />
     <Compile Include="System\Numerics\BigNumber.cs" />
     <Compile Include="System\Numerics\Complex.cs" />
+    <Compile Include="System\Numerics\HashCodeHelper.cs" />
+    <Compile Include="System\Numerics\JITIntrinsicAttribute.cs" />
+    <Compile Include="System\Numerics\Matrix3x2.cs" />
+    <Compile Include="System\Numerics\Matrix4x4.cs" />
     <Compile Include="System\Numerics\NumericsHelpers.cs" />
+    <Compile Include="System\Numerics\Plane.cs" />
+    <Compile Include="System\Numerics\Quaternion.cs" />
+    <Compile Include="System\Numerics\Vector_Operations.cs" />
+    <Compile Include="System\Numerics\Vector2.cs" />
+    <Compile Include="System\Numerics\Vector2_Intrinsics.cs" />
+    <Compile Include="System\Numerics\Vector3.cs" />
+    <Compile Include="System\Numerics\Vector3_Intrinsics.cs" />
+    <Compile Include="System\Numerics\Vector4.cs" />
+    <Compile Include="System\Numerics\Vector4_Intrinsics.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

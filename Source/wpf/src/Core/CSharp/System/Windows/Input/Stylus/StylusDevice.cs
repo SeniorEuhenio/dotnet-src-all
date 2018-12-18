@@ -116,6 +116,18 @@ namespace System.Windows.Input
             }
         }
 
+        /////////////////////////////////////////////////////////////////////
+        /// <summary>
+        ///     Returns whether the StylusDevice object has been internally disposed.
+        /// </summary>
+        public bool IsValid
+        {
+            get
+            {
+                return (_tabletDevice != null);
+            }
+        }
+
         /// <summary>
         ///     Returns the PresentationSource that is reporting input for this device.
         /// </summary>

@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{f9d0886f-4db6-4eb0-b600-3ee27729dda5}</ProjectGuid>
+    <ProjectGuid>{b1ca46ed-070a-43d4-9ddd-d75ae84f30b3}</ProjectGuid>
     <OutputPath>.</OutputPath>
     <OutputType>Library</OutputType>
     <AssemblyName>System.Data.SqlXml</AssemblyName>
@@ -20,19 +20,19 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\clr\src\bcl\mscorlib.csproj">
-      <Project>{edd76f80-29f6-4590-a3ef-f885b38da1b0}</Project>
+      <Project>{224f6f5b-c254-4b89-95cd-b690effa845e}</Project>
       <Name>mscorlib</Name>
     </ProjectReference>
     <ProjectReference Include="..\System.csproj">
-      <Project>{e4fae737-f889-49a8-8db5-92488fc98c22}</Project>
+      <Project>{41970311-a2a7-4957-b118-3e82738754bb}</Project>
       <Name>System</Name>
     </ProjectReference>
     <ProjectReference Include="..\Configuration\System.Configuration.csproj">
-      <Project>{d0e5c1bb-46f1-4fbe-9d9b-4d089d88ae09}</Project>
+      <Project>{c8acffc3-9a67-4b99-b153-3456d8d6a9e2}</Project>
       <Name>System.Configuration</Name>
     </ProjectReference>
     <ProjectReference Include="..\Xml\System.Xml.csproj">
-      <Project>{cfe60703-bdf5-402e-b545-c675c65ae9c8}</Project>
+      <Project>{e8f114a4-6ee9-49ae-9129-c5d7579eb5e9}</Project>
       <Name>System.Xml</Name>
     </ProjectReference>
   </ItemGroup>

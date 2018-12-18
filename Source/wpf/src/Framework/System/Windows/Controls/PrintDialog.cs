@@ -416,7 +416,7 @@ namespace System.Windows.Controls
 
             XpsDocumentWriter writer = CreateWriter(description);
 
-            writer.Write(visual);
+            writer.Write(visual, _printTicket);
 
             _printableAreaWidth             = 0;
             _printableAreaHeight            = 0;
@@ -457,7 +457,7 @@ namespace System.Windows.Controls
 
             XpsDocumentWriter writer = CreateWriter(description);
 
-            writer.Write(documentPaginator);
+            writer.Write(documentPaginator, _printTicket);
 
             _printableAreaWidth = 0;
             _printableAreaHeight = 0;

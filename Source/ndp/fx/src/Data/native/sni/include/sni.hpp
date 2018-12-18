@@ -81,6 +81,8 @@ typedef enum
 	SNIAUTH_ERRST_SSPIHANDSHAKE_OOM,
 	SNIAUTH_ERRST_SSPIHANDSHAKE_SERVICEBINDINGS_WSASTRINGTOADDRESSFAILEDFORIPV6,
 	
+	SNIAUTH_ERRST_SSLADJUSTPROTOCOLFIELDS_COPYPACKET,
+	
 	SNIAUTH_ERRST_INVALID
 } SNIAuthErrStates;
 
@@ -261,7 +263,7 @@ typedef enum
 
 struct TcpListenInfo
 {
-	char *ipaddress;
+	WCHAR *ipaddress;
 	USHORT Port;
 	BOOL fStatic;
 	BOOL fUpdated;
@@ -287,7 +289,7 @@ typedef struct
 
 typedef struct
 {
-	char szVendor[MAX_NAME_SIZE+1];	
+	WCHAR wszVendor[MAX_NAME_SIZE+1];	
 	char szVendorDll[MAX_NAME_SIZE+1];
 	int  NicId;
 	char szDiscriminator[MAX_NAME_SIZE+1];
@@ -295,18 +297,18 @@ typedef struct
 
 typedef struct
 {
-	char szPipeName[MAX_PATH+1];	
+	WCHAR wszPipeName[MAX_PATH+1];	
 	bool fLocal;
 } NpListenInfo, NpEPInfo;
 
 typedef struct
 {
-	char szInstanceName[MAX_PATH+1];
+	WCHAR wszInstanceName[MAX_PATH+1];
 } SmListenInfo, SmEPInfo;
 
 typedef struct
 {
-	char szIpaddress[MAX_PATH+1];
+	WCHAR wszIpaddress[MAX_PATH+1];
 	USHORT Port;
 	BOOL fStatic;
 } TcpEPInfo;
@@ -325,7 +327,7 @@ typedef struct
 #define SNI_IP6_ADDRESS_STRING_BUFFER_LENGTH 48
 typedef struct
 {
-	char PeerAddr[SNI_IP6_ADDRESS_STRING_BUFFER_LENGTH+1];	
+	WCHAR PeerAddr[SNI_IP6_ADDRESS_STRING_BUFFER_LENGTH+1];	
 	__field_range(0, SNI_IP6_ADDRESS_STRING_BUFFER_LENGTH)		//length does not include NULL terminator
 	int PeerAddrLen;
 } PeerAddrInfo;
@@ -437,7 +439,7 @@ struct SNI_CLIENT_CONSUMER_INFO
 	SNI_CONSUMER_INFO	ConsumerInfo;
 	LPCWSTR				wszConnectionString; // input
 	PrefixEnum			networkLibrary; // input
-	__field_ecount(cchSPN)	LPSTR szSPN; // empty buffer in - filled buffer out
+	__field_ecount(cchSPN)	LPWSTR wszSPN; // empty buffer in - filled buffer out
 	DWORD				cchSPN; // input
 	__field_ecount(cchInstanceName)	LPSTR szInstanceName; // empty buffer in - filled buffer out
 	DWORD				cchInstanceName; // input
@@ -450,7 +452,7 @@ struct SNI_CLIENT_CONSUMER_INFO
 	{
 		wszConnectionString = NULL;
 		networkLibrary = UNKNOWN_PREFIX;
-		szSPN = NULL;
+		wszSPN = NULL;
 		cchSPN = 0;
 		szInstanceName = NULL;
 		cchInstanceName = 0;
@@ -523,13 +525,13 @@ extern "C" DWORD SNITerminateListener(__inout HANDLE hListener);
 extern "C" DWORD SNIUpdateListener(HANDLE hListener, ProviderNum ProvNum, LPVOID pInfo);
 extern "C" DWORD SNIResumePendingAccepts();
 extern "C" DWORD SNIOpen( __in SNI_CONSUMER_INFO * pConsumerInfo,
-					   __inout_opt LPSTR szConnect,
+					   __inout_opt LPWSTR wszConnect,
 					   __in LPVOID pOpenInfo,
 					   __out SNI_Conn ** ppConn,
 					   BOOL fSync);
 
 extern "C" DWORD SNIOpenSync( __in SNI_CONSUMER_INFO * pConsumerInfo,
-					   __inout_opt LPSTR szConnect,
+					   __inout_opt LPWSTR wszConnect,
 					   __in LPVOID pOpenInfo,
 					   __out SNI_Conn ** ppConn,
 					   BOOL fSync,
@@ -641,14 +643,14 @@ extern "C"  DWORD SNISecGenClientContext ( __in SNI_Conn * pConn,
 								BYTE	*pOut,
 								__in DWORD	*pcbOut,
 								BOOL	*pfDone,
-								__in __nullterminated const CHAR	*szServerInfo,
+								__in __nullterminated const WCHAR	*wszServerInfo,
 								DWORD    cbServerInfo,
 								LPCWSTR pwszUserName,
 								LPCWSTR pwszPassword);
 extern "C"  DWORD SNISecImpersonateContext(__in SNI_Conn * pConn);
 extern "C"  DWORD SNISecRevertContext(__in SNI_Conn * pConn);
 
-extern "C"  DWORD SNISecAddSpn(const char * szInstanceName, BOOL fIsSystemInst);
+extern "C"  DWORD SNISecAddSpn(const WCHAR * wszInstanceName, BOOL fIsSystemInst);
 extern "C"  DWORD SNISecRemoveSpn();
 
 extern "C" __success(ERROR_SUCCESS == return) DWORD SNIOpenSyncEx( __inout SNI_CLIENT_CONSUMER_INFO * pClientConsumerInfo,
@@ -675,5 +677,6 @@ BOOL DllMain_Sni( HINSTANCE  hInst,
                   DWORD      dwReason,    
                   LPVOID     lpReserved ); 
 
+#include "sni_FedAuth.hpp"
 
 #endif

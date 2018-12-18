@@ -43,6 +43,8 @@ namespace System.Windows.Interop
         Software = MILRTInitializationFlags.MIL_RT_SOFTWARE_ONLY,
         Hardware = MILRTInitializationFlags.MIL_RT_HARDWARE_ONLY,
         HardwareReference = MILRTInitializationFlags.MIL_RT_HARDWARE_ONLY | MILRTInitializationFlags.MIL_RT_USE_REF_RAST,
+        DisableMultimonDisplayClipping = MILRTInitializationFlags.MIL_RT_DISABLE_MULTIMON_DISPLAY_CLIPPING,
+        IsDisableMultimonDisplayClippingValid = MILRTInitializationFlags.MIL_RT_IS_DISABLE_MULTIMON_DISPLAY_CLIPPING_VALID, 
     }
 
     // This is the public, more limited, enum exposed for use with the RenderMode property.
@@ -382,6 +384,21 @@ namespace System.Windows.Interop
                     // If the mode is default we can chose what works. When we have a mismatched transport protocol version
                     // we need to fallback to software rendering.
                     mode = RenderingMode.Software;
+                }
+            }
+
+            //Obtain compatibility flags set in the application
+            bool? enableMultiMonitorDisplayClipping =
+                System.Windows.CoreCompatibilityPreferences.EnableMultiMonitorDisplayClipping;
+
+            if (enableMultiMonitorDisplayClipping != null)
+            {
+                // The flag is explicitly set by the user in application manifest
+                mode |= RenderingMode.IsDisableMultimonDisplayClippingValid;
+
+                if (!enableMultiMonitorDisplayClipping.Value)
+                {
+                    mode |= RenderingMode.DisableMultimonDisplayClipping;
                 }
             }
 

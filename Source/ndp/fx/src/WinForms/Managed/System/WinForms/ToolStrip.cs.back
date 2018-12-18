@@ -1151,7 +1151,6 @@ namespace System.Windows.Forms {
         MergableProperty(false)
         ]
         public virtual ToolStripItemCollection Items {
-            [System.Runtime.TargetedPatchingOptOutAttribute("Performance critical to inline across NGen image boundaries")]
             get {
                 if (toolStripItemCollection == null) {
                     toolStripItemCollection = new ToolStripItemCollection(this, true);

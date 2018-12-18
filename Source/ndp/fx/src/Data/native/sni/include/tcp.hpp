@@ -135,8 +135,8 @@ public:
 							int timeout);
 	
 	DWORD LoadConnectEx(__in CONNECTEXFUNC** pfnCF);	
-	DWORD SocketOpenSync(__in ADDRINFO* AI, int timeout);
-	DWORD SocketOpenParallel(__in const ADDRINFO *AI, DWORD timeout);
+	DWORD SocketOpenSync(__in ADDRINFOW* AIW, int timeout);
+	DWORD SocketOpenParallel(__in const ADDRINFOW *AIW, DWORD timeout);
 	DWORD CheckConnection( );
 	DWORD ReadSync(__out SNI_Packet ** ppNewPacket, int timeout);
 	DWORD ReadAsync(__out SNI_Packet ** ppNewPacket, LPVOID pPacketKey);
@@ -155,8 +155,8 @@ public:
 	static DWORD GetPeerPort(__in SNI_Conn * pConn, __out USHORT * port);
 	static DWORD GetLocalAddress(__in SNI_Conn * pConn, __out PeerAddrInfo * addrinfo);
 	static DWORD GetLocalPort(__in SNI_Conn * pConn, __out USHORT * port);
-	static DWORD GetDnsName( char *szAddress, __out_ecount(len) char *szDnsName, int len);
-	static BOOL FIsLoopBack(const char* pszServer);
+	static DWORD GetDnsName( WCHAR *wszAddress, __out_ecount(len) WCHAR *wszDnsName, int len);
+	static BOOL FIsLoopBack(const WCHAR* pwszServer);
 
 	DWORD SetKeepAliveOption();
 	inline void SetSockBufAutoTuning(BOOL* pfAuto){ Assert (pfAuto); m_fAuto = (*pfAuto == TRUE && s_fAutoTuning ==TRUE); }
@@ -187,7 +187,7 @@ private:
 	DWORD PostReadAsync(SNI_Packet *pPacket, DWORD cbBuffer);
 	static Tcp * AcceptConnection( SNI_Conn *pConn, SOCKET AcceptSocket, char * szAddressBuffer);
 
-	static bool IsNumericAddress( LPSTR name);
+	static bool IsNumericAddress( LPWSTR name);
 
 	DWORD Tcp::FInit(); 
 

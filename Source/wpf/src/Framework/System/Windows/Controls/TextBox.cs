@@ -1291,6 +1291,17 @@ namespace System.Windows.Controls
             }
         }
 
+        // this method is called by an editable ComboBox to raise a TextChanged event after
+        // ComboBox.Text is changed outside the scope of a TextBox.Text change
+        // (e.g. when an IME text composition has completed).   It's a courtesy to
+        // controls and apps that assume every change to ComboBox.Text will be
+        // followed by a TextBox.TextChanged event from the combobox's editable TextBox.
+        // (See Dev11 964048)
+        internal void RaiseCourtesyTextChangedEvent()
+        {
+            OnTextChanged(new TextChangedEventArgs(TextChangedEvent, UndoAction.None));
+        }
+
         //
         //  This property
         //  1. Finds the correct initial size for the _effectiveValues store on the current DependencyObject

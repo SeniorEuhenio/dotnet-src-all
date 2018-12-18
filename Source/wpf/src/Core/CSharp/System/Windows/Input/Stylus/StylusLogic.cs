@@ -102,9 +102,28 @@ namespace System.Windows.Input
             // NOTE: __penContextsMap will be cleaned up by HwndSource Dispose() so we don't worry about that.
         }
 
+        /// <summary>
+        /// Fit to control panel controlled curve. 0 matches min, 50 - default, 100 - max
+        /// (the curve is 2 straight line segments connecting  the 3 points)
+        /// </summary>
+        private static int FitToCplCurve(double vMin, double vMid, double vMax, int value)
+        {
+            if (value < 0)
+            {
+                return (int)vMin;
+            }
+            if (value > 100)
+            {
+                return (int)vMax;
+            }
+            double f = (double)value / 100.0;
+            double v = Math.Round(f <= 0.5 ? vMin + 2.0 * f * (vMid - vMin) : vMid + 2.0 * (f - 0.5) * (vMax - vMid));
+
+            return (int)v;
+        }
 
         /// <summary>
-        /// Grab the defualts from the registry for the tap and mouse fequency/resolution
+        /// Grab the defualts from the registry for the double tap thresholds.
         /// </summary>
         ///<SecurityNote>
         /// Critical - Asserts read registry permission...
@@ -115,38 +134,54 @@ namespace System.Windows.Input
         private void ReadSystemConfig()
         {
             object obj;
-            RegistryKey key = null; // This object has finalizer to close the key.
+            RegistryKey stylusKey = null; // This object has finalizer to close the key.
+            RegistryKey touchKey = null; // This object has finalizer to close the key.
 
             // Acquire permissions to read the one key we care about from the registry
             new RegistryPermission(RegistryPermissionAccess.Read,
-                "HKEY_CURRENT_USER\\Software\\Microsoft\\Wisp\\Pen\\SysEventParameters").Assert(); // BlessedAssert
+                "HKEY_CURRENT_USER\\Software\\Microsoft\\Wisp").Assert(); // BlessedAssert
+
             try
             {
-                key = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Wisp\\Pen\\SysEventParameters");
+                stylusKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Wisp\\Pen\\SysEventParameters");
 
-                if ( key != null )
+                if ( stylusKey != null )
                 {
-                    obj = key.GetValue("DblDist");
-                    _doubleTapDelta = (obj == null) ? _doubleTapDelta : (Int32)obj;      // The default double tap distance is 15 pixels (value is given in pixels)
+                    obj = stylusKey.GetValue("DblDist");
+                    _stylusDoubleTapDelta = (obj == null) ? _stylusDoubleTapDelta : (Int32)obj;      // The default double tap distance is 15 pixels (value is given in pixels)
 
-                    obj = key.GetValue("DblTime");
-                    _doubleTapDeltaTime = (obj == null) ? _doubleTapDeltaTime : (Int32)obj;      // The default double tap timeout is 800ms
+                    obj = stylusKey.GetValue("DblTime");
+                    _stylusDoubleTapDeltaTime = (obj == null) ? _stylusDoubleTapDeltaTime : (Int32)obj;      // The default double tap timeout is 800ms
 
-                    obj = key.GetValue("Cancel");
+                    obj = stylusKey.GetValue("Cancel");
                     _cancelDelta = (obj == null) ? _cancelDelta : (Int32)obj;      // The default move delta is 40 (4mm)
+                }
+
+                touchKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Wisp\\Touch");
+
+                if (touchKey != null)
+                {
+                    obj = touchKey.GetValue("TouchModeN_DtapDist");
+                    // min = 70%; max = 130%, these values are taken from //depot/winblue_gdr/drivers/tablet/platform/pen/inteng/core/TapsParameterizer.cpp
+                    _touchDoubleTapDelta = (obj == null) ? _touchDoubleTapDelta : FitToCplCurve(_touchDoubleTapDelta * DoubleTapMinFactor, _touchDoubleTapDelta, _touchDoubleTapDelta * DoubleTapMaxFactor, (Int32)obj);
+
+                    obj = touchKey.GetValue("TouchModeN_DtapTime");
+                    _touchDoubleTapDeltaTime = (obj == null) ? _touchDoubleTapDeltaTime : FitToCplCurve(_touchDoubleTapDeltaTime * DoubleTapMinFactor, _touchDoubleTapDeltaTime, _touchDoubleTapDeltaTime * DoubleTapMaxFactor, (Int32)obj);
                 }
             }
             finally
             {
                 RegistryPermission.RevertAssert();
-            }
-
-            if ( key != null )
-            {
-                key.Close();
+                if ( stylusKey != null )
+                {
+                    stylusKey.Close();
+                }
+                if ( touchKey != null )
+                {
+                    touchKey.Close();
+                }
             }
         }
-
 
         /////////////////////////////////////////////////////////////////////
         /// <SecurityNote>
@@ -286,8 +321,12 @@ namespace System.Windows.Input
             if (rawStylusInputReport != null)
             {
                 PenContext penContext = rawStylusInputReport.PenContext;
-                if (penContext.UpdateScreenMeasurementsPending &&
-                    rawStylusInputReport.StylusDevice != null)
+
+             // Bug 839668,StylusDevice could have been disposed internally here.
+             // We should check StylusDevice.IsValid property.
+             if (penContext.UpdateScreenMeasurementsPending &&
+                 rawStylusInputReport.StylusDevice != null &&
+                 rawStylusInputReport.StylusDevice.IsValid)
                 {
                     TabletDevice tabletDevice = rawStylusInputReport.StylusDevice.TabletDevice;
                     bool areSizeDeltasValid = tabletDevice.AreSizeDeltasValid();
@@ -454,6 +493,7 @@ namespace System.Windows.Input
                             if (!_inDragDrop && _stylusDeviceInRange)
                             {
                                 UpdateMouseState();
+                                _leavingDragDrop = true;
                             }
                         }
 
@@ -971,7 +1011,8 @@ namespace System.Windows.Input
                     RawStylusInputReport rawStylusInputReport = (RawStylusInputReport) inputReportEventArgs.Report;
                     StylusDevice stylusDevice = rawStylusInputReport.StylusDevice;
 
-                    if (stylusDevice != null)
+                    // Bug 839668,StylusDevice could have been disposed internally here.
+                    if (stylusDevice != null && stylusDevice.IsValid)
                     {
                         // update stylus device state (unless this is exclusively system gesture or
                         // in-range/out-of-range event - which don't carry much info)
@@ -1037,7 +1078,8 @@ namespace System.Windows.Input
 
                 StylusDevice stylusDevice = stylusDownEventArgs.StylusDevice;
 
-                if (stylusDevice != null)
+                // Bug 839668,StylusDevice could have been disposed internally here.
+                if (stylusDevice != null && stylusDevice.IsValid)
                 {
                     Point ptClient = stylusDevice.GetRawPosition(null);
 
@@ -1070,7 +1112,7 @@ namespace System.Windows.Input
                                         (Math.Abs(pPixelPoint.Y - pLastPixelPoint.Y) < doubleTapSize.Height);
 
                     // Now check everything to see if this is a multi-click.
-                    if (timeSpan < _doubleTapDeltaTime
+                    if (timeSpan < DoubleTapDeltaTime
                         && isSameSpot
                         && (bBarrelPressed == stylusDevice.LastTapBarrelDown) )
                     {
@@ -1458,7 +1500,7 @@ namespace System.Windows.Input
 
         private static bool IsTouchStylusDevice(StylusDevice stylusDevice)
         {
-            return (stylusDevice.TabletDevice != null &&
+            return (stylusDevice != null && stylusDevice.TabletDevice != null &&
                 stylusDevice.TabletDevice.Type == TabletDeviceType.Touch);
         }
 
@@ -1576,9 +1618,12 @@ namespace System.Windows.Input
                 // Promote Up to Mouse if mouse left/right button is
                 // pressed, even if TouchUp event is handled. This is such
                 // that we dont leave mouse in an inconsistent pressed state.
+                // Also promote if this is the first Up after leaving drag/drop,
+                // to reset the state of tracking Moves (Dev11 968604)
                 if (shouldPromoteToMouse && promotingToOther &&
                     (_mouseLeftButtonState == MouseButtonState.Pressed ||
-                    _mouseRightButtonState == MouseButtonState.Pressed))
+                    _mouseRightButtonState == MouseButtonState.Pressed ||
+                    _leavingDragDrop))
                 {
                     PromoteMainToMouse(stagingItem);
                 }
@@ -1587,6 +1632,8 @@ namespace System.Windows.Input
             {
                 PromoteMainToMouse(stagingItem);
             }
+
+            _leavingDragDrop = false;
         }
 
         /// <SecurityNote>
@@ -2750,7 +2797,7 @@ namespace System.Windows.Input
                     break;
 
                 case WindowMessage.WM_TABLET_DELETED:
-                    OnTabletRemoved((uint)NativeMethods.IntPtrToInt32(wParam));
+                    OnTabletRemovedImpl((uint)NativeMethods.IntPtrToInt32(wParam), isInternalCall:true);
                     break;
             }
         }
@@ -2939,20 +2986,30 @@ namespace System.Windows.Input
 
         /////////////////////////////////////////////////////////////////////
 
-
         internal int DoubleTapDelta
         {
-            get {return _doubleTapDelta;}
+            get
+            {
+                bool isFingerTouch = StylusLogic.IsTouchStylusDevice(_currentStylusDevice);
+                return isFingerTouch ? _touchDoubleTapDelta : _stylusDoubleTapDelta;
+            }
         }
 
         internal int DoubleTapDeltaTime
         {
-            get {return _doubleTapDeltaTime;}
+            get
+            {
+                bool isFingerTouch = StylusLogic.IsTouchStylusDevice(_currentStylusDevice);
+                return isFingerTouch ? _touchDoubleTapDeltaTime : _stylusDoubleTapDeltaTime;
+            }
         }
 
         internal int CancelDelta
         {
-            get {return _cancelDelta;}
+            get
+            {
+                return _cancelDelta;
+            }
         }
 
         /// <SecurityNote>
@@ -3168,11 +3225,6 @@ namespace System.Windows.Input
                     // We need to know when the dispatcher shuts down in order to clean
                     // up references to PenThreads held in the TabletDeviceCollection.
                     _inputManager.Value.Dispatcher.ShutdownFinished += _shutdownHandler;
-
-                    // Set the initial _lastSeenDeviceCount value so we can detect an invalid
-                    // WM_TABLET_DELETED message.  Note this initialization must be done after
-                    // _tabletDeviceCollection is initialized, since it is used by GetDeviceCount().
-                    _lastSeenDeviceCount = GetDeviceCount();
                 }
                 return _tabletDeviceCollection;
             }
@@ -3362,6 +3414,9 @@ namespace System.Windows.Input
                     if (!initializedTablets && tablets.Count > 0)
                     {
                         tablets.UpdateTablets();
+
+                        // Update the last known device count.
+                        _lastKnownDeviceCount = GetDeviceCount();
                     }
                 }
 
@@ -3518,6 +3573,9 @@ namespace System.Windows.Input
 
                 // Enable stylus input on all hwnds if we have not yet done so.
                 EnableCore();
+
+                // Update the last known device count.
+                _lastKnownDeviceCount = GetDeviceCount();
             }
         }
 
@@ -3535,9 +3593,6 @@ namespace System.Windows.Input
             {
                 TabletDeviceCollection tabletDeviceCollection = TabletDevices;
 
-                // Update the last seen device count.
-                _lastSeenDeviceCount = GetDeviceCount();
-
                 // When we receive the first WM_TABLET_ADDED message without being enabled,
                 // we have to update our TabletDevices at once and enable StylusLogic
                 if ( !_inputEnabled )
@@ -3545,8 +3600,14 @@ namespace System.Windows.Input
                     tabletDeviceCollection.UpdateTablets(); // Create the tablet device collection!
                     EnableCore(); // Go and enable input now.
 
+                    // Update the last known device count.
+                    _lastKnownDeviceCount = GetDeviceCount();
+
                     return; // We are done here.
                 }
+
+                // Update the last known device count.
+                _lastKnownDeviceCount = GetDeviceCount();
 
                 uint tabletIndex = UInt32.MaxValue;
                 // HandleTabletAdded returns true if we need to update contexts due to a change in tablet devices.
@@ -3565,7 +3626,7 @@ namespace System.Windows.Input
                         // rebuild all contexts and tablet collection if duplicate found.
                         foreach ( PenContexts contexts in __penContextsMap.Values )
                         {
-                            contexts.Disable(false /*shutdownWorkerThread*/);
+                            contexts.Disable(shutdownWorkerThread:false);
                         }
 
                         tabletDeviceCollection.UpdateTablets();
@@ -3579,12 +3640,114 @@ namespace System.Windows.Input
             }
         }
 
+        // Published documentation
+        //      http://msdn.microsoft.com/en-us/library/vstudio/dd901337(v=vs.90).aspx
+        //      http://msdn.microsoft.com/en-us/library/vstudio/ee230087(v=vs.100).aspx
+        //      http://msdn.microsoft.com/en-us/library/vstudio/ee230087.aspx
+        // suggests calling this method via reflection in order to disable the real-time
+        // stylus.  The original fix for Dev11 659672 broke this scenario by rebuilding
+        // the tablet collection if this method detects an inconsistent call -
+        // which is just what the MSDN suggestion does. To fix 659672 and still support
+        // the MSDN suggestion, we see if the caller is internal.  If so (the
+        // normal case), we rebuild the tablet collection if necessary.  If not
+        // (the MSDN reflection case), we simply remove the tablet without checking.
+        // Also, mark this method "no-inline", so that it remains visible to apps
+        // via reflection.
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
         /// <SecurityNote>
-        ///     Critical: This code calls SecurityCritical code (PenThreadPool.GetPenThreadForPenContext,
-        ///               and PenThread.WorkerGetTabletsInfo) and accesses SecurityCritical data via
-        ///               TabletDevices.
-        ///               Called by StylusLogic.OnTabletAdded, StylusLogic.OnTabletRemoved, and in the
-        ///               first call to the StylusLogic.TabletDevices getter.
+        ///     Critical: This code calls SecurityCritical code (PenContexts.RemoveContext and
+        ///              TabletDeviceCollection.HandleTabletRemoved) and accesses SecurityCritical data
+        ///              __penContextsMap.
+        ///             Called by app code via reflection (see above).
+        ///             TreatAsSafe boundry is HwndWrapperHook class (called via HwndSource.InputFilterMessage).
+        /// </SecurityNote>
+        [SecurityCritical]
+        private void OnTabletRemoved(uint wisptisIndex)
+        {
+            OnTabletRemovedImpl(wisptisIndex, isInternalCall:false);
+        }
+
+
+        /// <SecurityNote>
+        ///     Critical: This code calls SecurityCritical code (PenContexts.RemoveContext and
+        ///              TabletDeviceCollection.HandleTabletRemoved) and accesses SecurityCritical data
+        ///              __penContextsMap.
+        ///             Called by StylusLogic.HandleMessage, and by OnTabletRemoved.
+        ///             TreatAsSafe boundry is HwndWrapperHook class (called via HwndSource.InputFilterMessage).
+        /// </SecurityNote>
+        [SecurityCritical]
+        private void OnTabletRemovedImpl(uint wisptisIndex, bool isInternalCall)
+        {
+            // Nothing to do if the Stylus hasn't been enabled yet.
+            if ( _inputEnabled )
+            {
+                lock ( __penContextsLock )
+                {
+                    if (_tabletDeviceCollection != null)
+                    {
+                        // Dev11 #659672:  Tablet notifications can arrive in the wrong
+                        // order.  If so, using wisptisIndex can remove the wrong
+                        // tablet device and disable touch input.  To avoid this,
+                        // we rebuild TabletDevices from scratch if the notification
+                        // appears suspicious.  "Suspicious" means (a) this is a
+                        // real notification (not a call via reflection, as decribed
+                        // in the previous method), and (b) the device count hasn't
+                        // decreased by 1 (or we can't tell).
+                        int currentDeviceCount = GetDeviceCount();
+                        if (isInternalCall &&
+                            (_lastKnownDeviceCount < 0 ||
+                             currentDeviceCount != _lastKnownDeviceCount - 1))
+                        {
+                            // rebuild all contexts and tablet collection
+                            foreach ( PenContexts contexts in __penContextsMap.Values )
+                            {
+                                contexts.Disable(shutdownWorkerThread:false);
+                            }
+
+                            TabletDevices.UpdateTablets();
+
+                            foreach ( PenContexts contexts in __penContextsMap.Values )
+                            {
+                                contexts.Enable();
+                            }
+
+                            if (!_inputEnabled)
+                            {
+                                // This call can never be executed (_inputEnabed never
+                                // changes from true to false).  Its purpose is
+                                // to keep OnTabletRemoved from being marked as
+                                // unreachable and optimized out of existence.
+                                // That would break the MSDN reflection scenario.
+                                // Just to be safe, pass in a parameter that results
+                                // in a no-op;  even if it is called, nothing happens.
+                                OnTabletRemoved(UInt32.MaxValue);
+                            }
+                        }
+                        else
+                        {
+                            // remove the affected device
+                            uint tabletIndex = _tabletDeviceCollection.HandleTabletRemoved(wisptisIndex);
+
+                            if (tabletIndex != UInt32.MaxValue)
+                            {
+                                foreach (PenContexts contexts in __penContextsMap.Values)
+                                {
+                                    contexts.RemoveContext(tabletIndex);
+                                }
+                            }
+                        }
+
+                        _lastKnownDeviceCount = currentDeviceCount;
+                    }
+                }
+            }
+        }
+
+
+        /// <SecurityNote>
+        ///     Critical: This code calls SecurityCritical code (PenThread.WorkerGetTabletsInfo)
+        //                and accesses SecurityCritical data via TabletDevices.
+        ///               Called by StylusLogic.OnTabletAdded, StylusLogic.OnTabletRemovedImpl.
         /// </SecurityNote>
         [SecurityCritical]
         private int GetDeviceCount()
@@ -3597,77 +3760,19 @@ namespace System.Windows.Input
             {
                 penThread = tabletDeviceCollection[0].PenThread;
             }
-            if (penThread == null)
+
+            if (penThread != null)
             {
-                penThread = PenThreadPool.GetPenThreadForPenContext(null);
+                // Use the PenThread to get the full, unfiltered tablets info to see how many there are.
+                TabletDeviceInfo [] tabletdevices = penThread.WorkerGetTabletsInfo();
+                return tabletdevices.Length;
+            }
+            else
+            {
+                // if there's no PenThread yet, return "unknown"
+                return -1;
             }
 
-            // Use the PenThread to get the full, unfiltered tablets info to see how many there are.
-            TabletDeviceInfo [] tabletdevices = penThread.WorkerGetTabletsInfo();
-            return tabletdevices.Length;
-        }
-
-        // Dev11 #659672:  The wParam index to WM_TABLET_ADDED/DELETED may be invalid, since Windows
-        // sometimes sends these messages out of order.  As a result, we can't trust that these values
-        // are correct.  To help determine when they are invalid, we keep track of the number of tablets
-        // and simply do a full reset any time we get a DELETED notification without a proper change in count.
-        // We only need to check for this issue in DELETED because ADDED already has a check for duplicate
-        // or invalid index values.
-        private int _lastSeenDeviceCount = 0;
-
-        /// <SecurityNote>
-        ///     Critical: This code calls SecurityCritical code (PenContexts.RemoveContext and
-        ///              TabletDeviceCollection.HandleTabletRemoved) and accesses SecurityCritical data
-        ///              __penContextsMap.
-        ///             Called by StylusLogic.HandleMessage.
-        ///             TreatAsSafe boundry is HwndWrapperHook class (called via HwndSource.InputFilterMessage).
-        /// </SecurityNote>
-        [SecurityCritical]
-        private void OnTabletRemoved(uint wisptisIndex)
-        {
-            // Nothing to do if the Stylus hasn't been enabled yet.
-            if ( _inputEnabled )
-            {
-                lock ( __penContextsLock )
-                {
-                    if (_tabletDeviceCollection != null)
-                    {
-                        // Dev11 #659672:  If the device count hasn't simply been decremented since we last
-                        // checked, then this tablet removed notice appears to have come out of order.  Force
-                        // a complete rebuild of the TabletDevices when this happens.
-                        int currentDeviceCount = GetDeviceCount();
-                        if (currentDeviceCount != _lastSeenDeviceCount - 1)
-                        {
-                            // rebuild all contexts and tablet collection
-                            foreach ( PenContexts contexts in __penContextsMap.Values )
-                            {
-                                contexts.Disable(false /*shutdownWorkerThread*/);
-                            }
-
-                            TabletDevices.UpdateTablets();
-
-                            foreach ( PenContexts contexts in __penContextsMap.Values )
-                            {
-                                contexts.Enable();
-                            }
-                        }
-                        else
-                        {
-                            uint tabletIndex = _tabletDeviceCollection.HandleTabletRemoved(wisptisIndex);
-
-                            if (tabletIndex != UInt32.MaxValue)
-                            {
-                                foreach (PenContexts contexts in __penContextsMap.Values)
-                                {
-                                    contexts.RemoveContext(tabletIndex);
-                                }
-                            }
-                        }
-
-                        _lastSeenDeviceCount = currentDeviceCount;
-                    }
-                }
-            }
         }
 
 
@@ -3891,9 +3996,15 @@ namespace System.Windows.Input
 
         // Information used to distinguish double-taps (actually, multi taps) from
         // multiple independent taps.
-        private int _doubleTapDeltaTime = 800;  // this is in milli-seconds
-        private int _doubleTapDelta = 15;  // The default double tap distance is .1 mm values (default is 1.5mm)
+        private int _stylusDoubleTapDeltaTime = 800;  // this is in milli-seconds for stylus touch
+        private int _stylusDoubleTapDelta = 15;  // The default double tap distance is .1 mm values (default is 1.5mm)
         private int _cancelDelta = 10;        // The move distance is 1.0mm default (value in .1 mm)
+
+        private int _touchDoubleTapDeltaTime = 300; // this is in milli seconds for finger touch
+        private int _touchDoubleTapDelta = 45; // The default double tap distance for finger touch (4.5mm)
+
+        private const double DoubleTapMinFactor = 0.7; // 70% of the default threshold.
+        private const double DoubleTapMaxFactor = 1.3; // 130% of the default threshold.
 
         private RawMouseActions _lastRawMouseAction = RawMouseActions.None;
         private bool _waitingForDelegate = false;
@@ -3945,11 +4056,23 @@ namespace System.Windows.Input
         Dictionary<int, StylusDevice>     __stylusDeviceMap = new Dictionary<int, StylusDevice>(2);
 
         bool                              _inDragDrop;
+        bool                              _leavingDragDrop;
         bool                              _processingQueuedEvent;
 
         bool                              _stylusDeviceInRange;
 
         bool                     _seenRealMouseActivate;
+
+        // Dev11 #659672:  The wParam index to WM_TABLET_ADDED/DELETED may be invalid, since Windows
+        // sometimes sends these messages out of order.  As a result, we can't trust that these values
+        // are correct.  To help determine when they are invalid, we keep track of the number of tablets
+        // and simply do a full reset any time we get a DELETED notification without a proper change in count.
+        // We only need to check for this issue in DELETED because ADDED already has a check for duplicate
+        // or invalid index values.
+        // The value -1 means "unknown".  We only compute this number when we actually
+        // have tablet devices in play, so as to avoid starting a pen thread unecessarily.
+        // Doing so causes problems, as reported in Dev11 946388, 984115, 993269.
+        private int _lastKnownDeviceCount = -1;
 
 #if !MULTICAPTURE
         IInputElement _stylusCapture;

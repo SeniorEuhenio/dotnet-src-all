@@ -747,8 +747,14 @@ namespace System.Security.Cryptography.Xml
                 Reference digestedReference = (Reference) references[i];
 
                 SignedXmlDebugLog.LogVerifyReference(this, digestedReference);
-                byte[] calculatedHash = digestedReference.CalculateHashValue(m_containingDocument, m_signature.ReferencedItems);
-
+                byte[] calculatedHash = null;
+                try {
+                    calculatedHash = digestedReference.CalculateHashValue(m_containingDocument, m_signature.ReferencedItems);
+                }
+                catch (CryptoSignedXmlRecursionException) {
+                    SignedXmlDebugLog.LogSignedXmlRecursionLimit(this, digestedReference);
+                    return false;
+                }
                 // Compare both hashes
                 SignedXmlDebugLog.LogVerifyReferenceHash(this, digestedReference, calculatedHash, digestedReference.DigestValue);
                 if (calculatedHash.Length != digestedReference.DigestValue.Length) 

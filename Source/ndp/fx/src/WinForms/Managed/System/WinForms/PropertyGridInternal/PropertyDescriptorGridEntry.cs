@@ -42,6 +42,9 @@ namespace System.Windows.Forms.PropertyGridInternal {
         private string        helpKeyword;
         private string         toolTipText = null;
         private bool          activeXHide = false;
+        private static int           scaledImageSizeX = IMAGE_SIZE;
+        private static int           scaledImageSizeY = IMAGE_SIZE;
+        private static bool          isScalingInitialized = false; 
 
 
         private const int  IMAGE_SIZE = 8;
@@ -607,11 +610,20 @@ namespace System.Windows.Forms.PropertyGridInternal {
                 if (uiItemRects == null || uiItemRects.Length != pvUIItems.Length) {
                     uiItemRects = new Rectangle[pvUIItems.Length];
                 }
-                for (int i = 0; i < pvUIItems.Length; i++) {
-                    uiItemRects[i] = new Rectangle(rect.Right - ((IMAGE_SIZE+1)*(i+1)), (rect.Height - IMAGE_SIZE) / 2, IMAGE_SIZE, IMAGE_SIZE);
+
+                if (!isScalingInitialized) {
+                    if (DpiHelper.IsScalingRequired) {
+                        scaledImageSizeX = DpiHelper.LogicalToDeviceUnitsX(IMAGE_SIZE);
+                        scaledImageSizeY = DpiHelper.LogicalToDeviceUnitsY(IMAGE_SIZE);                        
+                    }
+                    isScalingInitialized = true;
+                }
+
+                for (int i = 0; i < pvUIItems.Length; i++) {                    
+                    uiItemRects[i] = new Rectangle(rect.Right - ((scaledImageSizeX + 1) * (i + 1)), (rect.Height - scaledImageSizeY) / 2, scaledImageSizeX, scaledImageSizeY);
                     g.DrawImage(pvUIItems[i].Image, uiItemRects[i]);
-                }    
-                GridEntryHost.LabelPaintMargin = (IMAGE_SIZE + 1) * pvUIItems.Length;
+                }
+                GridEntryHost.LabelPaintMargin = (scaledImageSizeX + 1) * pvUIItems.Length;
             }
         }
 
@@ -946,7 +958,22 @@ namespace System.Windows.Forms.PropertyGridInternal {
                             alwaysNavigate = true;
                         }
                     }
-                    propertyInfo.SetValue(obj, newHandler);
+
+                    try {
+                        propertyInfo.SetValue(obj, newHandler);
+                    } catch (InvalidOperationException ex) {
+                        if (trans != null) {
+                            trans.Cancel();
+                            trans = null;
+                        }
+
+                        if (this.GridEntryHost != null && this.GridEntryHost is PropertyGridView) {
+                            PropertyGridView pgv = this.GridEntryHost as PropertyGridView;
+                            pgv.ShowInvalidMessage(newHandler, obj, ex);
+                        }
+
+                        return false;
+                    }
                 }
                 
                 if (alwaysNavigate && eventBindings != null) {

@@ -196,7 +196,7 @@ namespace System.Windows.Forms
             Icon icon = new Icon(BitmapSelector.GetResourceStream(typeof(DataGridViewRowHeaderCell), iconName), desiredSize);
             Bitmap b = icon.ToBitmap();
             icon.Dispose();
-            
+
             if (DpiHelper.IsScalingRequired && (b.Size.Width != iconsWidth || b.Size.Height != iconsHeight))
             {
                 Bitmap scaledBitmap = DpiHelper.CreateResizedBitmap(b, desiredSize);

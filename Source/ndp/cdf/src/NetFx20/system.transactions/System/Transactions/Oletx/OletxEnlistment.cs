@@ -214,7 +214,7 @@ namespace System.Transactions.Oletx
                             );
                     }
 
-                    throw TransactionException.Create( SR.GetString( SR.TraceSourceOletx ), SR.GetString( SR.OletxEnlistmentUnexpectedTransactionStatus ), null );
+                    throw TransactionException.Create(SR.GetString(SR.TraceSourceOletx), SR.GetString(SR.OletxEnlistmentUnexpectedTransactionStatus), null, this.DistributedTxId);
                 }
             }
 
@@ -875,7 +875,7 @@ namespace System.Transactions.Oletx
                 }
                 else
                 {
-                    throw TransactionException.CreateEnlistmentStateException( SR.GetString( SR.TraceSourceOletx ), null );
+                    throw TransactionException.CreateEnlistmentStateException(SR.GetString(SR.TraceSourceOletx), null, this.DistributedTxId);
                 }
 
                 // If this.fabricateRollback is true, it means that we are fabricating this
@@ -921,7 +921,7 @@ namespace System.Transactions.Oletx
                     }
                     else
                     {
-                        throw TransactionException.CreateEnlistmentStateException( SR.GetString( SR.TraceSourceOletx ), null );
+                        throw TransactionException.CreateEnlistmentStateException(SR.GetString(SR.TraceSourceOletx), null, this.DistributedTxId);
                     }
                 }
                 else if ( null != localPhase0Shim )
@@ -936,7 +936,7 @@ namespace System.Transactions.Oletx
                     }
                     else
                     {
-                        throw TransactionException.CreateEnlistmentStateException( SR.GetString( SR.TraceSourceOletx ), null );
+                        throw TransactionException.CreateEnlistmentStateException(SR.GetString(SR.TraceSourceOletx), null, this.DistributedTxId);
                     }
                 }
 
@@ -1030,7 +1030,7 @@ namespace System.Transactions.Oletx
                 }
                 else
                 {
-                    throw TransactionException.CreateEnlistmentStateException( SR.GetString( SR.TraceSourceOletx ), null );
+                    throw TransactionException.CreateEnlistmentStateException(SR.GetString(SR.TraceSourceOletx), null, this.DistributedTxId);
                 }
 
                 state = OletxEnlistmentState.Prepared;
@@ -1156,7 +1156,7 @@ namespace System.Transactions.Oletx
                 }
                 else
                 {
-                    throw TransactionException.CreateEnlistmentStateException( SR.GetString( SR.TraceSourceOletx ), null );
+                    throw TransactionException.CreateEnlistmentStateException(SR.GetString(SR.TraceSourceOletx), null, this.DistributedTxId);
                 }
 
                 state = OletxEnlistmentState.Aborted;
@@ -1236,7 +1236,7 @@ namespace System.Transactions.Oletx
             {
                 if (!isSinglePhase || (OletxEnlistmentState.SinglePhaseCommitting != state))
                 {
-                    throw TransactionException.CreateEnlistmentStateException( SR.GetString( SR.TraceSourceOletx ), null );
+                    throw TransactionException.CreateEnlistmentStateException(SR.GetString(SR.TraceSourceOletx), null, this.DistributedTxId);
                 }
                 state = OletxEnlistmentState.Committed;
                 localEnlistmentShim = this.EnlistmentShim;
@@ -1311,7 +1311,7 @@ namespace System.Transactions.Oletx
             {
                 if (!isSinglePhase || (OletxEnlistmentState.SinglePhaseCommitting != state))
                 {
-                    throw TransactionException.CreateEnlistmentStateException( SR.GetString( SR.TraceSourceOletx ), null );
+                    throw TransactionException.CreateEnlistmentStateException(SR.GetString(SR.TraceSourceOletx), null, this.DistributedTxId);
                 }
                 state = OletxEnlistmentState.Aborted;
                 
@@ -1387,7 +1387,7 @@ namespace System.Transactions.Oletx
             {
                 if (!isSinglePhase || (OletxEnlistmentState.SinglePhaseCommitting != state))
                 {
-                    throw TransactionException.CreateEnlistmentStateException( SR.GetString( SR.TraceSourceOletx ), null );
+                    throw TransactionException.CreateEnlistmentStateException(SR.GetString(SR.TraceSourceOletx), null, this.DistributedTxId);
                 }
                 state = OletxEnlistmentState.InDoubt;
                 localEnlistmentShim = this.EnlistmentShim;
@@ -1444,7 +1444,7 @@ namespace System.Transactions.Oletx
             if ( this.prepareInfoByteArray == null )
             {
                 Debug.Assert( false, string.Format( null, "this.prepareInfoByteArray == null in RecoveryInformation()" ));
-                throw TransactionException.CreateEnlistmentStateException( SR.GetString( SR.TraceSourceOletx ), null );
+                throw TransactionException.CreateEnlistmentStateException(SR.GetString(SR.TraceSourceOletx), null, this.DistributedTxId);
             }
             return this.prepareInfoByteArray;
         }

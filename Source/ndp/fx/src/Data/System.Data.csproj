@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{9840a00f-f4ef-456f-9bab-d2f2d41fe20c}</ProjectGuid>
+    <ProjectGuid>{43a395d8-b07e-4166-a2ec-54449a6112aa}</ProjectGuid>
     <OutputPath>.</OutputPath>
     <OutputType>Library</OutputType>
     <AssemblyName>System.Data</AssemblyName>
@@ -20,31 +20,31 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\clr\src\bcl\mscorlib.csproj">
-      <Project>{edd76f80-29f6-4590-a3ef-f885b38da1b0}</Project>
+      <Project>{224f6f5b-c254-4b89-95cd-b690effa845e}</Project>
       <Name>mscorlib</Name>
     </ProjectReference>
     <ProjectReference Include="..\System.csproj">
-      <Project>{e4fae737-f889-49a8-8db5-92488fc98c22}</Project>
+      <Project>{41970311-a2a7-4957-b118-3e82738754bb}</Project>
       <Name>System</Name>
     </ProjectReference>
     <ProjectReference Include="..\Configuration\System.Configuration.csproj">
-      <Project>{d0e5c1bb-46f1-4fbe-9d9b-4d089d88ae09}</Project>
+      <Project>{c8acffc3-9a67-4b99-b153-3456d8d6a9e2}</Project>
       <Name>System.Configuration</Name>
     </ProjectReference>
     <ProjectReference Include="..\Core\System.Core.csproj">
-      <Project>{39be40c7-445f-4b45-869c-b23a2e23fde2}</Project>
+      <Project>{8237366e-c580-4edf-9fbc-6bc04dd169c7}</Project>
       <Name>System.Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\Numerics\System.Numerics.csproj">
-      <Project>{2852424c-b5ef-4641-bab5-20be2a1a4a7a}</Project>
+      <Project>{133748dd-0b3c-4405-be9d-72d73a500d8d}</Project>
       <Name>System.Numerics</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\cdf\src\NetFx20\System.Transactions\System.Transactions.csproj">
-      <Project>{bffc8405-8662-4c8f-becf-d11c9d868a35}</Project>
+      <Project>{3b5bed98-862f-47aa-b3c7-f3b8879a3d07}</Project>
       <Name>System.Transactions</Name>
     </ProjectReference>
     <ProjectReference Include="..\Xml\System.Xml.csproj">
-      <Project>{cfe60703-bdf5-402e-b545-c675c65ae9c8}</Project>
+      <Project>{e8f114a4-6ee9-49ae-9129-c5d7579eb5e9}</Project>
       <Name>System.Xml</Name>
     </ProjectReference>
   </ItemGroup>
@@ -53,8 +53,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\bid\inc\cs\bidPrivateBase.cs" />
-    <Compile Include="..\Misc\ExternDll.cs" />
-    <Compile Include="..\Misc\HResults.cs" />
     <Compile Include="..\Misc\PrivilegedConfigurationManager.cs" />
     <Compile Include="FxCopSuppressions\Baseline.cs" />
     <Compile Include="FxCopSuppressions\EverettBreaking.cs" />
@@ -166,6 +164,7 @@
     <Compile Include="System\Data\Common\SchemaTableOptionalColumn.cs" />
     <Compile Include="System\Data\Common\SingleStorage.cs" />
     <Compile Include="System\Data\Common\SQLConvert.cs" />
+    <Compile Include="System\Data\Common\SqlEventSource.cs" />
     <Compile Include="System\Data\Common\SQLTypes\SQLBinaryStorage.cs" />
     <Compile Include="System\Data\Common\SQLTypes\SQlBooleanStorage.cs" />
     <Compile Include="System\Data\Common\SQLTypes\SQLBytesStorage.cs" />
@@ -371,6 +370,8 @@
     <Compile Include="System\Data\ProviderBase\DbConnectionHelper.cs" />
     <Compile Include="System\Data\ProviderBase\DbConnectionInternal.cs" />
     <Compile Include="System\Data\ProviderBase\DbConnectionPool.cs" />
+    <Compile Include="System\Data\ProviderBase\DbConnectionPoolAuthenticationContext.cs" />
+    <Compile Include="System\Data\ProviderBase\DbConnectionPoolAuthenticationContextKey.cs" />
     <Compile Include="System\Data\ProviderBase\DbConnectionPoolCounters.cs" />
     <Compile Include="System\Data\ProviderBase\DbConnectionPoolGroup.cs" />
     <Compile Include="System\Data\ProviderBase\DbConnectionPoolGroupProviderInfo.cs" />
@@ -424,17 +425,29 @@
     <Compile Include="System\Data\SqlClient\RowsCopiedEventArgs.cs" />
     <Compile Include="System\Data\SqlClient\RowsCopiedEventHandler.cs" />
     <Compile Include="System\Data\SqlClient\SortOrder.cs" />
+    <Compile Include="System\Data\SqlClient\SqlAeadAes256CbcHmac256Algorithm.cs" />
+    <Compile Include="System\Data\SqlClient\SqlAeadAes256CbcHmac256EncryptionKey.cs" />
+    <Compile Include="System\Data\SqlClient\SqlAeadAes256CbcHmac256Factory.cs" />
+    <Compile Include="System\Data\SqlClient\SqlAes256CbcAlgorithm.cs" />
+    <Compile Include="System\Data\SqlClient\SqlAes256CbcFactory.cs" />
     <Compile Include="System\Data\SqlClient\SqlBuffer.cs" />
     <Compile Include="System\Data\SqlClient\SqlBulkCopy.cs" />
     <Compile Include="System\Data\SqlClient\SqlBulkCopyColumnMapping.cs" />
     <Compile Include="System\Data\SqlClient\SqlBulkCopyColumnMappingCollection.cs" />
     <Compile Include="System\Data\SqlClient\SqlBulkCopyOptions.cs" />
     <Compile Include="System\Data\SqlClient\SqlCachedBuffer.cs" />
+    <Compile Include="System\Data\SqlClient\SqlClientEncryptionAlgorithm.cs" />
+    <Compile Include="System\Data\SqlClient\SqlClientEncryptionAlgorithmFactory.cs" />
+    <Compile Include="System\Data\SqlClient\SqlClientEncryptionAlgorithmFactoryList.cs" />
+    <Compile Include="System\Data\SqlClient\SqlClientEncryptionType.cs" />
     <Compile Include="System\Data\SqlClient\SqlClientFactory.cs" />
     <Compile Include="System\Data\SqlClient\SqlClientMetaDataCollectionNames.cs" />
     <Compile Include="System\Data\SqlClient\SqlClientPermission.cs" />
+    <Compile Include="System\Data\SqlClient\SqlClientSymmetricKey.cs" />
     <Compile Include="System\Data\SqlClient\SqlClientWrapperSmiStream.cs" />
     <Compile Include="System\Data\SqlClient\SqlClientWrapperSmiStreamChars.cs" />
+    <Compile Include="System\Data\SqlClient\SqlColumnEncryptionCertificateStoreProvider.cs" />
+    <Compile Include="System\Data\SqlClient\SqlColumnEncryptionKeyStoreProvider.cs" />
     <Compile Include="System\Data\SqlClient\SqlCommand.cs" />
     <Compile Include="System\Data\SqlClient\SqlCommandBuilder.cs" />
     <Compile Include="System\Data\SqlClient\SqlCommandSet.cs" />
@@ -476,12 +489,14 @@
     <Compile Include="System\Data\SqlClient\SqlRowUpdatedEventHandler.cs" />
     <Compile Include="System\Data\SqlClient\SqlRowUpdatingEvent.cs" />
     <Compile Include="System\Data\SqlClient\SqlRowUpdatingEventHandler.cs" />
+    <Compile Include="System\Data\SqlClient\SqlSecurityUtility.cs" />
     <Compile Include="System\Data\SqlClient\SqlSequentialStream.cs" />
     <Compile Include="System\Data\SqlClient\SqlSequentialStreamSmi.cs" />
     <Compile Include="System\Data\SqlClient\SqlSequentialTextReader.cs" />
     <Compile Include="System\Data\SqlClient\SqlSequentialTextReaderSmi.cs" />
     <Compile Include="System\Data\SqlClient\SqlStatistics.cs" />
     <Compile Include="System\Data\SqlClient\SqlStream.cs" />
+    <Compile Include="System\Data\SqlClient\SqlSymmetricKeyCache.cs" />
     <Compile Include="System\Data\SqlClient\SqlTransaction.cs" />
     <Compile Include="System\Data\SqlClient\SqlUdtInfo.cs" />
     <Compile Include="System\Data\SqlClient\SqlUtil.cs" />

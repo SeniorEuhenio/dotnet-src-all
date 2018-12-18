@@ -4289,7 +4289,7 @@ namespace System.Windows
                 double marginWidth = margin.Left + margin.Right;
                 double marginHeight = margin.Top + margin.Bottom;
 
-                if (useLayoutRounding && this is ScrollContentPresenter)
+                if (useLayoutRounding && (this is ScrollContentPresenter || !FrameworkAppContextSwitches.DoNotApplyLayoutRoundingToMarginsAndBorderThickness))
                 {
                     // ScrollViewer and ScrollContentPresenter depend on rounding their
                     // measurements in a consistent way.  Round the margins first - if we
@@ -4305,6 +4305,14 @@ namespace System.Windows
                 Math.Max(availableSize.Height - marginHeight, 0));
 
                 MinMax mm = new MinMax(this);
+
+                if (useLayoutRounding && !FrameworkAppContextSwitches.DoNotApplyLayoutRoundingToMarginsAndBorderThickness)
+                {
+                    mm.maxHeight = UIElement.RoundLayoutValue(mm.maxHeight, DpiScaleY);
+                    mm.maxWidth = UIElement.RoundLayoutValue(mm.maxWidth, DpiScaleX);
+                    mm.minHeight = UIElement.RoundLayoutValue(mm.minHeight, DpiScaleY);
+                    mm.minWidth = UIElement.RoundLayoutValue(mm.minWidth, DpiScaleX);
+                }
 
                 LayoutTransformData ltd = LayoutTransformDataField.GetValue(this);
                 {
@@ -4526,7 +4534,11 @@ namespace System.Windows
                 Thickness margin = Margin;
                 double marginWidth = margin.Left + margin.Right;
                 double marginHeight = margin.Top + margin.Bottom;
-
+                if(useLayoutRounding && !FrameworkAppContextSwitches.DoNotApplyLayoutRoundingToMarginsAndBorderThickness)
+                {
+                    marginWidth = UIElement.RoundLayoutValue(marginWidth, FrameworkElement.DpiScaleX);
+                    marginHeight = UIElement.RoundLayoutValue(marginHeight, FrameworkElement.DpiScaleY);
+                }
                 arrangeSize.Width = Math.Max(0, arrangeSize.Width - marginWidth);
                 arrangeSize.Height = Math.Max(0, arrangeSize.Height - marginHeight);
 
@@ -4629,6 +4641,13 @@ namespace System.Windows
                 }
 
                 MinMax mm = new MinMax(this);
+                if(useLayoutRounding && !FrameworkAppContextSwitches.DoNotApplyLayoutRoundingToMarginsAndBorderThickness)
+                {
+                    mm.maxHeight = UIElement.RoundLayoutValue(mm.maxHeight, DpiScaleY);
+                    mm.maxWidth = UIElement.RoundLayoutValue(mm.maxWidth, DpiScaleX);
+                    mm.minHeight = UIElement.RoundLayoutValue(mm.minHeight, DpiScaleY);
+                    mm.minWidth = UIElement.RoundLayoutValue(mm.minWidth, DpiScaleX);
+                }
 
                 //we have to choose max between UnclippedDesiredSize and Max here, because
                 //otherwise setting of max property could cause arrange at less then unclippedDS.
@@ -4833,6 +4852,13 @@ namespace System.Windows
             {
                 // see if  MaxWidth/MaxHeight limit the element
                 MinMax mm = new MinMax(this);
+                if(useLayoutRounding && !FrameworkAppContextSwitches.DoNotApplyLayoutRoundingToMarginsAndBorderThickness)
+                {
+                    mm.maxHeight = UIElement.RoundLayoutValue(mm.maxHeight, DpiScaleY);
+                    mm.maxWidth = UIElement.RoundLayoutValue(mm.maxWidth, DpiScaleX);
+                    mm.minHeight = UIElement.RoundLayoutValue(mm.minHeight, DpiScaleY);
+                    mm.minWidth = UIElement.RoundLayoutValue(mm.minWidth, DpiScaleX);
+                }
 
                 //this is in element's local rendering coord system
                 Size inkSize = this.RenderSize;

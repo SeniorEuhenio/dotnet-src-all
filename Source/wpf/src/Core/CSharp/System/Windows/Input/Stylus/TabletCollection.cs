@@ -28,7 +28,7 @@ namespace System.Windows.Input
     public class TabletDeviceCollection : ICollection, IEnumerable
     {
         const int VistaMajorVersion = 6;
-    
+
         /////////////////////////////////////////////////////////////////////
 
         /////////////////////////////////////////////////////////////////////
@@ -50,7 +50,7 @@ namespace System.Windows.Input
             if (enabled)
             {
                 UpdateTablets(); // Create the tablet device collection!
-                
+
                 // Enable stylus input on all hwnds if we have not yet done so.
                 if (!stylusLogic.Enabled)
                 {
@@ -67,7 +67,7 @@ namespace System.Windows.Input
         ///     Critical: Calls SecurityCritical routines (IsWisptisRegistered,
         ///                HasTabletDevices, UnsafeNativeMethods.GetSystemMetrics,
         ///                PenThreadPool.GetPenThreadForPenContext, PenThread.WorkerGetTabletsInfo,
-        ///                TabletDevice constructor, StylusLogic.EnableCore and 
+        ///                TabletDevice constructor, StylusLogic.EnableCore and
         ///                StylusLogic.CurrentStylusLogic).
         /// </SecurityNote>
         [SecurityCritical]
@@ -76,12 +76,12 @@ namespace System.Windows.Input
             bool enabled = false;
 
             // We only want to enable by default if Wisptis is registered and tablets are detected.
-            // We do the same detection on all OS versions.  
+            // We do the same detection on all OS versions.
             //
-            // NOTE: This code does not support the new Vista wisptis feature to be able to exclude 
-            // tablet devices using a special registy key.  The only side effect of not supporting 
+            // NOTE: This code does not support the new Vista wisptis feature to be able to exclude
+            // tablet devices using a special registy key.  The only side effect of not supporting
             // this feature is that we would go ahead and load wisptis when we really don't need to
-            // (since wisptis would not return us any tablet devices).  This should be a fairly rare 
+            // (since wisptis would not return us any tablet devices).  This should be a fairly rare
             // case though.
             if (IsWisptisRegistered() && HasTabletDevices())
             {
@@ -145,7 +145,7 @@ namespace System.Windows.Input
                 }
                 key.Close();
             }
-           
+
             return fRegistered;
         }
 
@@ -213,7 +213,7 @@ namespace System.Windows.Input
         /////////////////////////////////////////////////////////////////////
         /// <SecurityNote>
         ///     Critical: calls into SecurityCritical code with SuppressUnmangedCode
-        ///                 (GetTabletCount, GetTablet, PimcPInvoke and PimcManager) 
+        ///                 (GetTabletCount, GetTablet, PimcPInvoke and PimcManager)
         ///                 and calls SecurityCritical code TabletDevice constructor.
         /// </SecurityNote>
         [SecurityCritical]
@@ -221,10 +221,87 @@ namespace System.Windows.Input
         {
             if (_tablets == null)
                 throw new ObjectDisposedException("TabletDeviceCollection");
-            
+
+            // This method can be re-entered in a way that can cause deadlock
+            // (Dev11 960656).  This can happen if multiple WM_DEVICECHANGE
+            // messages are pending and we have not yet built the tablet collection.
+            // Here's how:
+            // 1. First WM_DEVICECHANGE message enters here, starts to launch pen thread
+            // 2.   Penimc.UnsafeNativeMethods used for the first time, start its
+            //              static constructor.
+            // 3.     The static cctor starts to create a PimcManager via COM CLSID.
+            // 4.       COM pumps message, a second WM_DEVICECHANGE re-enters here
+            //              and starts to launch another pen thread.
+            // 5.         The static cctor is skipped (although step 3 hasn't finished),
+            //                  and the pen thread is started
+            // 6.           The PenThreadWorker (on the UI thread) waits for the
+            //                  PenThread to respond.
+            // 7. Meanwhile the pen thread's code refers to Pimc.UnsafeNativeMethods.
+            //      It's on a separate thread, so it waits for the static cctor to finish.
+            // Deadlock:  UI thread is waiting for PenThread, but holding the CLR's
+            //  lock on the static cctor.  The Pen thread is waiting for the static cctor.
+            //
+            // Multiple WM_DEVICECHANGE messages also cause re-entrancy even if the
+            // static cctor has already finished.  There's no deadlock in that case,
+            // but we end up with multiple pen threads (steps 1 and 4).  Besides being
+            // redundant, that can cause problems when the threads collide with each
+            // other or do work twice.
+            //
+            // In any case, the re-entrancy is harmful.  So we avoid it in the usual
+            // way - setting a flag on entry and early-exit if the flag is set.
+            //
+            // Usually the outermost call will leave the tablet collection in the
+            // right state, but there's a small chance that the OS or pen-input service
+            // will change something while the outermost call is in progress, so that
+            // the inner (re-entrant) call really would have picked up new information.
+            // To handle that case, we'll simply re-run the outermost call if any
+            // re-entrancy is detected.  Usually that will have no real effect, as
+            // the code here detects when no change is made to the tablet collection.
+
+            if (_inUpdateTablets)
+            {
+                // this is a re-entrant call.  Note that it happened, but do no work.
+                _hasUpdateTabletsBeenCalledReentrantly = true;
+                return;
+            }
+
+            try
+            {
+                _inUpdateTablets = true;
+                do
+                {
+                    _hasUpdateTabletsBeenCalledReentrantly = false;
+
+                    // do the real work
+                    UpdateTabletsImpl();
+
+                    // if re-entrancy happened, start over
+                    // This could loop forever, but only if we get an unbounded
+                    // number of re-entrant events;  that would have looped
+                    // forever even without this re-entrancy logic.
+                } while (_hasUpdateTabletsBeenCalledReentrantly);
+            }
+            finally
+            {
+                // when we're done (either normally or via exception)
+                // reset the re-entrancy state
+                _inUpdateTablets = false;
+                _hasUpdateTabletsBeenCalledReentrantly = false;
+            }
+        }
+
+        /////////////////////////////////////////////////////////////////////
+        /// <SecurityNote>
+        ///     Critical: calls into SecurityCritical code with SuppressUnmangedCode
+        ///                 (GetTabletCount, GetTablet, PimcPInvoke and PimcManager)
+        ///                 and calls SecurityCritical code TabletDevice constructor.
+        /// </SecurityNote>
+        [SecurityCritical]
+        void UpdateTabletsImpl()
+        {
             // REENTRANCY NOTE: Let a PenThread do this work to avoid reentrancy!
             //                  On return you get entire list of tablet and info needed to
-            //                  create all the tablet devices (and stylus device info gets 
+            //                  create all the tablet devices (and stylus device info gets
             //                  cached too in penimc which avoids calls to wisptis.exe).
 
             // Use existing penthread if we have one otherwise grab an available one.
@@ -238,7 +315,7 @@ namespace System.Windows.Input
             {
                 // See if this is a bogus entry first.
                 if (tabletdevices[i].PimcTablet == null) continue;
-                    
+
                 // If it is the mouse tablet device we want to ignore it.
                 if (tabletdevices[i].DeviceType == (TabletDeviceType)(-1))
                 {
@@ -264,9 +341,9 @@ namespace System.Windows.Input
                 {
                     continue; // Skip looking at this index (mouse and bogus tablets are ignored).
                 }
-                
+
                 int id = tabletdevices[iTablet].Id;
-                
+
                 // First see if same index has not changed (typical case)
                 if (tabletsIndex < _tablets.Length && _tablets[tabletsIndex] != null && _tablets[tabletsIndex].Id == id)
                 {
@@ -295,7 +372,7 @@ namespace System.Windows.Input
                             tablet = new TabletDevice(tabletdevices[iTablet], penThread);
                         }
                         catch (InvalidOperationException ex)
-                        {                            
+                        {
                             // This is caused by the Stylus ID not being unique when trying
                             // to register it in the StylusLogic.__stylusDeviceMap.  If we
                             // come across a dup then just ignore registering this tablet device.
@@ -313,9 +390,9 @@ namespace System.Windows.Input
                     }
                     tablets[tabletsIndex] = tablet;
                 }
-                
+
                 tabletsIndex++;
-                
+
             }
 
             if (unchangedTabletCount == _tablets.Length &&
@@ -324,7 +401,7 @@ namespace System.Windows.Input
             {
                 // Keep the _tablet reference when nothing changes.
                 // The reason is that if this method gets called from within
-                // CreateContexts while looping on _tablets, it could result in 
+                // CreateContexts while looping on _tablets, it could result in
                 // a null ref exception since the original _tablets array has
                 // been purged to nulls.
                 // NOTE: There is still the case of changing the ref (else case below)
@@ -343,7 +420,7 @@ namespace System.Windows.Input
                     Array.Copy(tablets, 0, updatedTablets, 0, tabletsIndex);
                     tablets = updatedTablets;
                 }
-            
+
                 DisposeTablets(); // Clean up any non null TabletDevice entries on old array.
                 _tablets = tablets; // set updated tabletdevice array
                 _indexMouseTablet = indexMouseTablet;
@@ -355,7 +432,7 @@ namespace System.Windows.Input
         /////////////////////////////////////////////////////////////////////
         /// <SecurityNote>
         ///     Critical: calls into SecurityCritical code with SuppressUnmangedCode
-        ///                 (GetTablet, PimcPInvoke and PimcManager) 
+        ///                 (GetTablet, PimcPInvoke and PimcManager)
         ///                 and calls SecurityCritical code TabletDevice constructor.
         /// </SecurityNote>
         [SecurityCritical]
@@ -365,10 +442,10 @@ namespace System.Windows.Input
                 throw new ObjectDisposedException("TabletDeviceCollection");
 
             tabletIndexChanged = UInt32.MaxValue;
-            
+
             // REENTRANCY NOTE: Let a PenThread do this work to avoid reentrancy!
             //                  On return you get the tablet info needed to
-            //                  create a tablet devices (and stylus device info gets 
+            //                  create a tablet devices (and stylus device info gets
             //                  cached in penimc too which avoids calls to wisptis.exe).
 
             // Use existing penthread if we have one otherwise grab an available one.
@@ -463,7 +540,7 @@ namespace System.Windows.Input
         {
             if (_tablets == null)
                 throw new ObjectDisposedException("TabletDeviceCollection");
-            
+
             // if mouse tabletdevice then ignore it.
             if (wisptisIndex == _indexMouseTablet)
             {
@@ -481,7 +558,7 @@ namespace System.Windows.Input
                 // Must be less than _indexMouseTablet since equality is done above.
                 _indexMouseTablet--;
             }
-                
+
             // if index is out of range then ignore it.
             if (tabletIndex >= _tablets.Length)
             {
@@ -490,7 +567,7 @@ namespace System.Windows.Input
 
             // Remove tablet from collection
             RemoveTablet(tabletIndex);
-            
+
             return tabletIndex;
         }
 
@@ -528,7 +605,7 @@ namespace System.Windows.Input
         void RemoveTablet(uint index)
         {
             System.Diagnostics.Debug.Assert(index < Count && Count > 0);
-            
+
             TabletDevice removeTablet = _tablets[index];
 
             TabletDevice[] tablets = new TabletDevice[_tablets.Length - 1];
@@ -538,7 +615,7 @@ namespace System.Windows.Input
 
             Array.Copy(_tablets, 0, tablets, 0, preCopyCount);
             Array.Copy(_tablets, index+1, tablets, index, postCopyCount);
-            
+
             _tablets = tablets;
 
             // Make sure we release any references to a stylus device that may
@@ -547,8 +624,8 @@ namespace System.Windows.Input
             {
                 StylusLogic.CurrentStylusLogic.SelectStylusDevice(null, null, true);
             }
-             
-            
+
+
             removeTablet.Dispose();
         }
 
@@ -556,7 +633,7 @@ namespace System.Windows.Input
         /////////////////////////////////////////////////////////////////////
         /// <SecurityNote>
         ///     Critical: calls into SecurityCritical code with SuppressUnmangedCode
-        ///                 (GetTablet, PimcPInvoke and PimcManager) 
+        ///                 (GetTablet, PimcPInvoke and PimcManager)
         ///                 and calls SecurityCritical code TabletDevice constructor.
         /// </SecurityNote>
         [SecurityCritical]
@@ -564,7 +641,7 @@ namespace System.Windows.Input
         {
             if (_tablets == null)
                 throw new ObjectDisposedException("TabletDeviceCollection");
-                        
+
             for (int iTablet = 0, cTablets = _tablets.Length; iTablet < cTablets; iTablet++)
             {
                 TabletDevice tablet = _tablets[iTablet];
@@ -575,7 +652,7 @@ namespace System.Windows.Input
             }
             return null;
         }
-            
+
         /////////////////////////////////////////////////////////////////////
         /// <SecurityNote>
         ///     Critical: calls into SecurityCritical code TabletDevice.Dispose.
@@ -604,7 +681,7 @@ namespace System.Windows.Input
 
         /////////////////////////////////////////////////////////////////////
         /// <SecurityNote>
-        ///     Critical:  - calls into security critical code (PenContext constructor 
+        ///     Critical:  - calls into security critical code (PenContext constructor
         ///                   and PenContext.CreateContext)
         ///                - takes in data that is potential security risk (hwnd)
         /// </SecurityNote>
@@ -632,7 +709,7 @@ namespace System.Windows.Input
             {
                 if (_tablets == null)
                     throw new ObjectDisposedException("TabletDeviceCollection");
-                
+
                 return _tablets.Length;
             }
         }
@@ -783,8 +860,8 @@ namespace System.Windows.Input
                     if ((_index < 0) || (_tabletDeviceCollection == null) || (_index >= _tabletDeviceCollection.Count))
                     {
                         // samgeo - Presharp issue
-                        // Presharp gives a warning when get methods of a property throws an exception. 
-                        // However, the get method of the IEnumerator class has to throw an exception 
+                        // Presharp gives a warning when get methods of a property throws an exception.
+                        // However, the get method of the IEnumerator class has to throw an exception
                         // by Design. The details can be found in the MSDN documentation for IEnumerator.
 #pragma warning disable 1634, 1691
 #pragma warning suppress 6503
@@ -806,5 +883,7 @@ namespace System.Windows.Input
 
         TabletDevice[]          _tablets = new TabletDevice[0];
         uint                    _indexMouseTablet = UInt32.MaxValue;
+        bool                    _inUpdateTablets;       // detect re-entrancy
+        bool                    _hasUpdateTabletsBeenCalledReentrantly;
     }
 }

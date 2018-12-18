@@ -2006,8 +2006,10 @@ namespace System.Xml.Schema {
                             break;
 
                         case CompiledIdentityConstraint.ConstraintRole.Unique:
-                            if (! ks.IsQualified()) {
-                                continue;
+                            if (LocalAppContextSwitches.IgnoreEmptyKeySequences) {
+                                if (!ks.IsQualified()) {
+                                    continue;
+                                }
                             }
                             if (constraints[i].qualifiedTable.Contains (ks)) {
                                 // unique or key checking confliction

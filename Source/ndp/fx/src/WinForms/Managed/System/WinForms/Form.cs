@@ -2247,7 +2247,6 @@ namespace System.Windows.Forms {
 
         // SECURITY WARNING: This property bypasses a security demand. Use with caution!
         internal override Control ParentInternal {
-            [System.Runtime.TargetedPatchingOptOutAttribute("Performance critical to inline across NGen image boundaries")]
             get {
                 return base.ParentInternal;
             }
@@ -6921,7 +6920,7 @@ namespace System.Windows.Forms {
                     if (IsMdiContainer) {
                         FormClosingEventArgs fe = new FormClosingEventArgs(CloseReason.MdiFormClosing, e.Cancel);
                         foreach(Form mdiChild in MdiChildren) {
-                            if (mdiChild.IsHandleCreated) {
+                            if (mdiChild.IsHandleCreated) {                                
                                 mdiChild.OnClosing(fe);
                                 mdiChild.OnFormClosing(fe);
                                 if (fe.Cancel) {
@@ -6982,6 +6981,7 @@ namespace System.Windows.Forms {
                         fc = new FormClosedEventArgs(CloseReason.MdiFormClosing);
                         foreach(Form mdiChild in MdiChildren) {
                             if (mdiChild.IsHandleCreated) {
+                                mdiChild.IsTopMdiWindowClosing = IsClosing;
                                 mdiChild.OnClosed(fc);
                                 mdiChild.OnFormClosed(fc);
                             }

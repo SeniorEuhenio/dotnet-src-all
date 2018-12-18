@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{ae480217-2183-48b8-ae7d-3142891cab50}</ProjectGuid>
+    <ProjectGuid>{09e79805-e450-4d79-96d0-f9e426c6652e}</ProjectGuid>
     <OutputPath>.</OutputPath>
     <OutputType>Library</OutputType>
     <AssemblyName>System.Windows.Forms</AssemblyName>
@@ -20,35 +20,35 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\clr\src\bcl\mscorlib.csproj">
-      <Project>{edd76f80-29f6-4590-a3ef-f885b38da1b0}</Project>
+      <Project>{224f6f5b-c254-4b89-95cd-b690effa845e}</Project>
       <Name>mscorlib</Name>
     </ProjectReference>
     <ProjectReference Include="System.csproj">
-      <Project>{e4fae737-f889-49a8-8db5-92488fc98c22}</Project>
+      <Project>{41970311-a2a7-4957-b118-3e82738754bb}</Project>
       <Name>System</Name>
     </ProjectReference>
     <ProjectReference Include="Configuration\System.Configuration.csproj">
-      <Project>{d0e5c1bb-46f1-4fbe-9d9b-4d089d88ae09}</Project>
+      <Project>{c8acffc3-9a67-4b99-b153-3456d8d6a9e2}</Project>
       <Name>System.Configuration</Name>
     </ProjectReference>
     <ProjectReference Include="Core\System.Core.csproj">
-      <Project>{39be40c7-445f-4b45-869c-b23a2e23fde2}</Project>
+      <Project>{8237366e-c580-4edf-9fbc-6bc04dd169c7}</Project>
       <Name>System.Core</Name>
     </ProjectReference>
     <ProjectReference Include="System.Drawing.csproj">
-      <Project>{d5c689ab-f8f6-43bd-aa96-6bea230fdb80}</Project>
+      <Project>{25f1569b-f36d-466e-8854-89f1b79cd829}</Project>
       <Name>System.Drawing</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\clr\src\managedlibraries\remoting\System.Runtime.Remoting.csproj">
-      <Project>{56b6c67a-2846-49cc-8742-5fd72b47fdef}</Project>
+      <Project>{23b8549b-9507-47a0-a621-2efa88ea82f3}</Project>
       <Name>System.Runtime.Remoting</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\clr\src\managedlibraries\security\System.Security.csproj">
-      <Project>{07cda927-7d1e-472e-b3b7-a07277345f84}</Project>
+      <Project>{fbc0d97a-d604-4806-aa26-4fb7c017f571}</Project>
       <Name>System.Security</Name>
     </ProjectReference>
     <ProjectReference Include="Xml\System.Xml.csproj">
-      <Project>{cfe60703-bdf5-402e-b545-c675c65ae9c8}</Project>
+      <Project>{e8f114a4-6ee9-49ae-9129-c5d7579eb5e9}</Project>
       <Name>System.Xml</Name>
     </ProjectReference>
   </ItemGroup>
@@ -71,21 +71,15 @@
     <Compile Include="misc\DbgUtil.cs" />
     <Compile Include="misc\DebugHandleTracker.cs" />
     <Compile Include="misc\DpiHelper.cs" />
-    <Compile Include="misc\ExternDll.cs" />
-    <Compile Include="misc\GDI\ApplyGraphicsProperties.cs" />
     <Compile Include="misc\GDI\DeviceCapabilities.cs" />
     <Compile Include="misc\GDI\DeviceContext.cs" />
     <Compile Include="misc\GDI\DeviceContext2.cs" />
     <Compile Include="misc\GDI\DeviceContextBackgroundMode.cs" />
-    <Compile Include="misc\GDI\DeviceContextGraphicsMode.cs" />
     <Compile Include="misc\GDI\DeviceContextLayout.cs" />
     <Compile Include="misc\GDI\DeviceContextMapMode.cs" />
     <Compile Include="misc\GDI\DeviceContextRasterOperationFlags.cs" />
     <Compile Include="misc\GDI\DeviceContexts.cs" />
     <Compile Include="misc\GDI\DeviceContextTextAlignment.cs" />
-    <Compile Include="misc\GDI\DeviceContextType.cs" />
-    <Compile Include="misc\GDI\FxCopSuppression.cs" />
-    <Compile Include="misc\GDI\GdiObjectType.cs" />
     <Compile Include="misc\GDI\MeasurementDCInfo.cs" />
     <Compile Include="misc\GDI\NativeMethods.cs" />
     <Compile Include="misc\GDI\SafeNativeMethods.cs" />
@@ -101,7 +95,6 @@
     <Compile Include="misc\GDI\WindowsPen.cs" />
     <Compile Include="misc\GDI\WindowsPenStyle.cs" />
     <Compile Include="misc\GDI\WindowsRegion.cs" />
-    <Compile Include="misc\GDI\WindowsRegionCombineMode.cs" />
     <Compile Include="misc\GDI\WindowsSolidBrush.cs" />
     <Compile Include="misc\HandleCollector.cs" />
     <Compile Include="misc\ImageListUtils.cs" />

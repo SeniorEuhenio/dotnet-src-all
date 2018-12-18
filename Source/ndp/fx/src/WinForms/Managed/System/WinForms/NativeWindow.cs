@@ -209,7 +209,6 @@ namespace System.Windows.Forms {
         ///    </para>
         /// </devdoc>
         public IntPtr Handle {
-            [System.Runtime.TargetedPatchingOptOutAttribute("Performance critical to inline across NGen image boundaries")]
             get {
 #if DEBUG
                 Debug.Assert(handle == IntPtr.Zero || (handleCreatedIn != null && handleCreatedIn == AppDomain.CurrentDomain),
@@ -387,9 +386,11 @@ namespace System.Windows.Forms {
                     if (((hashBuckets[bucketNumber].hash_coll & 0x7FFFFFFF) == hashcode) && handle == hashBuckets[bucketNumber].handle) {
                         GCHandle prevWindow = hashBuckets[bucketNumber].window;
                         if (prevWindow.IsAllocated) {
-                            window.previousWindow = ((NativeWindow)prevWindow.Target);
-                            Debug.Assert(window.previousWindow.nextWindow == null, "Last window in chain should have null next ptr");
-                            window.previousWindow.nextWindow = window;
+                            if (prevWindow.Target != null) {
+                                window.previousWindow = ((NativeWindow)prevWindow.Target);
+                                Debug.Assert(window.previousWindow.nextWindow == null, "Last window in chain should have null next ptr");
+                                window.previousWindow.nextWindow = window;
+                            }
                             prevWindow.Free();
                         }
                         hashBuckets[bucketNumber].window = root;

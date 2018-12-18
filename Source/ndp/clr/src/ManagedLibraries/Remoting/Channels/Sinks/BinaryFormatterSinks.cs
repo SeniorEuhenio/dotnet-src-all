@@ -592,8 +592,8 @@ namespace System.Runtime.Remoting.Channels
                     throw new RemotingException(CoreChannel.GetResourceString("Remoting_DeserializeMessage"));
                 }
 
-                // Transparent proxy IMessages are allowed conditionally by AppSettings
-                if (RemotingServices.IsTransparentProxy(requestMsg) && !AppSettings.AllowTransparentProxyMessage)
+                // Transparent proxy and MBRO IMessages are allowed conditionally by AppSettings
+                if (requestMsg is MarshalByRefObject && !AppSettings.AllowTransparentProxyMessage)
                 {
                     // Null request to prevent calling transparent proxy methods in catch below.
                     // Fwlink is provided to explain why it is not supported.  Inner exceptions propagate back to sender.

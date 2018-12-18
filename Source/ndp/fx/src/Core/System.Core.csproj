@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{39be40c7-445f-4b45-869c-b23a2e23fde2}</ProjectGuid>
+    <ProjectGuid>{8237366e-c580-4edf-9fbc-6bc04dd169c7}</ProjectGuid>
     <OutputPath>.</OutputPath>
     <OutputType>Library</OutputType>
     <AssemblyName>System.Core</AssemblyName>
@@ -20,19 +20,19 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\clr\src\bcl\mscorlib.csproj">
-      <Project>{edd76f80-29f6-4590-a3ef-f885b38da1b0}</Project>
+      <Project>{224f6f5b-c254-4b89-95cd-b690effa845e}</Project>
       <Name>mscorlib</Name>
     </ProjectReference>
     <ProjectReference Include="..\System.csproj">
-      <Project>{e4fae737-f889-49a8-8db5-92488fc98c22}</Project>
+      <Project>{41970311-a2a7-4957-b118-3e82738754bb}</Project>
       <Name>System</Name>
     </ProjectReference>
     <ProjectReference Include="..\Numerics\System.Numerics.csproj">
-      <Project>{2852424c-b5ef-4641-bab5-20be2a1a4a7a}</Project>
+      <Project>{133748dd-0b3c-4405-be9d-72d73a500d8d}</Project>
       <Name>System.Numerics</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\clr\src\managedlibraries\security\System.Security.csproj">
-      <Project>{07cda927-7d1e-472e-b3b7-a07277345f84}</Project>
+      <Project>{fbc0d97a-d604-4806-aa26-4fb7c017f571}</Project>
       <Name>System.Security</Name>
     </ProjectReference>
   </ItemGroup>
@@ -84,6 +84,7 @@
     <Compile Include="Microsoft\Scripting\Ast\ExpressionVisitor.cs" />
     <Compile Include="Microsoft\Scripting\Ast\GotoExpression.cs" />
     <Compile Include="Microsoft\Scripting\Ast\IArgumentProvider.cs" />
+    <Compile Include="Microsoft\Scripting\Ast\IDynamicExpression.cs" />
     <Compile Include="Microsoft\Scripting\Ast\IndexExpression.cs" />
     <Compile Include="Microsoft\Scripting\Ast\InvocationExpression.cs" />
     <Compile Include="Microsoft\Scripting\Ast\LabelExpression.cs" />
@@ -229,6 +230,7 @@
     <Compile Include="System\IO\MemoryMappedFiles\MemoryMappedViewAccessor.cs" />
     <Compile Include="System\IO\MemoryMappedFiles\MemoryMappedViewStream.cs" />
     <Compile Include="System\IO\Pipes\Enums.cs" />
+    <Compile Include="System\IO\Pipes\IOCancellationHelper.cs" />
     <Compile Include="System\IO\Pipes\Pipe.cs" />
     <Compile Include="System\IO\Pipes\PipeSecurity.cs" />
     <Compile Include="System\IO\Pipes\PipeStream.cs" />
@@ -406,6 +408,7 @@
     <Compile Include="System\Security\Cryptography\MD5Cng.cs" />
     <Compile Include="System\Security\Cryptography\NCryptNative.cs" />
     <Compile Include="System\Security\Cryptography\Rfc4050KeyFormatter.cs" />
+    <Compile Include="System\Security\Cryptography\RsaCng.cs" />
     <Compile Include="System\Security\Cryptography\SHA1Cng.cs" />
     <Compile Include="System\Security\Cryptography\SHA256Cng.cs" />
     <Compile Include="System\Security\Cryptography\SHA256CryptoServiceProvider.cs" />
@@ -416,6 +419,7 @@
     <Compile Include="System\Security\Cryptography\SignatureVerificationResult.cs" />
     <Compile Include="System\Security\Cryptography\StrongNameSignatureInformation.cs" />
     <Compile Include="System\Security\Cryptography\X509Certificates\AuthenticodeSignatureInformation.cs" />
+    <Compile Include="System\Security\Cryptography\X509Certificates\RSACertificateExtensions.cs" />
     <Compile Include="System\Security\Cryptography\X509Certificates\TimestampInformation.cs" />
     <Compile Include="System\Security\Cryptography\X509Certificates\TrustStatus.cs" />
     <Compile Include="System\Security\Cryptography\X509Certificates\X509Native.cs" />

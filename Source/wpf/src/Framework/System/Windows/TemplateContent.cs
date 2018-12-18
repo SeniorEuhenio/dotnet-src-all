@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Windows.Controls;
 using System.Diagnostics;
 using System.Windows.Data;
+using System.Windows.Diagnostics;
 using System.Windows.Markup;
 using System.Globalization;
 using MS.Utility;
@@ -422,8 +423,26 @@ namespace System.Windows
             _xamlNodeList = new XamlNodeList(SchemaContext);
             System.Xaml.XamlWriter writer = _xamlNodeList.Writer;
             System.Xaml.XamlReader reader = TemplateLoadData.Reader;
+
+            // Prepare to provide source info if needed
+            IXamlLineInfoConsumer lineInfoConsumer = null;
+            IXamlLineInfo lineInfo = null;
+            if (XamlSourceInfoHelper.IsXamlSourceInfoEnabled)
+            {
+                lineInfo = reader as IXamlLineInfo;
+                if (lineInfo != null)
+                {
+                    lineInfoConsumer = writer as IXamlLineInfoConsumer;
+                }
+            }
+
             while (reader.Read())
             {
+                if (lineInfoConsumer != null)
+                {
+                    lineInfoConsumer.SetLineInfo(lineInfo.LineNumber, lineInfo.LinePosition);
+                }
+
                 object newValue;
                 bool reProcessOnApply = ParseNode(reader, stack, sharedProperties, ref nameNumber, out newValue);
                 if (reProcessOnApply)

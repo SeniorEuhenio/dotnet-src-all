@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{bffc8405-8662-4c8f-becf-d11c9d868a35}</ProjectGuid>
+    <ProjectGuid>{3b5bed98-862f-47aa-b3c7-f3b8879a3d07}</ProjectGuid>
     <OutputPath>.</OutputPath>
     <OutputType>Library</OutputType>
     <AssemblyName>System.Transactions</AssemblyName>
@@ -20,27 +20,27 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\clr\src\bcl\mscorlib.csproj">
-      <Project>{edd76f80-29f6-4590-a3ef-f885b38da1b0}</Project>
+      <Project>{224f6f5b-c254-4b89-95cd-b690effa845e}</Project>
       <Name>mscorlib</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\System.csproj">
-      <Project>{e4fae737-f889-49a8-8db5-92488fc98c22}</Project>
+      <Project>{41970311-a2a7-4957-b118-3e82738754bb}</Project>
       <Name>System</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\Configuration\System.Configuration.csproj">
-      <Project>{d0e5c1bb-46f1-4fbe-9d9b-4d089d88ae09}</Project>
+      <Project>{c8acffc3-9a67-4b99-b153-3456d8d6a9e2}</Project>
       <Name>System.Configuration</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\Core\System.Core.csproj">
-      <Project>{39be40c7-445f-4b45-869c-b23a2e23fde2}</Project>
+      <Project>{8237366e-c580-4edf-9fbc-6bc04dd169c7}</Project>
       <Name>System.Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\clr\src\managedlibraries\security\System.Security.csproj">
-      <Project>{07cda927-7d1e-472e-b3b7-a07277345f84}</Project>
+      <Project>{fbc0d97a-d604-4806-aa26-4fb7c017f571}</Project>
       <Name>System.Security</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\Xml\System.Xml.csproj">
-      <Project>{cfe60703-bdf5-402e-b545-c675c65ae9c8}</Project>
+      <Project>{e8f114a4-6ee9-49ae-9129-c5d7579eb5e9}</Project>
       <Name>System.Xml</Name>
     </ProjectReference>
   </ItemGroup>
@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="..\..\inc\PrivilegedConfigurationManager.cs" />
     <Compile Include="System\Transactions\CommittableTransaction.cs" />
+    <Compile Include="System\Transactions\Configuration\AppSettings.cs" />
     <Compile Include="System\Transactions\Configuration\ConfigurationStrings.cs" />
     <Compile Include="System\Transactions\Configuration\DefaultSettingsSection.cs" />
     <Compile Include="System\Transactions\Configuration\MachineSettingsSection.cs" />

@@ -181,15 +181,15 @@ inline void DescSetOrigBuf(VIP_DESCRIPTOR * pDesc, BYTE * pbBuf)
 }
 
 
-DWORD Hash(__in LPCSTR string)
+DWORD Hash(__in LPCWSTR string)
 {
-	BidxScopeAutoSNI1( SNIAPI_TAG _T( "string: \"%hs\"\n"), string);
+	BidxScopeAutoSNI1( SNIAPI_TAG _T( "string: \"%s\"\n"), string);
 
 	DWORD i;
 	DWORD dwHash  = 0;
-	char c;
+	WCHAR c;
 
-	for(i = 0; i < (DWORD) strlen(string); i++)
+	for(i = 0; i < (DWORD) wcslen(string); i++)
 	{
 		c = string[i];
 		dwHash += c;

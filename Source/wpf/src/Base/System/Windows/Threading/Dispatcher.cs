@@ -652,7 +652,7 @@ namespace System.Windows.Threading
             if(!cancellationToken.IsCancellationRequested && priority == DispatcherPriority.Send && CheckAccess())
             {
                 SynchronizationContext oldSynchronizationContext = SynchronizationContext.Current;
-            
+
                 try
                 {
                     DispatcherSynchronizationContext newSynchronizationContext;
@@ -672,7 +672,7 @@ namespace System.Windows.Threading
                         }
                     }
                     SynchronizationContext.SetSynchronizationContext(newSynchronizationContext);
-            
+
                     callback();
                     return;
                 }
@@ -822,7 +822,7 @@ namespace System.Windows.Threading
             if(!cancellationToken.IsCancellationRequested && priority == DispatcherPriority.Send && CheckAccess())
             {
                 SynchronizationContext oldSynchronizationContext = SynchronizationContext.Current;
-            
+
                 try
                 {
                     DispatcherSynchronizationContext newSynchronizationContext;
@@ -842,7 +842,7 @@ namespace System.Windows.Threading
                         }
                     }
                     SynchronizationContext.SetSynchronizationContext(newSynchronizationContext);
-            
+
                     return callback();
                 }
                 finally
@@ -858,7 +858,7 @@ namespace System.Windows.Threading
 
         /// <summary>
         ///     Executes the specified Action asynchronously on the thread
-        ///     that the Dispatcher was created on. 
+        ///     that the Dispatcher was created on.
         /// </summary>
         /// <param name="callback">
         ///     An Action delegate to invoke through the dispatcher.
@@ -876,7 +876,7 @@ namespace System.Windows.Threading
 
         /// <summary>
         ///     Executes the specified Action asynchronously on the thread
-        ///     that the Dispatcher was created on. 
+        ///     that the Dispatcher was created on.
         /// </summary>
         /// <param name="callback">
         ///     An Action delegate to invoke through the dispatcher.
@@ -899,7 +899,7 @@ namespace System.Windows.Threading
 
         /// <summary>
         ///     Executes the specified Action asynchronously on the thread
-        ///     that the Dispatcher was created on. 
+        ///     that the Dispatcher was created on.
         /// </summary>
         /// <param name="callback">
         ///     An Action delegate to invoke through the dispatcher.
@@ -1051,7 +1051,7 @@ namespace System.Windows.Threading
             lock(_instanceLock)
             {
                 if (!cancellationToken.IsCancellationRequested &&
-                    !_hasShutdownFinished && 
+                    !_hasShutdownFinished &&
                     !Environment.HasShutdownStarted)
                 {
                     // Add the operation to the work queue
@@ -1084,8 +1084,8 @@ namespace System.Windows.Threading
                 if(cancellationToken.CanBeCanceled)
                 {
                     CancellationTokenRegistration cancellationRegistration = cancellationToken.Register(s => ((DispatcherOperation)s).Abort(), operation);
-                
-                    // Revoke the cancellation when the operation is done. 
+
+                    // Revoke the cancellation when the operation is done.
                     operation.Aborted += (s,e) => cancellationRegistration.Dispose();
                     operation.Completed += (s,e) => cancellationRegistration.Dispose();
                 }
@@ -1467,22 +1467,23 @@ namespace System.Windows.Threading
 
             Debug.Assert(timeout.TotalMilliseconds >= 0 || timeout == TimeSpan.FromMilliseconds(-1));
             Debug.Assert(operation.Priority != DispatcherPriority.Send || !CheckAccess()); // should be handled by caller
-            
+
             if(!cancellationToken.IsCancellationRequested)
             {
                 // This operation must be queued since it was invoked either to
                 // another thread, or at a priority other than Send.
                 InvokeAsyncImpl(operation, cancellationToken);
-            
+
                 CancellationToken ctTimeout = CancellationToken.None;
                 CancellationTokenRegistration ctTimeoutRegistration = new CancellationTokenRegistration();
+                CancellationTokenSource ctsTimeout = null;
 
-                if(timeout.TotalMilliseconds >= 0) 
+                if(timeout.TotalMilliseconds >= 0)
                 {
                     // Create a CancellationTokenSource that will abort the
                     // operation after the timeout.  Note that this does not
                     // cancel the operation, just abort it if it is still pending.
-                    CancellationTokenSource ctsTimeout = new CancellationTokenSource(timeout);
+                    ctsTimeout = new CancellationTokenSource(timeout);
                     ctTimeout = ctsTimeout.Token;
                     ctTimeoutRegistration = ctTimeout.Register(s => ((DispatcherOperation)s).Abort(), operation);
                 }
@@ -1519,7 +1520,7 @@ namespace System.Windows.Threading
                 catch(OperationCanceledException)
                 {
                     Debug.Assert(operation.Status == DispatcherOperationStatus.Aborted);
-                    
+
                     // New async semantics will throw an exception if the
                     // operation was aborted.  Here we convert that
                     // exception into a timeout exception if the timeout
@@ -1540,6 +1541,10 @@ namespace System.Windows.Threading
                 finally
                 {
                     ctTimeoutRegistration.Dispose();
+                    if (ctsTimeout != null)
+                    {
+                        ctsTimeout.Dispose();
+                    }
                 }
             }
 
@@ -2270,7 +2275,7 @@ namespace System.Windows.Threading
                 oldSyncContext = SynchronizationContext.Current;
                 newSyncContext = new DispatcherSynchronizationContext(this);
                 SynchronizationContext.SetSynchronizationContext(newSyncContext);
-                
+
                 try
                 {
                     while(frame.Continue)
@@ -2565,7 +2570,7 @@ namespace System.Windows.Threading
         {
             return CriticalRequestProcessing(false);
         }
-        
+
         /// <SecurityNote>
         ///   Critical: This code controls the timing of when the Dispatcher
         ///             invokes the next operation.
@@ -2586,7 +2591,7 @@ namespace System.Windows.Threading
             if (priority != DispatcherPriority.Invalid &&
                 priority != DispatcherPriority.Inactive)
             {
-                // If forcing the processing request, we will discard any 
+                // If forcing the processing request, we will discard any
                 // existing request (timer or message) and request again.
                 if (force)
                 {
@@ -2601,7 +2606,7 @@ namespace System.Windows.Threading
                     }
                     _postedProcessingType = PROCESS_NONE;
                 }
-                
+
                 if (_foregroundPriorityRange.Contains(priority))
                 {
                     succeeded = RequestForegroundProcessing();
@@ -3024,7 +3029,7 @@ namespace System.Windows.Threading
         private const int TIMERID_BACKGROUND = 1;
         private const int TIMERID_TIMERS = 2;
         private const int DELTA_BACKGROUND = 1;
-        
+
         private static List<WeakReference> _dispatchers;
         private static WeakReference _possibleDispatcher;
         private static object _globalLock;

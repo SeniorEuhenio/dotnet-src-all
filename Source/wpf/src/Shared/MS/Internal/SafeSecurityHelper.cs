@@ -160,6 +160,9 @@ namespace System.Xaml
         static object syncObject = new object();
         static bool _isGCCallbackPending;
 
+        // PERF: Cache delegate for CleanupCollectedAssemblies to avoid allocating it each time.
+        static readonly WaitCallback _cleanupCollectedAssemblies = CleanupCollectedAssemblies;
+
         /// <summary>
         ///     This function iterates through the assemblies loaded in the current
         ///     AppDomain and finds one that has the same assembly name passed in.
@@ -230,7 +233,7 @@ namespace System.Xaml
                 if (assembly.IsDynamic && !_isGCCallbackPending)
                 {
                     // Make sure we clean up the cache if/when this dynamic assembly is GCed
-                    GCNotificationToken.RegisterCallback(CleanupCollectedAssemblies, null);
+                    GCNotificationToken.RegisterCallback(_cleanupCollectedAssemblies, null);
                     _isGCCallbackPending  = true;
                 }
                 return result;
@@ -275,7 +278,7 @@ namespace System.Xaml
                 }
                 if (foundLiveDynamicAssemblies)
                 {
-                    GCNotificationToken.RegisterCallback(CleanupCollectedAssemblies, null);
+                    GCNotificationToken.RegisterCallback(_cleanupCollectedAssemblies, null);
                 }
                 else
                 {

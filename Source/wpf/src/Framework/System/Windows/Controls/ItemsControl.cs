@@ -3664,10 +3664,11 @@ namespace System.Windows.Controls
                 break;
 
                 case NotifyCollectionChangedAction.Reset:
-                    // the indices are no longer valid
+                    // the indices and containers are no longer valid
                     foreach (ItemInfo info in list)
                     {
                         info.Index = -1;
+                        info.Container = null;
                     }
                 break;
             }

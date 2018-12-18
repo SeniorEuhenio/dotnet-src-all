@@ -895,7 +895,22 @@ namespace System.Windows.Documents
             Point milPointBottomRight;
 
             // We need to update the layout before getting rect. It could be dirty by SetText call of TIP.
+            _isInUpdateLayout = true;
             UiScope.UpdateLayout();
+            _isInUpdateLayout = false;
+
+            // (Dev11 721274) if UpdateLayout caused a text change, startIndex
+            // and endIndex are no longer valid.  Handling this correctly is quite
+            // difficult - Cicero assumes that the text can't change while it
+            // owns the lock.  Instead, we artificially reset the char count (to
+            // keep VerifyTextStoreConsistency happy), and return TS_R_NOLAYOUT
+            // to the caller; this seems to be good enough (i.e. avoids crashes)
+            // in practice.
+            if (_hasTextChangedInUpdateLayout)
+            {
+                _netCharCount = this.TextContainer.IMECharCount;
+                throw new COMException(SR.Get(SRID.TextStore_TS_E_NOLAYOUT), UnsafeNativeMethods.TS_E_NOLAYOUT);
+            }
 
             rect = new UnsafeNativeMethods.RECT();
             clipped = false;
@@ -2135,6 +2150,10 @@ namespace System.Windows.Documents
                     }
                 }
             }
+            else if (_isInUpdateLayout)
+            {
+                _hasTextChangedInUpdateLayout = true;
+            }
         }
 
         // DispatcherOperationCallback callback.  Async lock requests are dequeued to
@@ -2177,6 +2196,7 @@ namespace System.Windows.Documents
             else
             {
                 _lockFlags = flags;
+                _hasTextChangedInUpdateLayout = false;
                 UndoManager undoManager = UndoManager.GetUndoManager(textEditor.TextContainer.Parent);
                 int initialUndoCount = 0;
                 bool wasImeSupportModeEnabled = false;
@@ -4475,6 +4495,11 @@ namespace System.Windows.Documents
 
         // Set true when TextEditor.OnTextInput handles a TextInput event (no app override).
         private bool _handledByTextStoreListener;
+
+        // Two bools used to detect when text changes occur during UpdateLayout
+        // while Cicero holds a lock
+        private bool _isInUpdateLayout;
+        private bool _hasTextChangedInUpdateLayout;
 
         #endregion Private Fields
     }

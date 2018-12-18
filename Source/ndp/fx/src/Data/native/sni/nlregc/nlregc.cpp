@@ -4936,7 +4936,7 @@ LONG NLregC::CSgetUserInstanceDllPath(__out_bcount(cchDllPathSize) LPSTR szDllPa
 	TCHAR szLatestInstanceVersion[CS_MAX];
 	TCHAR szRegLocation[CS_MAX];
 
-	szLatestInstanceVersion[0] = '\0';
+	szLatestInstanceVersion[0] = TEXT('\0');
 	
 	USHORT usMajor = 0;
 	USHORT usMinor = 0;

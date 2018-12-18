@@ -506,7 +506,7 @@ namespace System.Security
 
 #if !FEATURE_PAL && FEATURE_IMPERSONATION
             if (WindowsIdentity != null)
-                sc._windowsIdentity = new WindowsIdentity(WindowsIdentity.TokenHandle);
+                sc._windowsIdentity = new WindowsIdentity(WindowsIdentity.AccessToken);
 #endif //!FEATURE_PAL && FEATURE_IMPERSONATION
 
             if (_compressedStack != null)
@@ -526,7 +526,7 @@ namespace System.Security
 
 #if !FEATURE_PAL && FEATURE_IMPERSONATION
             if (this.WindowsIdentity != null)
-                sc._windowsIdentity = new WindowsIdentity(this.WindowsIdentity.TokenHandle);
+                sc._windowsIdentity = new WindowsIdentity(this.WindowsIdentity.AccessToken);
 #endif //!FEATURE_PAL && FEATURE_IMPERSONATION
 
             // 
@@ -579,7 +579,7 @@ namespace System.Security
             {
                 WindowsIdentity currentIdentity = GetCurrentWI(currThreadEC);
                 if (currentIdentity != null)
-                    sc._windowsIdentity = new WindowsIdentity(currentIdentity.TokenHandle);
+                    sc._windowsIdentity = new WindowsIdentity(currentIdentity.AccessToken);
             }
             else
             {
@@ -671,7 +671,7 @@ namespace System.Security
 
         if (targetWI != null)
         {   
-            SafeTokenHandle tokenHandle = targetWI.TokenHandle;
+            SafeAccessTokenHandle tokenHandle = targetWI.AccessToken;
             if (tokenHandle != null && !tokenHandle.IsInvalid)
             {
                 hr = Win32.ImpersonateLoggedOnUser(tokenHandle);

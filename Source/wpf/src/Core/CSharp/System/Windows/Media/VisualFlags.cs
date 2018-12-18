@@ -30,7 +30,7 @@ namespace System.Windows.Media
         // visual tree needs to be re-rendered. Today we are doing this by posting a render queue item.
         ShouldPostRender                                = 0x00000002,
 
-        //
+        //TODO: missing comment
         IsUIElement                                     = 0x00000004,
 
         // For UIElement -- It's in VisualFlags so that it can be propagated through the
@@ -44,7 +44,7 @@ namespace System.Windows.Media
         // Used on ModelVisual3D to signify that its content bounds
         // cache is valid.
         //
-        // NTRAID#Longhorn-1614112-2006/05/25-[....] - Stop over-invalidating _bboxSubgraph
+        // NTRAID#Longhorn-1614112-2006/05/25-danlehen - Stop over-invalidating _bboxSubgraph
         //
         // We use this flag to maintain a separate cache of a ModelVisual3D’s content
         // bounds.  A better solution that would be both a 2D and 3D win would be to

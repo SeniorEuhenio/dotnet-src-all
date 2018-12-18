@@ -902,6 +902,31 @@ namespace System.Security.Cryptography.Xml {
         }
 
         /// <summary>
+        /// Write informaiton when user hits the Signed XML recursion depth limit issue.
+        /// This is helpful in debugging this kind of issues.
+        /// </summary>
+        /// <param name="signedXml">SignedXml object verifying the signature</param>
+        /// <param name="reference">reference being verified</param>
+        internal static void LogSignedXmlRecursionLimit(SignedXml signedXml,
+                                                        Reference reference) {
+            Debug.Assert(signedXml != null, "signedXml != null");
+            Debug.Assert(reference != null, "reference != null");
+
+            if (InformationLoggingEnabled) {
+                string logMessage = String.Format(CultureInfo.InvariantCulture,
+                                                    SecurityResources.GetResourceString("Log_SignedXmlRecursionLimit"),
+                                                    GetObjectId(reference),
+                                                    reference.DigestMethod,
+                                                    CryptoConfig.CreateFromName(reference.DigestMethod).GetType().Name);
+
+                WriteLine(signedXml,
+                            TraceEventType.Information,
+                            SignedXmlDebugEvent.VerifySignedInfo,
+                            logMessage);
+            }
+        }
+
+        /// <summary>
         ///     Write data to the log
         /// </summary>
         /// <param name="source">object doing the trace</param>

@@ -1,5 +1,5 @@
 #if DEBUG
-#define TRACE 
+#define TRACE
 #endif
 //---------------------------------------------------------------------------
 //
@@ -161,7 +161,7 @@ namespace MS.Internal.IO.Packaging
         }
 
         #endregion IDisposable
-        
+
         //------------------------------------------------------
         //
         //  Internal Methods
@@ -181,11 +181,11 @@ namespace MS.Internal.IO.Packaging
 
             // The worker thread will never call dispose nor this method; no need lock
             CheckDisposed();
-            
+
             lock (_syncObject)
             {
                 CheckErroredOutCondition();
-                
+
                 int rangeCount = _byteRangesAvailable.Count / 2;
 
                 // The worker thread will update the bytes downloaded; need to lock
@@ -233,9 +233,9 @@ namespace MS.Internal.IO.Packaging
             // At this point, none of the callers of this class will make more than one range
             //  So, we will assert if more than one byte range request is made
             Debug.Assert(byteRanges.GetLength(0) == 1, "We don't support a request with multiple byte ranges");
-                    
+
             _firstRequestMade = true;
-                
+
             // If there is no request in progress, start the request process; otherwise put it in the wait queue
             lock (_syncObject)
             {
@@ -280,7 +280,7 @@ namespace MS.Internal.IO.Packaging
             CheckOneDimensionalByteRanges(inByteRanges);
 
             int[,] outByteRanges = new int[(inByteRanges.Length / 2),2];
-            
+
             for (int i=0, j=0; i < inByteRanges.Length; ++i, ++j)
             {
                 outByteRanges[j,Offset_Index] = inByteRanges[i];
@@ -308,7 +308,7 @@ namespace MS.Internal.IO.Packaging
 #endif
 
             int[] outByteRanges = new int[inByteRanges.Length];
-            
+
             for (int i=0, j=0; i < inByteRanges.GetLength(0); ++i, ++j)
             {
                 outByteRanges[j] = inByteRanges[i, Offset_Index];
@@ -345,12 +345,12 @@ namespace MS.Internal.IO.Packaging
                 {
                     throw new ArgumentNullException("value");
                 }
-                
+
                 if (!_firstRequestMade)
                 {
                     _proxy = value;
                 }
-                else    // Once first request is made it cannot change 
+                else    // Once first request is made it cannot change
                 {
                     throw new InvalidOperationException(SR.Get(SRID.RequestAlreadyStarted));
                 }
@@ -381,7 +381,7 @@ namespace MS.Internal.IO.Packaging
                 {
                     _cachePolicy = value;
                 }
-                else    // Once first request is made it cannot cahnge 
+                else    // Once first request is made it cannot cahnge
                 {
                     throw new InvalidOperationException(SR.Get(SRID.RequestAlreadyStarted));
                 }
@@ -545,7 +545,7 @@ namespace MS.Internal.IO.Packaging
 
             return request;
         }
-        
+
         /// <summary>
         /// Raise Win32 events informing a client that the requested bytes are available or it errored out
         /// </summary>
@@ -584,7 +584,7 @@ namespace MS.Internal.IO.Packaging
         private void ResponseCallback(IAsyncResult ar)
         {
             HttpWebResponse webResponse = null;
-                
+
             lock (_syncObject)
             {
                 try
@@ -593,7 +593,7 @@ namespace MS.Internal.IO.Packaging
                     {
                         return;
                     }
-                    
+
                     // The caller thread can dispose this class and the worker thread need to check the disposed
                     //  condition; need to lock
                     // If disposed, there is nothing to handle
@@ -734,7 +734,10 @@ namespace MS.Internal.IO.Packaging
                     {
                         // block until temp file is available
                         _fileMutex.WaitOne();
-                        result = Write(s, offset, length);
+                        lock (PackagingUtilities.IsolatedStorageFileLock)
+                        {
+                            result = Write(s, offset, length);
+                        }
                     }
                     finally
                     {
@@ -747,7 +750,7 @@ namespace MS.Internal.IO.Packaging
 
             return result;
         }
-        
+
         /// <summary>
         /// Process the requests that are in the wait queue
         /// </summary>
@@ -857,7 +860,7 @@ namespace MS.Internal.IO.Packaging
             {
                 return false;
             }
-            
+
             contentRange = contentRange.ToUpperInvariant();
 
             // No Content-Range (condition #1)
@@ -954,7 +957,7 @@ namespace MS.Internal.IO.Packaging
         private IWebProxy _proxy;
         private ICredentials _credentials;
         private CookieContainer _cookieContainer = new CookieContainer(1);
-        
+
         [SecurityCritical]
         private SafeWaitHandle _eventHandle;    // event handle which needs to be raised to inform the caller that
                                          //  the requested bytes are available
@@ -966,7 +969,7 @@ namespace MS.Internal.IO.Packaging
         private int[,] _byteRangesInProgress;
 
         private HttpWebRequest _webRequest;
-        
+
         private byte[] _buffer;             // Buffer used for writing out the downloaded bytes to temp file
 
         private const int WriteBufferSize = 4096; // Buffer size for writing out to the temp file

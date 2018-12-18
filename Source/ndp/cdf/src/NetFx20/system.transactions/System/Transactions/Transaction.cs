@@ -392,7 +392,20 @@ namespace System.Transactions
         internal const int disposedTrueValue = 1;
         internal int disposed = 0;
         internal bool Disposed { get { return this.disposed == Transaction.disposedTrueValue; } }
-        
+
+        internal Guid DistributedTxId
+        {
+            get
+            {
+                Guid returnValue = Guid.Empty;
+
+                if (this.internalTransaction != null)
+                {
+                    returnValue = this.internalTransaction.DistributedTxId;
+                }
+                return returnValue;
+            }
+        }
 
         // Internal synchronization object for transactions.  It is not safe to lock on the 
         // transaction object because it is public and users of the object may lock it for 
@@ -625,7 +638,7 @@ namespace System.Transactions
 
             if (this.complete)
             {
-                throw TransactionException.CreateTransactionCompletedException(SR.GetString(SR.TraceSourceLtm));
+                throw TransactionException.CreateTransactionCompletedException(SR.GetString(SR.TraceSourceLtm), this.DistributedTxId);
             }
 
             lock (this.internalTransaction)
@@ -683,7 +696,7 @@ namespace System.Transactions
 
             if (this.complete)
             {
-                throw TransactionException.CreateTransactionCompletedException(SR.GetString(SR.TraceSourceLtm));
+                throw TransactionException.CreateTransactionCompletedException(SR.GetString(SR.TraceSourceLtm), this.DistributedTxId);
             }
 
             lock (this.internalTransaction)
@@ -808,7 +821,7 @@ namespace System.Transactions
 
             if (this.complete)
             {
-                throw TransactionException.CreateTransactionCompletedException(SR.GetString(SR.TraceSourceLtm));
+                throw TransactionException.CreateTransactionCompletedException(SR.GetString(SR.TraceSourceLtm), this.DistributedTxId);
             }
 
             lock (this.internalTransaction)
@@ -859,7 +872,7 @@ namespace System.Transactions
 
             if (this.complete)
             {
-                throw TransactionException.CreateTransactionCompletedException(SR.GetString(SR.TraceSourceLtm));
+                throw TransactionException.CreateTransactionCompletedException(SR.GetString(SR.TraceSourceLtm), this.DistributedTxId);
             }
 
             lock (this.internalTransaction)
@@ -898,7 +911,7 @@ namespace System.Transactions
 
             if (this.complete)
             {
-                throw TransactionException.CreateTransactionCompletedException(SR.GetString(SR.TraceSourceLtm));
+                throw TransactionException.CreateTransactionCompletedException(SR.GetString(SR.TraceSourceLtm), this.DistributedTxId);
             }
             
             Transaction clone = InternalClone();
@@ -956,7 +969,7 @@ namespace System.Transactions
 
             if (this.complete)
             {
-                throw TransactionException.CreateTransactionCompletedException(SR.GetString(SR.TraceSourceLtm));
+                throw TransactionException.CreateTransactionCompletedException(SR.GetString(SR.TraceSourceLtm), this.DistributedTxId);
             }
 
             DependentTransaction clone = new DependentTransaction(
@@ -1099,7 +1112,7 @@ namespace System.Transactions
 
             if (this.complete)
             {
-                throw TransactionException.CreateTransactionCompletedException(SR.GetString(SR.TraceSourceLtm));
+                throw TransactionException.CreateTransactionCompletedException(SR.GetString(SR.TraceSourceLtm), this.DistributedTxId);
             }
 
             lock (this.internalTransaction)
@@ -1147,7 +1160,7 @@ namespace System.Transactions
 
             if (this.complete)
             {
-                throw TransactionException.CreateTransactionCompletedException(SR.GetString(SR.TraceSourceLtm));
+                throw TransactionException.CreateTransactionCompletedException(SR.GetString(SR.TraceSourceLtm), this.DistributedTxId);
             }
 
             bool succeeded = false;
@@ -1208,7 +1221,7 @@ namespace System.Transactions
 
             if (this.complete)
             {
-                throw TransactionException.CreateTransactionCompletedException(SR.GetString(SR.TraceSourceLtm));
+                throw TransactionException.CreateTransactionCompletedException(SR.GetString(SR.TraceSourceLtm), this.DistributedTxId);
             }
 
             lock (this.internalTransaction)

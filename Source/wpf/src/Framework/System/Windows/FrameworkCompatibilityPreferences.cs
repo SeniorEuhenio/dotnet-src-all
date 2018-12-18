@@ -29,6 +29,7 @@ namespace System.Windows
                 SetHandleTwoWayBindingToPropertyWithNonPublicSetterFromAppSettings(appSettings);
                 SetUseSetWindowPosForTopmostWindowsFromAppSettings(appSettings);
                 SetVSP45CompatFromAppSettings(appSettings);
+                SetScrollingTraceFromAppSettings(appSettings);
             }
         }
 
@@ -309,6 +310,69 @@ namespace System.Windows
         }
 
         #endregion VSP45Compat
+
+        #region ScrollingTrace
+
+        private static string _scrollingTraceTarget;
+
+        internal static string GetScrollingTraceTarget()
+        {
+            Seal();
+            return _scrollingTraceTarget;
+        }
+
+        private static string _scrollingTraceFile;
+
+        internal static string GetScrollingTraceFile()
+        {
+            Seal();
+            return _scrollingTraceFile;
+        }
+
+        static void SetScrollingTraceFromAppSettings(NameValueCollection appSettings)
+        {
+            // user can use config file to select a control (TreeView, DataGrid, etc.)
+            // for in-flight tracing of scrolling behavior:
+            //      <add key="ScrollingTraceTarget" value="NameOfControl"/>
+            _scrollingTraceTarget = appSettings["ScrollingTraceTarget"];
+
+            // user can direct scroll-tracing output to a file:
+            //      <add key="ScrollingTraceFile" value="NameOfFile"/>
+            // If the key is not present, or the filename is absent or "default",
+            // the output goes to "ScrollTrace.stf".  If the filename is "none",
+            // no file output is produced.
+            //
+            // User can also specify a parameter to control when output is flushed
+            // to the file:
+            //      <add key="ScrollingTraceFile" value="NameOfFile;nnn"/>
+            // If not specified, the output is flushed after completing Measure or
+            // Arrange of the top-level VirtualizingStackPanel below the trace
+            // target.   In some scenarios it may be desirable to flush the output
+            // more often - for example, an infinite loop that never measures the
+            // top-level panel.   Use the optional nnn parameter to flush after
+            // Measure or Arrange of any panel whose depth is nnn or less.  This flushes
+            // more often, but is more likely to interfere with the timing of the app.
+            _scrollingTraceFile = appSettings["ScrollingTraceFile"];
+
+            // Alternatively, the user can control tracing from the VS debugger.
+            // To enable tracing:
+            //      1. Locate the desired control (TreeView, DataGrid, etc.) and
+            //          make an Object ID for it.
+            //      2. From the Immediate window, execute
+            //          VirtualizingStackPanel.ScrollTracer.SetTarget(1#)
+            //          (using the appropriate ID instead of 1#)
+            // To control the file output
+            //      1. From the Immediate window, execute
+            //          VirtualizaingStackPanel.ScrollTracer.SetFileAndDepth("filename", n)
+            //          to specify the file and the desired flushing depth.
+            // To flush the current trace data to the file (useful if the app is
+            // about to terminate - including force-termination from the debugger
+            // or TaskManager - but you want to capture the latest trace data):
+            //      1. From the Immediate window, execute
+            //          VirtualizaingStackPanel.ScrollTracer.Flush()
+        }
+
+        #endregion ScrollingTrace
 
         private static void Seal()
         {

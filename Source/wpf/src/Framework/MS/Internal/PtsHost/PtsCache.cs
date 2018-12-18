@@ -1,6 +1,6 @@
-/* SSS_DROP_BEGIN */
+/* 
 
-/*************************************************************************
+
 * 11/17/07 - bartde
 *
 * NOTICE: Code excluded from Developer Reference Sources.
@@ -10,16 +10,16 @@
 *
 **************************************************************************/
 
-//---------------------------------------------------------------------------
-//
-// Copyright (C) Microsoft Corporation.  All rights reserved.
-//
-// File: PtsCache.cs
-//
-// Description: Definition of class responsible for PTS Context lifetime
-//              management.
-//
-//---------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
 
 using System;                                   // IntPtr
 using System.Collections.Generic;               // List<T>
@@ -35,35 +35,35 @@ using MS.Internal.PtsHost.UnsafeNativeMethods;  // PTS
 
 namespace MS.Internal.PtsHost
 {
-    /// <summary>
-    /// PtsCache class encapsulates lifetime management of PTS Context.
-    /// Internally provides caching mechanism, which enables reusing PTS Context.
-    /// </summary>
-    /// <remarks>
-    /// Instead of using static instance of PtsCache, instance of PtsCache
-    /// could be stored in the current Dispatcher as context data. That
-    /// would be much cleaner design. But there is one problem:
-    /// Thread.GetData() is a static method that accesses the current
-    /// thread's Dispatcher. Since DependencyObject may be created using
-    /// different Dispatcher then the current one, incorrect PtsCache
-    /// could be retrieved.
-    /// For this reason there is only one PtsCache instance that stores
-    /// mapping between Dispatcher and PTS context pool.
-    /// </remarks>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     internal sealed class PtsCache
     {
-        //-------------------------------------------------------------------
-        //
-        //  Internal Methods
-        //
-        //-------------------------------------------------------------------
+
+
+
+
+
 
         #region Internal Methods
 
-        /// <summary>
-        /// Acquires new PTS Context and associates it with new owner.
-        /// </summary>
-        /// <param name="ptsContext">Context used to communicate with PTS component.</param>
+
+
+
+
         internal static PtsHost AcquireContext(PtsContext ptsContext, TextFormattingMode textFormattingMode)
         {
             PtsCache ptsCache = ptsContext.Dispatcher.PtsCache as PtsCache;
@@ -75,10 +75,10 @@ namespace MS.Internal.PtsHost
             return ptsCache.AcquireContextCore(ptsContext, textFormattingMode);
         }
 
-        /// <summary>
-        /// Notifies PtsCache about destruction of a PtsContext.
-        /// </summary>
-        /// <param name="ptsContext">Context used to communicate with PTS component.</param>
+
+
+
+
         internal static void ReleaseContext(PtsContext ptsContext)
         {
             PtsCache ptsCache = ptsContext.Dispatcher.PtsCache as PtsCache;
@@ -86,16 +86,16 @@ namespace MS.Internal.PtsHost
             ptsCache.ReleaseContextCore(ptsContext);
         }
 
-        /// <summary>
-        /// Retrieves floater handler callbacks.
-        /// </summary>
-        /// <param name="ptsHost">Host of the PTS component.</param>
-        /// <param name="pobjectinfo">Struct with callbacks to fill in.</param>
-        /// <SecurityNote>
-        /// Critical, because:
-        ///     a) calls Critical function GetFloaterHandlerInfoCore,
-        ///     b) passes 'pobjectinfo' to Critical function that'll modify it.
-        /// </SecurityNote>
+
+
+
+
+
+
+
+
+
+
         [SecurityCritical]
         internal static void GetFloaterHandlerInfo(PtsHost ptsHost, IntPtr pobjectinfo)
         {
@@ -104,16 +104,16 @@ namespace MS.Internal.PtsHost
             ptsCache.GetFloaterHandlerInfoCore(ptsHost, pobjectinfo);
         }
 
-        /// <summary>
-        /// Retrieves table handler callbacks.
-        /// </summary>
-        /// <param name="ptsHost">Host of the PTS component.</param>
-        /// <param name="pobjectinfo">Struct with callbacks to fill in.</param>
-        /// <SecurityNote>
-        /// Critical, because:
-        ///     a) calls Critical function GetTableObjHandlerInfoCore,
-        ///     b) passes 'pobjectinfo' to Critical function that'll modify it.
-        /// </SecurityNote>
+
+
+
+
+
+
+
+
+
+
         [SecurityCritical]
         internal static void GetTableObjHandlerInfo(PtsHost ptsHost, IntPtr pobjectinfo)
         {
@@ -122,9 +122,9 @@ namespace MS.Internal.PtsHost
             ptsCache.GetTableObjHandlerInfoCore(ptsHost, pobjectinfo);
         }
 
-        /// <summary>
-        /// Checks whether PtsCache is already diposed.
-        /// </summary>
+
+
+
         internal static bool IsDisposed()
         {
             bool disposed = true;
@@ -142,75 +142,75 @@ namespace MS.Internal.PtsHost
 
         #endregion Internal Methods
 
-        //-------------------------------------------------------------------
-        //
-        //  Private Methods
-        //
-        //-------------------------------------------------------------------
+
+
+
+
+
 
         #region Private Methods
 
-        /// <summary>
-        /// Constructor - private to protect agains initialization.
-        /// </summary>
-        /// <param name="dispatcher">Dispatcher associated with PtsCache.</param>
-        /// <SecurityNote>
-        /// Critical, because sets the Critical variable _contextPool and accesses AppDomain events.
-        /// Safe, because .ctor just creates the container for the critical data and does not reveal any informaiton.
-        /// </SecurityNote>
+
+
+
+
+
+
+
+
         [SecurityCritical, SecurityTreatAsSafe]
         private PtsCache(Dispatcher dispatcher)
         {
-            // Initially allocate just one entry. The constructor gets called
-            // when acquiring the first PTS Context, so it guarantees at least
-            // one element in the collection.
+
+
+
             _contextPool = new List<ContextDesc>(1);
 
-            // Register for ShutdownFinished event for the Dispatcher. When Dispatcher
-            // finishes the shutdown process, all associated resources stored in its
-            // PTS context pool need to be disposed as well.
-            // NOTE: Cannot do this work during ShutdownStarted, because after this
-            //       event is fired, layout process may still be executed.
 
-            // Add an event handler for AppDomain unload. If Dispatcher is not running
-            // we are not going to receive ShutdownFinished to do appropriate cleanup.
-            // When an AppDomain is unloaded, we'll be called back on a worker thread.
+
+
+
+
+
+
+
+
             PtsCacheShutDownListener listener = new PtsCacheShutDownListener(this);
         }
 
-        /// <summary>
-        /// PtsCache finalizer.
-        /// </summary>
+
+
+
         ~PtsCache()
         {
-            // After shutdown is initiated, do not allow Finalizer thread to the cleanup.
+
             if (0 == Interlocked.CompareExchange(ref _disposed, 1, 0))
             {
-                // Destroy all PTS contexts
+
                 DestroyPTSContexts();
             }
         }
 
-        /// <summary>
-        /// Acquires new PTS Context and associate it with new owner.
-        /// </summary>
-        /// <param name="ptsContext">Context used to communicate with PTS component.</param>
-        /// <returns>PtsHost associated with new owner.</returns>
-        /// <SecurityNote>
-        /// Critical, because:
-        ///     a) calls Critical function CreatePTSContext,
-        ///     b) calls setter on PtsHost.Context, which is Critical,
-        ///     c) sets Critical members on ContextDesc that is part of _contextPool.
-        /// Safe, because Critical data acquired in this method are not directly exposed.
-        ///     PtsHost.Context gives only read-only access to Critical data, so it is
-        ///     safe to expose it.
-        /// </SecurityNote>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         [SecurityCritical, SecurityTreatAsSafe]
         private PtsHost AcquireContextCore(PtsContext ptsContext, TextFormattingMode textFormattingMode)
         {
             int index;
 
-            // Look for the first free PTS Context.
+
             for (index = 0; index < _contextPool.Count; index++)
             {
                 if (!_contextPool[index].InUse &&
@@ -220,7 +220,7 @@ namespace MS.Internal.PtsHost
                 }
             }
 
-            // Create new PTS Context, if cannot find free one.
+
             if (index == _contextPool.Count)
             {
                 _contextPool.Add(new ContextDesc());
@@ -229,37 +229,37 @@ namespace MS.Internal.PtsHost
                 _contextPool[index].PtsHost.Context = CreatePTSContext(index, textFormattingMode);
             }
 
-            // Initialize TextFormatter, if optimal paragraph is enabled.
-            // Optimal paragraph requires new TextFormatter for every PTS Context.
+
+
             if (_contextPool[index].IsOptimalParagraphEnabled)
             {
                 ptsContext.TextFormatter = _contextPool[index].TextFormatter;
             }
 
-            // Assign PTS Context to new owner.
+
             _contextPool[index].InUse = true;
             _contextPool[index].Owner = new WeakReference(ptsContext);
 
             return _contextPool[index].PtsHost;
         }
 
-        /// <summary>
-        /// Notifies PtsCache about destruction of a PtsContext.
-        /// </summary>
-        /// <param name="ptsContext">Context used to communicate with PTS component.</param>
+
+
+
+
         private void ReleaseContextCore(PtsContext ptsContext)
         {
-            // _releaseQueue may be accessed from Finalizer thread or Dispatcher thread.
+
             lock (_lock)
             {
-                // After shutdown is initiated, do not allow Finalizer thread to add any
-                // items to _releaseQueue.
+
+
                 if (_disposed == 0)
                 {
-                    // Add PtsContext to collection of released PtsContexts.
-                    // If the queue is empty, schedule Dispatcher time to dispose
-                    // PtsContexts in the Dispatcher thread.
-                    // If the queue is not empty, there is already pending Dispatcher request.
+
+
+
+
                     if (_releaseQueue == null)
                     {
                         _releaseQueue = new List<PtsContext>();
@@ -270,18 +270,18 @@ namespace MS.Internal.PtsHost
             }
         }
 
-        /// <summary>
-        /// Retrieves floater handler callbacks.
-        /// </summary>
-        /// <param name="ptsHost">Host of the PTS component.</param>
-        /// <param name="pobjectinfo">Struct with callbacks to fill in.</param>
-        /// <SecurityNote>
-        /// Critical, because:
-        ///     a) calls Critical function PTS.GetFloaterHandlerInfo,
-        ///     b) directly passes 'pobjectinfo' that'll be written to in
-        ///        PTS.GetFloaterHandlerInfo
-        ///     c) accesses _contextPool.
-        /// </SecurityNote>
+
+
+
+
+
+
+
+
+
+
+
+
         [SecurityCritical]
         private void GetFloaterHandlerInfoCore(PtsHost ptsHost, IntPtr pobjectinfo)
         {
@@ -297,18 +297,18 @@ namespace MS.Internal.PtsHost
             PTS.Validate(PTS.GetFloaterHandlerInfo(ref _contextPool[index].FloaterInit, pobjectinfo));
         }
 
-        /// <summary>
-        /// Retrieves table handler callbacks.
-        /// </summary>
-        /// <param name="ptsHost">Host of the PTS component.</param>
-        /// <param name="pobjectinfo">Struct with callbacks to fill in.</param>
-        /// <SecurityNote>
-        /// Critical, because:
-        ///     a) calls Critical function PTS.GetTableObjHandlerInfo,
-        ///     b) directly passes 'pobjectinfo' that'll be written to in
-        ///        PTS.GetTableObjHandlerInfo
-        ///     c) accesses _contextPool.
-        /// </SecurityNote>
+
+
+
+
+
+
+
+
+
+
+
+
         [SecurityCritical]
         private void GetTableObjHandlerInfoCore(PtsHost ptsHost, IntPtr pobjectinfo)
         {
@@ -324,43 +324,43 @@ namespace MS.Internal.PtsHost
             PTS.Validate(PTS.GetTableObjHandlerInfo(ref _contextPool[index].TableobjInit, pobjectinfo));
         }
 
-        /// <summary>
-        /// Delete all resources associated with PtsCache (PTS Contexts)
-        /// </summary>
+
+
+
         private void Shutdown()
         {
-            // WeakReference.Target is NULL when object is in the finalization queue.
-            // Hence there is possibility to destroy PTS Context before all pages are
-            // destroyed from the finalizer of PtsContext.
-            // Workaround: wait for all finalizers to run before destroying any PTS contexts.
+
+
+
+
             GC.WaitForPendingFinalizers();
 
-            // After shutdown is initiated, do not allow Finalizer thread to add any
-            // items to _releaseQueue.
+
+
             if (0 == Interlocked.CompareExchange(ref _disposed, 1, 0))
             {
-                // Dispose any pending PtsContexts stored in _releaseQueue
+
                 OnPtsContextReleased(false);
 
-                // Destroy all PTS contexts
+
                 DestroyPTSContexts();
             }
         }
 
-        /// <summary>
-        /// Destroy all PTS contexts.
-        /// </summary>
-        /// <SecurityNote>
-        /// Critical, because:
-        ///     a) calls Critical function PTS.DestroyDocContext,
-        ///     b) calls Critical function PTS.DestroyInstalledObjectsInfo,
-        ///     c) accesses _contextPool
-        /// Safe, because no parameters are directly passed to the Critical functions.
-        /// </SecurityNote>
+
+
+
+
+
+
+
+
+
+
         [SecurityCritical, SecurityTreatAsSafe]
         private void DestroyPTSContexts()
         {
-            // Destroy all unused PTS Contexts.
+
             int index = 0;
             while (index < _contextPool.Count)
             {
@@ -377,15 +377,15 @@ namespace MS.Internal.PtsHost
 
                 if (!_contextPool[index].InUse)
                 {
-                    // Ignore any errors during shutdown. Reason:
-                    // * make sure that loop continues and all contexts have a chance to be destroyed.
-                    // * this is shutdown case, so even if memory is not disposed, the system will reclaim it.
+
+
+
                     Invariant.Assert(_contextPool[index].PtsHost.Context != IntPtr.Zero, "PTS Context handle is not valid.");
                     PTS.IgnoreError(PTS.DestroyDocContext(_contextPool[index].PtsHost.Context));
                     Invariant.Assert(_contextPool[index].InstalledObjects != IntPtr.Zero, "Installed Objects handle is not valid.");
                     PTS.IgnoreError(PTS.DestroyInstalledObjectsInfo(_contextPool[index].InstalledObjects));
-                    // Explicitly dispose the penalty module object to ensure proper destruction
-                    // order of PTSContext  and the penalty module (PTS context must be destroyed first).
+
+
                     if (_contextPool[index].TextPenaltyModule != null)
                     {
                         _contextPool[index].TextPenaltyModule.Dispose();
@@ -400,43 +400,43 @@ namespace MS.Internal.PtsHost
             }
         }
 
-        /// <summary>
-        /// Cleans up PTS Context pool.
-        /// </summary>
-        /// <param name="args">Not used.</param>
+
+
+
+
         private object OnPtsContextReleased(object args)
         {
             OnPtsContextReleased(true);
             return null;
         }
 
-        /// <summary>
-        /// Cleans up PTS Context pool.
-        /// </summary>
-        /// <param name="cleanContextPool">Whether needs to clean context pool.</param>
-        /// <SecurityNote>
-        /// Critical, because:
-        ///     a) calls Critical function PTS.DestroyDocContext,
-        ///     b) calls Critical function PTS.DestroyInstalledObjectsInfo,
-        ///     c) accesses _contextPool
-        /// Safe, because the only parameter this takes is the Dispatcher object
-        ///     which is used as an index into the array of context pools. No
-        ///     parameters that are directly passed to the Critical functions.
-        /// </SecurityNote>
+
+
+
+
+
+
+
+
+
+
+
+
+
         [SecurityCritical, SecurityTreatAsSafe]
         private void OnPtsContextReleased(bool cleanContextPool)
         {
             int index;
 
-            // _releaseQueue may be accessed from Finalizer thread or Dispatcher thread.
+
             lock (_lock)
             {
-                // Dispose any pending PtsContexts
+
                 if (_releaseQueue != null)
                 {
                     foreach (PtsContext ptsContext in _releaseQueue)
                     {
-                        // Find the PtsContext in the context pool and detach it from PtsHost.
+
                         for (index = 0; index < _contextPool.Count; index++)
                         {
                             if (_contextPool[index].PtsHost.Context == ptsContext.Context)
@@ -448,7 +448,7 @@ namespace MS.Internal.PtsHost
                         }
                         Invariant.Assert(index < _contextPool.Count, "PtsContext not found in the context pool.");
 
-                        // Dispose PtsContext.
+
                         Invariant.Assert(!ptsContext.Disposed, "PtsContext has been already disposed.");
                         ptsContext.Dispose();
                     }
@@ -456,10 +456,10 @@ namespace MS.Internal.PtsHost
                 }
             }
 
-            // Remove all unused PTS Contexts. Leave at least 4 entries for future use.
+
             if (cleanContextPool && _contextPool.Count > 4)
             {
-                // Destroy all unused PTS Contexts.
+
                 index = 4;
                 while (index < _contextPool.Count)
                 {
@@ -469,8 +469,8 @@ namespace MS.Internal.PtsHost
                         PTS.Validate(PTS.DestroyDocContext(_contextPool[index].PtsHost.Context));
                         Invariant.Assert(_contextPool[index].InstalledObjects != IntPtr.Zero, "Installed Objects handle is not valid.");
                         PTS.Validate(PTS.DestroyInstalledObjectsInfo(_contextPool[index].InstalledObjects));
-                        // Explicitly dispose the penalty module object to ensure proper destruction
-                        // order of PTSContext  and the penalty module (PTS context must be destroyed first).
+
+
                         if (_contextPool[index].TextPenaltyModule != null)
                         {
                             _contextPool[index].TextPenaltyModule.Dispose();
@@ -483,18 +483,18 @@ namespace MS.Internal.PtsHost
             }
         }
 
-        /// <summary>
-        /// Creates a new PTS context using PTSWrapper APIs.
-        /// </summary>
-        /// <param name="index">Index to free entry in the PTS Context pool.</param>
-        /// <returns>PTS Context ID.</returns>
-        /// <SecurityNote>
-        /// Critical, because calls Critical methods InitInstalledObjectsInfo,
-        ///     InitGenericInfo, InitFloaterObjInfo, InitTableObjInfo and
-        ///     PTS.CreateDocContext. These functions instantiate several Critical
-        ///     data structures including delegates pointing to Critical methods
-        ///     and pointers that'll be passed to PTS code.
-        /// </SecurityNote>
+
+
+
+
+
+
+
+
+
+
+
+
         [SecurityCritical]
         private IntPtr CreatePTSContext(int index, TextFormattingMode textFormattingMode)
         {
@@ -507,18 +507,18 @@ namespace MS.Internal.PtsHost
             ptsHost = _contextPool[index].PtsHost;
             Invariant.Assert(ptsHost != null);
 
-            // Create installed object info.
+
             InitInstalledObjectsInfo(ptsHost, ref _contextPool[index].SubtrackParaInfo, ref _contextPool[index].SubpageParaInfo, out installedObjects, out installedObjectsCount);
             _contextPool[index].InstalledObjects = installedObjects;
 
-            // Create generic callbacks info.
+
             InitGenericInfo(ptsHost, (IntPtr)(index + 1), installedObjects, installedObjectsCount, ref _contextPool[index].ContextInfo);
 
-            // Preallocated floater and table info.
+
             InitFloaterObjInfo(ptsHost, ref _contextPool[index].FloaterInit);
             InitTableObjInfo(ptsHost, ref _contextPool[index].TableobjInit);
 
-            // Setup for optimal paragraph
+
             if (_contextPool[index].IsOptimalParagraphEnabled)
             {
                 textFormatterContext = new TextFormatterContext();
@@ -529,39 +529,39 @@ namespace MS.Internal.PtsHost
                 _contextPool[index].ContextInfo.ptsPenaltyModule = ptsPenaltyModule;
                 _contextPool[index].TextFormatter = TextFormatter.CreateFromContext(textFormatterContext, textFormattingMode);
 
-                // Explicitly take the penalty module object out of finalization queue;
-                // PTSCache must manage lifetime of the penalty module explicitly by calling
-                // TextPenaltyModule.Dispose to ensure proper destruction order of PTSContext
-                // and the penalty module (PTS context must be destroyed first).
+
+
+
+
                 GC.SuppressFinalize(_contextPool[index].TextPenaltyModule);
             }
 
-            // Create PTS Context
+
             PTS.Validate(PTS.CreateDocContext(ref _contextPool[index].ContextInfo, out context));
 
             return context;
         }
 
-        /// <summary>
-        /// Initializes generic PTS callbacks.
-        /// </summary>
-        /// <param name="ptsHost">PtsHost that defines all PTS callbacks.</param>
-        /// <param name="clientData">Unique PTS Client ID.</param>
-        /// <param name="installedObjects">PTS Installed objects.</param>
-        /// <param name="installedObjectsCount">Count of PTS Installed objects.</param>
-        /// <param name="contextInfo">PTS Context Info to be initialized.</param>
-        /// <SecurityNote>
-        /// Critical, because:
-        ///     a) sets the values for a lot of function pointers that may be
-        ///        pointing to Critical methods,
-        ///     b) takes parameters that it directly sets on contextInfo which
-        ///        has lot of Critical fields,
-        ///     c) it is unsafe method.
-        /// </SecurityNote>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         [SecurityCritical]
         private unsafe void InitGenericInfo(PtsHost ptsHost, IntPtr clientData, IntPtr installedObjects, int installedObjectsCount, ref PTS.FSCONTEXTINFO contextInfo)
         {
-            // Validation
+
             Invariant.Assert(((int)PTS.FSKREF.fskrefPage) == 0);
             Invariant.Assert(((int)PTS.FSKREF.fskrefMargin) == 1);
             Invariant.Assert(((int)PTS.FSKREF.fskrefParagraph) == 2);
@@ -579,28 +579,28 @@ namespace MS.Internal.PtsHost
             Invariant.Assert(((int)PTS.FSKCLEAR.fskclearRight) == 2);
             Invariant.Assert(((int)PTS.FSKCLEAR.fskclearBoth) == 3);
 
-            // Initialize context info
+
             contextInfo.version = 0;
             contextInfo.fsffi = PTS.fsffiUseTextQuickLoop
-                // This flag is added toward the end of WPF V1 project.
-                // PTS requires that break record is present in ReconstructLineVariant call,
-                // unfortunately TextFormatter can't give them that as it breaks single-line
-                // mode in Bidi scenario. Since break record is never a requirement before,
-                // PTS agrees to address this issue in the next version. The current solution
-                // for V1 is to temporary disable optimal formatting of the paragraph when
-                // figire is fully embedded within the paragraph with text on both sides of the
-                // figure. [Windows bug #1506821; WChao, 5/18/2006]
+
+
+
+
+
+
+
+
                 | PTS.fsffiAvalonDisableOptimalInChains;
             contextInfo.drMinColumnBalancingStep = TextDpi.ToTextDpi(10.0);  // Assume 10px as minimal step
             contextInfo.cInstalledObjects = installedObjectsCount;
             contextInfo.pInstalledObjects = installedObjects;
             contextInfo.pfsclient = clientData;
             contextInfo.pfnAssertFailed = new PTS.AssertFailed(ptsHost.AssertFailed);
-            // Initialize figure callbacks
+
             contextInfo.fscbk.cbkfig.pfnGetFigureProperties = new PTS.GetFigureProperties(ptsHost.GetFigureProperties);
             contextInfo.fscbk.cbkfig.pfnGetFigurePolygons = new PTS.GetFigurePolygons(ptsHost.GetFigurePolygons);
             contextInfo.fscbk.cbkfig.pfnCalcFigurePosition = new PTS.CalcFigurePosition(ptsHost.CalcFigurePosition);
-            // Initialize generic callbacks
+
             contextInfo.fscbk.cbkgen.pfnFSkipPage = new PTS.FSkipPage(ptsHost.FSkipPage);
             contextInfo.fscbk.cbkgen.pfnGetPageDimensions = new PTS.GetPageDimensions(ptsHost.GetPageDimensions);
             contextInfo.fscbk.cbkgen.pfnGetNextSection = new PTS.GetNextSection(ptsHost.GetNextSection);
@@ -633,16 +633,16 @@ namespace MS.Internal.PtsHost
             contextInfo.fscbk.cbkgen.pfnGetFootnoteSegment = new PTS.GetFootnoteSegment(ptsHost.GetFootnoteSegment);
             contextInfo.fscbk.cbkgen.pfnGetFootnotePresentationAndRejectionOrder = new PTS.GetFootnotePresentationAndRejectionOrder(ptsHost.GetFootnotePresentationAndRejectionOrder);
             contextInfo.fscbk.cbkgen.pfnFAllowFootnoteSeparation = new PTS.FAllowFootnoteSeparation(ptsHost.FAllowFootnoteSeparation);
-            //Initialize object callbacks
-            //contextInfo.fscbk.cbkobj.pfnNewPtr                Handled by PTSWrapper
-            //contextInfo.fscbk.cbkobj.pfnDisposePtr            Handled by PTSWrapper
-            //contextInfo.fscbk.cbkobj.pfnReallocPtr            Handled by PTSWrapper
+
+
+
+
             contextInfo.fscbk.cbkobj.pfnDuplicateMcsclient = new PTS.DuplicateMcsclient(ptsHost.DuplicateMcsclient);
             contextInfo.fscbk.cbkobj.pfnDestroyMcsclient = new PTS.DestroyMcsclient(ptsHost.DestroyMcsclient);
             contextInfo.fscbk.cbkobj.pfnFEqualMcsclient = new PTS.FEqualMcsclient(ptsHost.FEqualMcsclient);
             contextInfo.fscbk.cbkobj.pfnConvertMcsclient = new PTS.ConvertMcsclient(ptsHost.ConvertMcsclient);
             contextInfo.fscbk.cbkobj.pfnGetObjectHandlerInfo = new PTS.GetObjectHandlerInfo(ptsHost.GetObjectHandlerInfo);
-            // Initialize text callbacks
+
             contextInfo.fscbk.cbktxt.pfnCreateParaBreakingSession = new PTS.CreateParaBreakingSession(ptsHost.CreateParaBreakingSession);
             contextInfo.fscbk.cbktxt.pfnDestroyParaBreakingSession = new PTS.DestroyParaBreakingSession(ptsHost.DestroyParaBreakingSession);
             contextInfo.fscbk.cbktxt.pfnGetTextProperties = new PTS.GetTextProperties(ptsHost.GetTextProperties);
@@ -676,26 +676,26 @@ namespace MS.Internal.PtsHost
             contextInfo.fscbk.cbktxt.pfnGetDurFigureAnchor = new PTS.GetDurFigureAnchor(ptsHost.GetDurFigureAnchor);
         }
 
-        /// <summary>
-        /// Initializes formatting callbacks for PTS Installed objects.
-        /// </summary>
-        /// <param name="ptsHost">PtsHost that defines all PTS callbacks.</param>
-        /// <param name="subtrackParaInfo">Subtrack formatting callbacks.</param>
-        /// <param name="subpageParaInfo">Subpage formatting callbacks.</param>
-        /// <param name="installedObjects">PTS Installed objects.</param>
-        /// <param name="installedObjectsCount">Count of PTS Installed objects.</param>
-        /// <SecurityNote>
-        /// Critical, because:
-        ///     a) calls Critical method CreateInstalledObjectsInfo  and sets
-        ///        delegate members of input parameters to some Critical functions.
-        ///        The delegate member variables are all marked Critical so direct
-        ///        invocations are tracked,
-        ///     c) it is unsafe method.
-        /// </SecurityNote>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         [SecurityCritical]
         private unsafe void InitInstalledObjectsInfo(PtsHost ptsHost, ref PTS.FSIMETHODS subtrackParaInfo, ref PTS.FSIMETHODS subpageParaInfo, out IntPtr installedObjects, out int installedObjectsCount)
         {
-            // Initialize subtrack para info
+
             subtrackParaInfo.pfnCreateContext = new PTS.ObjCreateContext(ptsHost.SubtrackCreateContext);
             subtrackParaInfo.pfnDestroyContext = new PTS.ObjDestroyContext(ptsHost.SubtrackDestroyContext);
             subtrackParaInfo.pfnFormatParaFinite = new PTS.ObjFormatParaFinite(ptsHost.SubtrackFormatParaFinite);
@@ -714,7 +714,7 @@ namespace MS.Internal.PtsHost
             subtrackParaInfo.pfnShiftVertical = new PTS.ObjShiftVertical(ptsHost.SubtrackShiftVertical);
             subtrackParaInfo.pfnTransferDisplayInfoPara = new PTS.ObjTransferDisplayInfoPara(ptsHost.SubtrackTransferDisplayInfoPara);
 
-            // Initialize subpage para info
+
             subpageParaInfo.pfnCreateContext = new PTS.ObjCreateContext(ptsHost.SubpageCreateContext);
             subpageParaInfo.pfnDestroyContext = new PTS.ObjDestroyContext(ptsHost.SubpageDestroyContext);
             subpageParaInfo.pfnFormatParaFinite = new PTS.ObjFormatParaFinite(ptsHost.SubpageFormatParaFinite);
@@ -732,22 +732,22 @@ namespace MS.Internal.PtsHost
             subpageParaInfo.pfnShiftVertical = new PTS.ObjShiftVertical(ptsHost.SubpageShiftVertical);
             subpageParaInfo.pfnTransferDisplayInfoPara = new PTS.ObjTransferDisplayInfoPara(ptsHost.SubpageTransferDisplayInfoPara);
 
-            // Create installed objects info
+
             PTS.Validate(PTS.CreateInstalledObjectsInfo(ref subtrackParaInfo, ref subpageParaInfo, out installedObjects, out installedObjectsCount));
         }
 
-        /// <summary>
-        /// Initializes floater formatting callbacks.
-        /// </summary>
-        /// <param name="ptsHost">PtsHost that defines all PTS callbacks.</param>
-        /// <param name="floaterInit">Floater formatting callbacks.</param>
-        /// <SecurityNote>
-        /// Critical, because:
-        ///     a) sets delegate members of input parameter to some
-        ///        Critical functions. The delegate member variables are all marked
-        ///        Critical so direct invocations are tracked.
-        ///     b) it is unsafe method.
-        /// </SecurityNote>
+
+
+
+
+
+
+
+
+
+
+
+
         [SecurityCritical]
         private unsafe void InitFloaterObjInfo(PtsHost ptsHost, ref PTS.FSFLOATERINIT floaterInit)
         {
@@ -769,29 +769,29 @@ namespace MS.Internal.PtsHost
             floaterInit.fsfloatercbk.pfnGetDvrUsedForFloater = new PTS.GetDvrUsedForFloater(ptsHost.GetDvrUsedForFloater);
         }
 
-        /// <summary>
-        /// Initializes table formatting callbacks.
-        /// </summary>
-        /// <param name="ptsHost">PtsHost that defines all PTS callbacks.</param>
-        /// <param name="tableobjInit">Table formatting callbacks.</param>
-        /// <SecurityNote>
-        /// Critical, because:
-        ///     a) sets delegate members of input parameter to some
-        ///        Critical functions. The delegate member variables are all marked
-        ///        Critical so direct invocations are tracked,
-        ///     b) is it unsafe method.
-        /// </SecurityNote>
+
+
+
+
+
+
+
+
+
+
+
+
         [SecurityCritical]
         private unsafe void InitTableObjInfo(PtsHost ptsHost, ref PTS.FSTABLEOBJINIT tableobjInit)
         {
-            // FSTABLEOBJCBK
+
             tableobjInit.tableobjcbk.pfnGetTableProperties = new PTS.GetTableProperties(ptsHost.GetTableProperties);
             tableobjInit.tableobjcbk.pfnAutofitTable = new PTS.AutofitTable(ptsHost.AutofitTable);
             tableobjInit.tableobjcbk.pfnUpdAutofitTable = new PTS.UpdAutofitTable(ptsHost.UpdAutofitTable);
             tableobjInit.tableobjcbk.pfnGetMCSClientAfterTable = new PTS.GetMCSClientAfterTable(ptsHost.GetMCSClientAfterTable);
             tableobjInit.tableobjcbk.pfnGetDvrUsedForFloatTable = IntPtr.Zero;
 
-            // FSTABLECBKFETCH
+
             tableobjInit.tablecbkfetch.pfnGetFirstHeaderRow = new PTS.GetFirstHeaderRow(ptsHost.GetFirstHeaderRow);
             tableobjInit.tablecbkfetch.pfnGetNextHeaderRow = new PTS.GetNextHeaderRow(ptsHost.GetNextHeaderRow);
             tableobjInit.tablecbkfetch.pfnGetFirstFooterRow = new PTS.GetFirstFooterRow(ptsHost.GetFirstFooterRow);
@@ -808,7 +808,7 @@ namespace MS.Internal.PtsHost
             tableobjInit.tablecbkfetch.pfnFInterruptFormattingTable = new PTS.FInterruptFormattingTable(ptsHost.FInterruptFormattingTable);
             tableobjInit.tablecbkfetch.pfnCalcHorizontalBBoxOfRow = new PTS.CalcHorizontalBBoxOfRow(ptsHost.CalcHorizontalBBoxOfRow);
 
-            // FSTABLECBKCELL
+
             tableobjInit.tablecbkcell.pfnFormatCellFinite = new PTS.FormatCellFinite(ptsHost.FormatCellFinite);
             tableobjInit.tablecbkcell.pfnFormatCellBottomless = new PTS.FormatCellBottomless(ptsHost.FormatCellBottomless);
             tableobjInit.tablecbkcell.pfnUpdateBottomlessCell = new PTS.UpdateBottomlessCell(ptsHost.UpdateBottomlessCell);
@@ -824,8 +824,8 @@ namespace MS.Internal.PtsHost
             tableobjInit.tablecbkcell.pfnGetCellMinColumnBalancingStep = new PTS.GetCellMinColumnBalancingStep(ptsHost.GetCellMinColumnBalancingStep);
             tableobjInit.tablecbkcell.pfnTransferDisplayInfoCell = new PTS.TransferDisplayInfoCell(ptsHost.TransferDisplayInfoCell);
 
-            /*
-            // FSTABLECBKFETCHWORD -- lepfnDuplicateCellBreakRecord;gacy =)
+
+
             tableobjInit.tablecbkfetchword.pfnGetTablePropertiesWord  = IntPtr.Zero;
             tableobjInit.tablecbkfetchword.pfnGetRowPropertiesWord    = IntPtr.Zero;
             tableobjInit.tablecbkfetchword.pfnGetNumberFiguresForTableRow = IntPtr.Zero;
@@ -834,75 +834,74 @@ namespace MS.Internal.PtsHost
             tableobjInit.tablecbkfetchword.pfnFStopBeforeTableRowLr   = IntPtr.Zero;
             tableobjInit.tablecbkfetchword.pfnFIgnoreCollisionForTableRow = IntPtr.Zero;
             tableobjInit.tablecbkfetchword.pfnChangeRowHeightRestriction = IntPtr.Zero;
-            */
         }
 
         #endregion Private Methods
 
-        //-------------------------------------------------------------------
-        //
-        //  Private Fields
-        //
-        //-------------------------------------------------------------------
+
+
+
+
+
 
         #region Private Fields
 
-        /// <summary>
-        /// For each Dispatcher separate PTS context pool is created.
-        /// This enables usage from different Dispatchers at the same time.
-        /// When Dispatcher is disposed, all associated resources stored in its
-        /// PTS context pool are disposed as well.
-        /// </summary>
-        /// <remarks>
-        /// PTS context pool is an array of PTS Context descriptors.
-        /// PTS Context is very expensive to create, so once it is created, it
-        /// is stored and might be reused. Particular PTS Context is in use,
-        /// when WeakReference points to actual object. Otherwise it is free.
-        /// </remarks>
-        /// <SecurityNote>
-        /// Critical, because refers to an array of ContextDesc structures
-        ///     each of which is initited by a series of Critical functions
-        ///     and contains data that is Critical. Things to watch for when
-        ///     referring to this are to make any changes can't be affected
-        ///     by partial trust code and partial trust code cant' invoke
-        ///     the delegates directly.
-        /// </SecurityNote>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         [SecurityCritical]
         private List<ContextDesc> _contextPool;
 
-        /// <summary>
-        /// Collection of PtsContext ready for disposal.
-        /// </summary>
+
+
+
         private List<PtsContext> _releaseQueue;
 
-        /// <summary>
-        /// Lock.
-        /// </summary>
+
+
+
         private object _lock = new object();
 
-        /// <summary>
-        /// Whether object is already disposed.
-        /// </summary>
+
+
+
         private int _disposed;
 
         #endregion Private Fields
 
-        //-------------------------------------------------------------------
-        //
-        //  Private Types
-        //
-        //-------------------------------------------------------------------
+
+
+
+
+
 
         #region Private Types
 
-        /// <summary>
-        /// Single item in PTS Context array. It stores created PTS Context
-        /// together with its current owner.
-        /// PTS Context is in use, when Owner points to actual object.
-        /// Otherwise it is free and may be reused.
-        /// Created PTS Context is not destroyed, because creation process is
-        /// expensive.
-        /// </summary>
+
+
+
+
+
+
+
+
         private class ContextDesc
         {
             internal PtsHost PtsHost;
@@ -921,11 +920,11 @@ namespace MS.Internal.PtsHost
 
         private sealed class PtsCacheShutDownListener : ShutDownListener
         {
-            /// <SecurityNote>
-            ///     Critical: accesses AppDomain.DomainUnload event
-            ///     TreatAsSafe: This code does not take any parameter or return state.
-            ///                  It simply attaches private callbacks.
-            /// </SecurityNote>
+
+
+
+
+
             [SecurityCritical,SecurityTreatAsSafe]
             public PtsCacheShutDownListener(PtsCache target) : base(target)
             {

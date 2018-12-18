@@ -14,7 +14,6 @@ using System.Security.Permissions;           // Registry permissions
 using System.Runtime.InteropServices;        // SEHException
 using System.Diagnostics;                    // Debug & Debugger
 using System.Threading;
-using MS.Internal.Threading;                // ExceptionFilterHelper
 using MS.Internal.WindowsBase;
 
 namespace System.Windows.Threading
@@ -26,32 +25,26 @@ namespace System.Windows.Threading
     {
         internal ExceptionWrapper()
         {
-            _exceptionFilterHelper = new ExceptionFilterHelper(
-                    new InternalRealCallDelegate(InternalRealCall),
-                    new FilterExceptionDelegate(FilterException),
-                    new CatchExceptionDelegate(CatchException) );
         }
 
         // Helper for exception filtering:
-        // The real impl is in Base\MS\Internal\Threading\ExceptionFilterHelper.vb
         public object TryCatchWhen(object source, Delegate callback, object args, int numArgs, Delegate catchHandler)
         {
-            return _exceptionFilterHelper.TryCatchWhen(source, callback, args, numArgs, catchHandler);
+            object result = null;
 
-//            object result = null;
-//            try
-//            {
-//                result = InternalRealCall(callback, args, numArgs);
-//            }
-//            catch(Exception e) WHEN FilterException( Exception e );
-//            {
-//                if (e is NullReferenceException || e is SEHException)
-//                   throw;
-//                else
-//                    if( ! CatchException(source, e) )
-//                        throw;
-//            }
-//            return result;
+            try
+            {
+                result = InternalRealCall(callback, args, numArgs);
+            }
+            catch (Exception e) when (FilterException(source, e))
+            {
+                if (!CatchException(source, e, catchHandler))
+                {
+                    throw;
+                }
+            }
+
+            return result;
         }
 
         private object InternalRealCall(Delegate callback, object args, int numArgs)
@@ -141,7 +134,7 @@ namespace System.Windows.Threading
                 // it will not try to wrap the arg in another object[].
                 result = callback.DynamicInvoke((object[])args);
             }
-            
+
             return result;
         }
 
@@ -195,8 +188,6 @@ namespace System.Windows.Threading
 
         public delegate bool FilterHandler(object source, Exception e);
         public event FilterHandler Filter;
-
-        private ExceptionFilterHelper _exceptionFilterHelper;
     }
 }
 

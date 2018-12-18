@@ -69,7 +69,6 @@ namespace System.Windows.Forms {
         /// <para></para>
         /// </devdoc>
         public new virtual ToolStripItem this[int index] {
-            [System.Runtime.TargetedPatchingOptOutAttribute("Performance critical to inline across NGen image boundaries")]
             get {
                 return (ToolStripItem)(InnerList[index]);
             }

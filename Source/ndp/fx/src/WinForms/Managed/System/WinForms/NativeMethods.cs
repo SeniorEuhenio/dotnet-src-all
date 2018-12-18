@@ -2181,7 +2181,6 @@ namespace System.Windows.Forms {
 
         private static int wmMouseEnterMessage = -1;
         public static int WM_MOUSEENTER {
-           [System.Runtime.TargetedPatchingOptOutAttribute("Performance critical to inline across NGen image boundaries")]
            get {
               if (wmMouseEnterMessage == -1) {
                   wmMouseEnterMessage = SafeNativeMethods.RegisterWindowMessage("WinFormsMouseEnter");
@@ -2192,7 +2191,6 @@ namespace System.Windows.Forms {
 
         private static int wmUnSubclass = -1;
         public static int WM_UIUNSUBCLASS {
-            [System.Runtime.TargetedPatchingOptOutAttribute("Performance critical to inline across NGen image boundaries")]
             get {
                 if (wmUnSubclass == -1) {
                     wmUnSubclass = SafeNativeMethods.RegisterWindowMessage("WinFormsUnSubclass");

@@ -296,26 +296,26 @@ void UnmanagedWriteCallback(LPVOID ConsKey, SNI_Packet * pPacket, DWORD dwError)
 {
     SNI_ConnWrapper* pConn = (SNI_ConnWrapper*)ConsKey;
 
-	 if (!pConn->m_fSyncOverAsyncWrite) {
-		pConn->m_fnWriteComp(pConn->m_ConsumerKey, pPacket, dwError);
-	 }
-	 else {
-		if (dwError == ERROR_SUCCESS) {
-			pConn->m_WriteError.dwNativeError = ERROR_SUCCESS;
-		}
-		else {
-			SNIGetLastError(&pConn->m_WriteError);
-			// SNIGetLastError strips SNI_STRING_ERROR_BASE out of the code
-			pConn->m_WriteError.dwSNIError += SNI_STRING_ERROR_BASE;
-			assert(pConn->m_WriteError.dwNativeError != ERROR_SUCCESS);
-		}
+     if (!pConn->m_fSyncOverAsyncWrite) {
+        pConn->m_fnWriteComp(pConn->m_ConsumerKey, pPacket, dwError);
+     }
+     else {
+        if (dwError == ERROR_SUCCESS) {
+            pConn->m_WriteError.dwNativeError = ERROR_SUCCESS;
+        }
+        else {
+            SNIGetLastError(&pConn->m_WriteError);
+            // SNIGetLastError strips SNI_STRING_ERROR_BASE out of the code
+            pConn->m_WriteError.dwSNIError += SNI_STRING_ERROR_BASE;
+            assert(pConn->m_WriteError.dwNativeError != ERROR_SUCCESS);
+        }
 
         ::ReleaseSemaphore(pConn->m_WriteResponseReady, 1, NULL);
-	 }
+     }
 }
 
 DWORD SNIOpenWrapper( __in SNI_CONSUMER_INFO * pConsumerInfo,
-                       __inout_opt LPSTR szConnect,
+                       __inout_opt LPWSTR wszConnect,
                        __in LPVOID pOpenInfo,
                        __out SNI_ConnWrapper ** ppConn,
                        __in BOOL fSync)
@@ -335,7 +335,7 @@ DWORD SNIOpenWrapper( __in SNI_CONSUMER_INFO * pConsumerInfo,
     pConsumerInfo->fnWriteComp = UnmanagedWriteCallback;
     pConsumerInfo->ConsumerKey = pConnWrapper;
 
-    dwError = SNIOpen(pConsumerInfo, szConnect, pOpenInfo, &pConn, fSync);
+    dwError = SNIOpen(pConsumerInfo, wszConnect, pOpenInfo, &pConn, fSync);
     if (dwError != ERROR_SUCCESS) {
         goto ErrorExit;
     }
@@ -684,7 +684,7 @@ internal:
 
         if (spnBuffer != nullptr) 
         {
-            clientConsumerInfo.szSPN = reinterpret_cast<LPSTR>(pin_spnBuffer);
+            clientConsumerInfo.wszSPN = reinterpret_cast<LPWSTR>(pin_spnBuffer);
             clientConsumerInfo.cchSPN =  spnBuffer->Length;
         }
         // else leave null (SQL Auth)
@@ -712,7 +712,7 @@ internal:
     {
         System::UInt32 ret = 0;
         ::SNI_CONSUMER_INFO native_consumerInfo;
-		char szMarsConString[] = "session:";
+        WCHAR wszMarsConString[] = L"session:";
 
         // initialize consumer info for MARS
         MarshalConsumerInfo(consumerInfo, native_consumerInfo);
@@ -728,7 +728,7 @@ internal:
             Debug::Assert (mustRelease,"AddRef Failed!");
 
             ret = ::SNIOpenWrapper( &native_consumerInfo,
-                             szMarsConString,
+                             wszMarsConString,
                              static_cast<SNI_ConnWrapper*>(parent->DangerousGetHandle().ToPointer())->m_pConn,
                              &local_pConn,
                              fSync);
@@ -780,7 +780,7 @@ internal:
                 }
             }     
     }
-	
+    
         // further optimization - peek and avoid call
         [ResourceExposure(ResourceScope::None)]
         static System::UInt32 SNIPacketGetData (System::IntPtr packet, 
@@ -1261,10 +1261,10 @@ internal:
                ::SNI_ERROR   local_error;
                ::SNIGetLastError (&local_error);
 
-               const int SizeOfReturnErrorMsg = sizeof (local_error.pszErrorMessage);
+               const int SizeOfReturnErrorMsg = ARRAYSIZE (local_error.pszErrorMessage);
 
                // Verrify that the size of the mananged buffer is at least as big as we think it should be
-               COMPILE_TIME_ASSERT (sizeof (local_error.pszErrorMessage) >= MAX_PATH+1);
+               COMPILE_TIME_ASSERT (ARRAYSIZE (local_error.pszErrorMessage) >= MAX_PATH+1);
                error->provider = static_cast<ProviderEnum>(local_error.Provider);
                error->errorMessage = gcnew cli::array<System::Char>(SizeOfReturnErrorMsg);
                for (int x = 0; x < MAX_PATH+1; ++x)
@@ -1321,7 +1321,7 @@ internal:
                                                  pin_outBuff,
                                                  &local_outBuffLen,
                                                  &local_fDone,                                                 
-                                                 reinterpret_cast<char*>(pin_serverUserName),
+                                                 reinterpret_cast<WCHAR*>(pin_serverUserName),
                                                  serverUserName == nullptr ? 0 : serverUserName->Length,   //cbServerInfo,
                                                  NULL,
                                                  NULL);
@@ -1415,7 +1415,7 @@ private:
                COMPILE_TIME_ASSERT (sizeof(void*) == sizeof(SniClientConsumerInfo.ConsumerInfo.fnWriteComp));
 
                COMPILE_TIME_ASSERT (sizeof(void*) == sizeof(SniClientConsumerInfo.wszConnectionString));
-               COMPILE_TIME_ASSERT (sizeof(void*) == sizeof(SniClientConsumerInfo.szSPN));
+               COMPILE_TIME_ASSERT (sizeof(void*) == sizeof(SniClientConsumerInfo.wszSPN));
                COMPILE_TIME_ASSERT (sizeof(int) == sizeof(SniClientConsumerInfo.cchSPN));
                COMPILE_TIME_ASSERT (sizeof(void*) == sizeof(SniClientConsumerInfo.szInstanceName));
                COMPILE_TIME_ASSERT (sizeof(int) == sizeof(SniClientConsumerInfo.cchInstanceName));
@@ -1607,3 +1607,243 @@ ref class  NativeOledbWrapper
 #endif
 };
 
+ref class AdalException : public System::Exception
+{
+private:
+    // Internal Adal error category used in retry logic and building error message in managed code
+    initonly unsigned int _category;
+    // Public facin failing status returned from Adal APIs in SNISecADALGetAccessToken
+    initonly unsigned int _status;
+    // Internal last Adal API called in SNISecADALGetAccessToken for troubleshooting
+    initonly unsigned int _state;
+
+internal:
+    AdalException(String^ message, unsigned int category, unsigned int status, unsigned int state) : System::Exception(message)
+    {
+        _category = category;
+        _status = status;
+        _state = state;
+    }
+
+    unsigned int GetCategory() 
+    { 
+        return _category; 
+    }
+
+    unsigned int GetStatus() 
+    { 
+        return _status; 
+    }
+
+    unsigned int GetState()
+    {
+        return _state;
+    }
+};
+
+ref class ADALNativeWrapper
+{
+private:
+    static inline
+    GUID ToGUID(System::Guid^ guid) // This is from msdn http://msdn.microsoft.com/en-us/library/wb8scw8f.aspx.
+    {
+        array<Byte>^ guidData = guid->ToByteArray();
+        pin_ptr<Byte> data = &(guidData[0]);
+
+        return *(GUID *)data;
+    }
+
+internal:
+    static int ADALInitialize()
+    {
+        return SNISecADALInitialize();
+    }
+
+    static array<byte>^ ADALGetAccessToken( String^ username,
+                                            SecureString^ password,
+                                            String^ stsURL,
+                                            String^ servicePrincipalName,
+                                            System::Guid^ correlationId,
+                                            String^ clientId,
+                                            System::Int64% fileTime)
+    {
+        Debug::Assert(password != nullptr, "Password from SecureString is null.");
+
+        IntPtr clearPassword = IntPtr::Zero;
+
+        try
+        {
+            clearPassword = Marshal::SecureStringToGlobalAllocUnicode(password);
+            Debug::Assert(clearPassword != IntPtr::Zero, "clearPassword is Intptr::Zero.");
+
+            array<byte>^ result = ADALGetAccessToken( username,
+                                                      clearPassword,
+                                                      stsURL,
+                                                      servicePrincipalName,
+                                                      correlationId,
+                                                      clientId,
+                                                      false /*fWindowsIntegrated*/,
+                                                      fileTime);
+
+            return result;
+        }
+        finally 
+        {
+            if (clearPassword != IntPtr::Zero) 
+            {
+                Marshal::ZeroFreeGlobalAllocUnicode(clearPassword);
+            }
+        }
+    }
+
+    static array<byte>^ ADALGetAccessToken( String^ username,
+                                            String^ password,
+                                            String^ stsURL,
+                                            String^ servicePrincipalName,
+                                            System::Guid^ correlationId,
+                                            String^ clientId,
+                                            System::Int64% fileTime)
+    {
+        Debug::Assert(password != nullptr, "Password is null.");
+
+        IntPtr clearPassword = IntPtr::Zero;
+
+        try 
+        {
+            clearPassword = Marshal::StringToHGlobalUni(password);
+
+            array<byte>^ result = ADALGetAccessToken( username,
+                                                      clearPassword,
+                                                      stsURL,
+                                                      servicePrincipalName,
+                                                      correlationId,
+                                                      clientId,
+                                                      false /*fWindowsIntegrated*/,
+                                                      fileTime);
+
+            return result;
+        }
+        finally 
+        {
+            if (clearPassword != IntPtr::Zero) 
+            {
+                Marshal::FreeHGlobal(clearPassword);
+            }
+        }
+    }
+
+    // The version of API that performs windows integrated authentication.
+    static array<byte>^ ADALGetAccessTokenForWindowsIntegrated( String^ stsURL,
+                                                                String^ servicePrincipalName,
+                                                                System::Guid^ correlationId,
+                                                                String^ clientId,
+                                                                System::Int64% fileTime)
+    {
+        return ADALGetAccessToken( nullptr /*username*/,
+                                   IntPtr::Zero /*password*/,
+                                   stsURL,
+                                   servicePrincipalName,
+                                   correlationId,
+                                   clientId,
+                                   true /*fWindowsIntegrated*/,
+                                   fileTime);
+    }
+
+private:
+    static array<byte>^ ADALGetAccessToken( String^ username,
+                                            IntPtr password,
+                                            String^ stsURL,
+                                            String^ servicePrincipalName,
+                                            System::Guid^ correlationId,
+                                            String^ clientId,
+                                            const bool& fWindowsIntegrated,
+                                            System::Int64% fileTime)
+    {
+        Debug::Assert(username != nullptr || fWindowsIntegrated, "User name is null and its not windows integrated authentication.");
+        Debug::Assert(password != IntPtr::Zero || fWindowsIntegrated, "Password is null and its not windows integrated authentication.");
+        Debug::Assert(stsURL != nullptr, "stsURL is null.");
+        
+        Debug::Assert(servicePrincipalName != nullptr, "ServicePrincipalName is null.");
+        Debug::Assert(clientId != nullptr, "Ado ClientId is null.");
+        
+        Debug::Assert(correlationId != Guid::Empty, "CorrelationId is Guid::Empty.");
+
+        pin_ptr<const wchar_t> pUsername = nullptr; 
+        const wchar_t* pPassword = nullptr;
+
+        if (!fWindowsIntegrated)
+        {
+            pUsername = PtrToStringChars(username);
+            pPassword = static_cast<wchar_t*>(password.ToPointer());
+        }
+
+        pin_ptr<const wchar_t> pStsURL = PtrToStringChars(stsURL);
+        pin_ptr<const wchar_t> pServicePrincipalName = PtrToStringChars(servicePrincipalName);
+        pin_ptr<const wchar_t> pClientId = PtrToStringChars(clientId);
+        
+        LPWSTR pToken = nullptr;
+        LPWSTR pErrorDescription = nullptr;
+        DWORD cbToken = 0, errorDescriptionLength = 0;
+        DWORD adalStatus = ERROR_SUCCESS;
+        DWORD errorState = 0;
+        _FILETIME fileTimeLocal = {0};
+
+        GUID correlationIdGUID = ToGUID(correlationId);
+        try
+        {
+            DWORD statusCategory = SNISecADALGetAccessToken(pUsername,
+                                                            pPassword,
+                                                            pStsURL,
+                                                            pServicePrincipalName,
+                                                            correlationIdGUID,
+                                                            pClientId,
+                                                            fWindowsIntegrated,
+                                                            &pToken,
+                                                            cbToken,
+                                                            &pErrorDescription,
+                                                            errorDescriptionLength,
+                                                            adalStatus,
+                                                            errorState,
+                                                            fileTimeLocal);
+
+            if (statusCategory == 0)
+            {
+                Debug::Assert(pToken != nullptr, "pToken is null.");
+                Debug::Assert(cbToken > 0, "token length is less than or equal to 0.");
+                Debug::Assert(pErrorDescription == nullptr, "pErrorDescription is not null");
+                Debug::Assert(errorDescriptionLength == 0, "ErrorDescription length is not 0.");
+
+                IntPtr ptrToken = (IntPtr)pToken;
+
+                array<byte>^ result = gcnew array<byte>(cbToken);
+                Marshal::Copy(ptrToken, result, 0, cbToken);
+
+                fileTime = (((ULONGLONG)fileTimeLocal.dwHighDateTime) << 32) + fileTimeLocal.dwLowDateTime;
+                return result;
+            }
+            else
+            {
+                Debug::Assert(pToken == nullptr, "pToken is not null in error case.");
+                Debug::Assert(cbToken == 0, "Token length is not 0 in error case.");
+
+                String^ errorString = String::Empty;
+                if (pErrorDescription != nullptr && errorDescriptionLength >= 0)
+                {
+                    errorString = Marshal::PtrToStringUni((IntPtr)pErrorDescription, errorDescriptionLength);
+                }
+                throw gcnew AdalException(errorString, statusCategory, adalStatus, errorState);
+            }
+        }
+        finally 
+        {
+            if (pToken != nullptr) 
+            {
+                delete[] pToken;
+            }
+            if (pErrorDescription != nullptr)
+            {
+                delete[] pErrorDescription;
+            }
+        }
+    }
+};

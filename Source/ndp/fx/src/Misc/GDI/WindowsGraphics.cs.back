@@ -224,7 +224,6 @@ namespace System.Experimental.Gdi
 
         public DeviceContext DeviceContext 
         {
-            [System.Runtime.TargetedPatchingOptOutAttribute("Performance critical to inline across NGen image boundaries")]
             get 
             {
                 return this.dc;

@@ -475,7 +475,14 @@ namespace System.Windows.Forms {
                 }
                 if (selected && this.activeControl != control)
                 {
-                    FocusActiveControlInternal();
+                    // Bug 847648.
+                    // Add the check. If it is set to true, do not call into FocusActiveControlInternal().
+                    // The TOP MDI window could be gone and CreateHandle method will fail 
+                    // because it try to create a parking window Parent for the MDI children 
+                    if (!this.activeControl.Parent.IsTopMdiWindowClosing) 
+                    {                 
+                        FocusActiveControlInternal();
+                    }
                 }
                 else
                 {

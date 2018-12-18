@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{d5c689ab-f8f6-43bd-aa96-6bea230fdb80}</ProjectGuid>
+    <ProjectGuid>{25f1569b-f36d-466e-8854-89f1b79cd829}</ProjectGuid>
     <OutputPath>.</OutputPath>
     <OutputType>Library</OutputType>
     <AssemblyName>System.Drawing</AssemblyName>
@@ -20,21 +20,23 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\clr\src\bcl\mscorlib.csproj">
-      <Project>{edd76f80-29f6-4590-a3ef-f885b38da1b0}</Project>
+      <Project>{224f6f5b-c254-4b89-95cd-b690effa845e}</Project>
       <Name>mscorlib</Name>
     </ProjectReference>
     <ProjectReference Include="System.csproj">
-      <Project>{e4fae737-f889-49a8-8db5-92488fc98c22}</Project>
+      <Project>{41970311-a2a7-4957-b118-3e82738754bb}</Project>
       <Name>System</Name>
     </ProjectReference>
     <ProjectReference Include="Configuration\System.Configuration.csproj">
-      <Project>{d0e5c1bb-46f1-4fbe-9d9b-4d089d88ae09}</Project>
+      <Project>{c8acffc3-9a67-4b99-b153-3456d8d6a9e2}</Project>
       <Name>System.Configuration</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\InternalApis\Clr\inc\AppContextDefaultValues.cs" />
+    <Compile Include="..\..\..\InternalApis\Clr\inc\LocalAppContext.cs" />
     <Compile Include="commonui\System\Drawing\Advanced\AdjustableArrowCap.cs" />
     <Compile Include="commonui\System\Drawing\Advanced\BitmapData.cs" />
     <Compile Include="commonui\System\Drawing\Advanced\Blend.cs" />
@@ -145,6 +147,7 @@
     <Compile Include="commonui\System\Drawing\Advanced\WarpMode.cs" />
     <Compile Include="commonui\System\Drawing\Advanced\WmfPlaceableFileHeader.cs" />
     <Compile Include="commonui\System\Drawing\Advanced\WrapMode.cs" />
+    <Compile Include="commonui\System\Drawing\AppContextDefaultValues.Defaults.cs" />
     <Compile Include="commonui\System\Drawing\AssemblyAttributes.cs" />
     <Compile Include="commonui\System\Drawing\Bitmap.cs" />
     <Compile Include="commonui\System\Drawing\BitmapSelector.cs" />
@@ -193,6 +196,7 @@
     <Compile Include="commonui\System\Drawing\IntSecurity.cs" />
     <Compile Include="commonui\System\Drawing\KnownColor.cs" />
     <Compile Include="commonui\System\Drawing\KnownColorTable.cs" />
+    <Compile Include="commonui\System\Drawing\LocalAppContextSwitches.cs" />
     <Compile Include="commonui\System\Drawing\NativeMethods.cs" />
     <Compile Include="commonui\System\Drawing\Pen.cs" />
     <Compile Include="commonui\System\Drawing\Pens.cs" />
@@ -252,7 +256,6 @@
     <Compile Include="misc\DbgUtil.cs" />
     <Compile Include="misc\DebugHandleTracker.cs" />
     <Compile Include="misc\DpiHelper.cs" />
-    <Compile Include="misc\externdll.cs" />
     <Compile Include="misc\GDI\ApplyGraphicsProperties.cs" />
     <Compile Include="misc\GDI\DeviceContext.cs" />
     <Compile Include="misc\GDI\DeviceContextGraphicsMode.cs" />

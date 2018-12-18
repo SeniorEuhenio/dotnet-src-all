@@ -959,7 +959,7 @@ namespace MS.Internal
                 if (!_hasEmittedEventSetterDeclaration)
                 {
                     _hasEmittedEventSetterDeclaration = true;
-                    
+
                     // EventSetter eventSetter;
                     //
                     CodeVariableDeclarationStatement cvdsES = new CodeVariableDeclarationStatement(KnownTypes.Types[(int)KnownElements.EventSetter], EVENTSETTER);
@@ -1148,7 +1148,6 @@ namespace MS.Internal
 
             if ((elementName == null || !isAllowedNameScope) && (events == null || events.Count == 0))
             {
-                _typeArgsList = null;
                 return;
             }
 
@@ -1224,7 +1223,12 @@ namespace MS.Internal
                 ccsConnector.TrueStatements.Add(new CodeMethodReturnStatement());
                 _ccRoot.HookupFn.Statements.Add(ccsConnector);
             }
+        }
 
+        // called from ParserExtension.WriteEndAttributes at the end of an element
+        // that has x:TypeArguments, to clear the state used to support them.
+        internal void ClearGenericTypeArgs()
+        {
             _typeArgsList = null;
         }
 
@@ -2151,7 +2155,7 @@ namespace MS.Internal
                          new CodeTypeReference("System.Diagnostics.CodeAnalysis.SuppressMessageAttribute"),
                          new CodeAttributeArgument(new CodePrimitiveExpression("Microsoft.Performance")),
                          new CodeAttributeArgument(new CodePrimitiveExpression("CA1823:AvoidUnusedPrivateFields"))));
-                
+
 
             // Generate WithEvents ID fields in VB for objects supporting events
             field.UserData["WithEvents"] = true;
@@ -2559,13 +2563,13 @@ namespace MS.Internal
             // Generate canonicalized string as resource id.
             bool requestExtensionChange = false;
             string resourceID = ResourcesGenerator.GetResourceIdForResourceFile(
-                    SourceFileInfo.RelativeSourceFilePath + XAML, 
-                    SourceFileInfo.OriginalFileLin----as, 
+                    SourceFileInfo.RelativeSourceFilePath + XAML,
+                    SourceFileInfo.OriginalFileLin----as,
                     SourceFileInfo.OriginalFileLogicalName,
                     TargetPath,
                     Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar,
                     requestExtensionChange);
-            
+
             string uriPart = string.Empty;
 
             string version = String.IsNullOrEmpty(AssemblyVersion) ? String.Empty : COMPONENT_DELIMITER + VER + AssemblyVersion;

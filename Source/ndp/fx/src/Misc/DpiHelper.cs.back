@@ -254,7 +254,7 @@ namespace System.Windows.Forms
         // This method is used only in System.Design, thus excluding the rest.
         // This is particularly important for System.Drawing, which should not depend 
         // on System.Windows.Forms assembly, where "Button" type is defined. 
-#if (!DRAWING_NAMESPACE && ![....]_NAMESPACE)
+#if (!DRAWING_NAMESPACE && !DRAWINGDESIGN_NAMESPACE && ![....]_NAMESPACE)
         /// <summary>
         /// Create a new button bitmap scaled for the device units. 
         /// Note: original image might be disposed.

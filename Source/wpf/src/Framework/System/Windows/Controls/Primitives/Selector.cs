@@ -1120,6 +1120,14 @@ namespace System.Windows.Controls.Primitives
 
                 case NotifyCollectionChangedAction.Move:
                 {
+                    // some panels (e.g. VSP) implement Move by removing containers
+                    // from the visual tree directly, bypassing the generator and
+                    // thus bypassing the notification Selector uses to adjust the
+                    // Container field of ItemInfos in the selected item list.
+                    // So do that adjustment now.  Otherwise we can end up with
+                    // multiple ItemInfos representing the same item (Dev11 999613).
+                    AdjustNewContainers();
+
                     SelectionChange.Validate();
                     break;
                 }

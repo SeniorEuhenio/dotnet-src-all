@@ -214,9 +214,16 @@ namespace System.Windows.Controls
         {
             UIElement child = Child;
             Size mySize = new Size();
-
+            Thickness borders = this.BorderThickness;
+            if (this.UseLayoutRounding && !FrameworkAppContextSwitches.DoNotApplyLayoutRoundingToMarginsAndBorderThickness)
+            {
+                double dpiScaleX = FrameworkElement.DpiScaleX;
+                double dpiScaleY = FrameworkElement.DpiScaleY;
+                borders = new Thickness(UIElement.RoundLayoutValue(borders.Left, dpiScaleX), UIElement.RoundLayoutValue(borders.Top, dpiScaleY),
+                   UIElement.RoundLayoutValue(borders.Right, dpiScaleX), UIElement.RoundLayoutValue(borders.Bottom, dpiScaleY));
+            }
             // Compute the chrome size added by the various elements
-            Size border = HelperCollapseThickness(this.BorderThickness);
+            Size border = HelperCollapseThickness(borders);
             Size padding = HelperCollapseThickness(this.Padding);
 
             //If we have a child
@@ -256,9 +263,16 @@ namespace System.Windows.Controls
         protected override Size ArrangeOverride(Size finalSize)
         {
             Thickness borders = BorderThickness;
+            if (this.UseLayoutRounding && !FrameworkAppContextSwitches.DoNotApplyLayoutRoundingToMarginsAndBorderThickness)
+            {
+                double dpiScaleX = FrameworkElement.DpiScaleX;
+                double dpiScaleY = FrameworkElement.DpiScaleY;
+                borders = new Thickness(UIElement.RoundLayoutValue(borders.Left, dpiScaleX), UIElement.RoundLayoutValue(borders.Top, dpiScaleY),
+                   UIElement.RoundLayoutValue(borders.Right, dpiScaleX), UIElement.RoundLayoutValue(borders.Bottom, dpiScaleY));
+            }
             Rect boundRect = new Rect(finalSize);
             Rect innerRect = HelperDeflateRect(boundRect, borders);
-
+            
             //  arrange child
             UIElement child = Child;
             if (child != null)
@@ -559,10 +573,19 @@ namespace System.Windows.Controls
 
                     if (useLayoutRounding)
                     {
-                        ptTL = new Point(UIElement.RoundLayoutValue(border.Left, FrameworkElement.DpiScaleX), 
+                        ptTL = new Point(UIElement.RoundLayoutValue(border.Left, FrameworkElement.DpiScaleX),
                                          UIElement.RoundLayoutValue(border.Top, FrameworkElement.DpiScaleY));
-                        ptBR = new Point(UIElement.RoundLayoutValue(RenderSize.Width - border.Right, FrameworkElement.DpiScaleX),
+                        
+                        if(FrameworkAppContextSwitches.DoNotApplyLayoutRoundingToMarginsAndBorderThickness)
+                        {
+                            ptBR = new Point(UIElement.RoundLayoutValue(RenderSize.Width - border.Right, FrameworkElement.DpiScaleX),
                                          UIElement.RoundLayoutValue(RenderSize.Height - border.Bottom, FrameworkElement.DpiScaleY));
+                        }
+                        else
+                        {
+                            ptBR = new Point(RenderSize.Width - UIElement.RoundLayoutValue(border.Right, FrameworkElement.DpiScaleX),
+                                         RenderSize.Height - UIElement.RoundLayoutValue(border.Bottom, FrameworkElement.DpiScaleY));
+                        }                        
                     }
                     else
                     {

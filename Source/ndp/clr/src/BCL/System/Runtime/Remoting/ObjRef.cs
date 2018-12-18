@@ -759,7 +759,6 @@ namespace System.Runtime.Remoting {
         [System.Security.SecurityCritical]  // auto-generated
         private Object GetCustomMarshaledCOMObject(Object ret)
         {
-#if FEATURE_COMINTEROP
             // Some special work we need to do for __COMObject 
             // (Note that we use typeInfo to detect this case instead of
             // calling GetType on 'ret' so as to not refine the proxy)
@@ -817,7 +816,6 @@ namespace System.Runtime.Remoting {
                     }                        
                 }
             }
-#endif // FEATURE_COMINTEROP
             return ret;
         }
 
@@ -997,7 +995,6 @@ namespace System.Runtime.Remoting {
                         requestedType.ToString())); ;
             }
 
-#if FEATURE_COMINTEROP
             // Create the type info
             if(serverType.IsCOMObject)
             {
@@ -1006,7 +1003,6 @@ namespace System.Runtime.Remoting {
                 TypeInfo = (IRemotingTypeInfo) dt;
             }
             else
-#endif // FEATURE_COMINTEROP
             {
                 RemotingTypeCachedData cache = (RemotingTypeCachedData)
                     InternalRemotingServices.GetReflectionCachedData(typeOfObj);

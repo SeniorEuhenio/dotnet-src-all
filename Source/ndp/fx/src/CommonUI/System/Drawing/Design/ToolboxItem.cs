@@ -454,7 +454,15 @@ namespace System.Drawing.Design {
                 Lock();
             }
         }
-        
+
+        /// <devdoc>
+        /// Check if two AssemblyName instances are equivalent
+        /// </devdoc>
+        private static bool AreAssemblyNamesEqual(AssemblyName name1, AssemblyName name2) {
+            return name1 == name2 ||
+                   (name1 != null && name2 != null && name1.FullName == name2.FullName);
+        }
+
         /// <include file='doc\ToolboxItem.uex' path='docs/doc[@for="ToolboxItem.Equals"]/*' />
         /// <internalonly/>
         public override bool Equals(object obj) {
@@ -471,50 +479,18 @@ namespace System.Drawing.Design {
             }
 
             ToolboxItem otherItem = (ToolboxItem)obj;
-            
-            if (TypeName != otherItem.TypeName) {
-                if (TypeName == null || otherItem.TypeName == null) {
-                    return false;
-                }
-                
-                if (!TypeName.Equals(otherItem.TypeName)) {
-                    return false;
-                }
-            }
-            
-            if (AssemblyName != otherItem.AssemblyName) {
-                if (AssemblyName == null || otherItem.AssemblyName == null) {
-                    return false;
-                }
-                
-                if (!AssemblyName.FullName.Equals(otherItem.AssemblyName.FullName)) {
-                    return false;
-                }
-            }
-            
-            if (DisplayName != otherItem.DisplayName) {
-                if (DisplayName == null ||otherItem.DisplayName == null) {
-                    return false;
-                }
-                
-                if (!DisplayName.Equals(otherItem.DisplayName)) {
-                    return false;
-                }
-            }
-            
-            return true;
+
+            return TypeName == otherItem.TypeName &&
+                   AreAssemblyNamesEqual(AssemblyName, otherItem.AssemblyName) &&
+                   DisplayName == otherItem.DisplayName;
         }
 
         /// <include file='doc\ToolboxItem.uex' path='docs/doc[@for="ToolboxItem.GetHashCode"]/*' />
         /// <internalonly/>
         public override int GetHashCode() {
-            int hash = 0;
-            
-            if (TypeName != null) {
-                unchecked {
-                    hash ^= TypeName.GetHashCode();
-                }
-            }
+
+            string typeName = TypeName;
+            int hash = (typeName != null) ? typeName.GetHashCode() : 0;
             
             return unchecked(hash ^ DisplayName.GetHashCode());
         }

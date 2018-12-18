@@ -70,10 +70,28 @@ namespace System.Windows.Forms
         //private object keyUsedDuringAutoSize    = null;
         //private object valueUsedDuringAutoSize  = null;
 
+        private static bool isScalingInitialized = false;
+        private static int OFFSET_2PIXELS = 2;
+        private static int offset2X = OFFSET_2PIXELS;
+        private static int offset2Y = OFFSET_2PIXELS;
+        private static byte nonXPTriangleHeight = DATAGRIDVIEWCOMBOBOXCELL_nonXPTriangleHeight;
+        private static byte nonXPTriangleWidth = DATAGRIDVIEWCOMBOBOXCELL_nonXPTriangleWidth;
+
         /// <include file='doc\DataGridViewComboBoxCell.uex' path='docs/doc[@for="DataGridViewComboBoxCell.DataGridViewComboBoxCell"]/*' />
         public DataGridViewComboBoxCell()
         {
             this.flags = DATAGRIDVIEWCOMBOBOXCELL_autoComplete;
+            if (!isScalingInitialized) 
+            {
+                if (DpiHelper.IsScalingRequired) 
+                {
+                    offset2X = DpiHelper.LogicalToDeviceUnitsX(OFFSET_2PIXELS);
+                    offset2Y = DpiHelper.LogicalToDeviceUnitsY(OFFSET_2PIXELS);
+                    nonXPTriangleWidth = (byte)DpiHelper.LogicalToDeviceUnitsX(DATAGRIDVIEWCOMBOBOXCELL_nonXPTriangleWidth);
+                    nonXPTriangleHeight = (byte)DpiHelper.LogicalToDeviceUnitsY(DATAGRIDVIEWCOMBOBOXCELL_nonXPTriangleHeight);
+                }
+                isScalingInitialized = true;
+            }
         }
 
         /// <include file='doc\DataGridViewComboBoxCell.uex' path='docs/doc[@for="DataGridViewComboBoxCell.AutoComplete"]/*' />
@@ -2399,10 +2417,12 @@ namespace System.Windows.Forms
                                 // if the height is odd - favor pushing it over one pixel down.
                                 middle.Y += (dropRect.Height % 2);
 
-                                g.FillPolygon(SystemBrushes.ControlText, new Point[] {
-                                new Point(middle.X - 2, middle.Y - 1),
-                                new Point(middle.X + 3, middle.Y - 1),
-                                new Point(middle.X, middle.Y + 2) });
+                                g.FillPolygon(SystemBrushes.ControlText, new Point[] 
+                                {
+                                    new Point(middle.X - offset2X, middle.Y - 1),
+                                    new Point(middle.X + offset2X + 1, middle.Y - 1),
+                                    new Point(middle.X, middle.Y + offset2Y) 
+                                });
                             }
                             else if (!paintXPThemes)
                             {
@@ -2413,13 +2433,13 @@ namespace System.Windows.Forms
                                 dropRect.Width++;
 
                                 Point middle = new Point(dropRect.Left + (dropRect.Width - 1) / 2,
-                                        dropRect.Top + (dropRect.Height + DATAGRIDVIEWCOMBOBOXCELL_nonXPTriangleHeight) / 2);
+                                        dropRect.Top + (dropRect.Height + nonXPTriangleHeight) / 2);
                                 // if the width is event - favor pushing it over one pixel right.
                                 middle.X += ((dropRect.Width + 1) % 2);
                                 // if the height is odd - favor pushing it over one pixel down.
                                 middle.Y += (dropRect.Height % 2);
-                                Point pt1 = new Point(middle.X - (DATAGRIDVIEWCOMBOBOXCELL_nonXPTriangleWidth - 1) / 2, middle.Y - DATAGRIDVIEWCOMBOBOXCELL_nonXPTriangleHeight);
-                                Point pt2 = new Point(middle.X + (DATAGRIDVIEWCOMBOBOXCELL_nonXPTriangleWidth - 1) / 2, middle.Y - DATAGRIDVIEWCOMBOBOXCELL_nonXPTriangleHeight);
+                                Point pt1 = new Point(middle.X - (nonXPTriangleWidth - 1) / 2, middle.Y - nonXPTriangleHeight);
+                                Point pt2 = new Point(middle.X + (nonXPTriangleWidth - 1) / 2, middle.Y - nonXPTriangleHeight);
                                 g.FillPolygon(SystemBrushes.ControlText, new Point[] { pt1, pt2, middle });
                                 // quirk in GDI+ : if we dont draw the line below then the top right most pixel of the DropDown triangle will not paint
                                 // Would think that g.FillPolygon would have painted that...

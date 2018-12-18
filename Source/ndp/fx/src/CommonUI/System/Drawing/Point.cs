@@ -178,7 +178,6 @@ namespace System.Drawing {
         ///    objects are unequal.
         /// </para>
         /// </devdoc>
-        [System.Runtime.TargetedPatchingOptOutAttribute("Performance critical to inline across NGen image boundaries")]
         public static bool operator !=(Point left, Point right) {
             return !(left == right);
         }
@@ -261,7 +260,6 @@ namespace System.Drawing {
         /// <devdoc>
         ///    Translates this <see cref='System.Drawing.Point'/> by the specified amount.
         /// </devdoc>
-        [System.Runtime.TargetedPatchingOptOutAttribute("Performance critical to inline across NGen image boundaries")]
         public void Offset(int dx, int dy) {
             X += dx;
             Y += dy;

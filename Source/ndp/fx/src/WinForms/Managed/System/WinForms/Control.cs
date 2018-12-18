@@ -193,7 +193,7 @@ namespace System.Windows.Forms {
         internal const int STATE_MOUSEPRESSED           = 0x08000000;
         internal const int STATE_VALIDATIONCANCELLED    = 0x10000000;
         internal const int STATE_PARENTRECREATING       = 0x20000000;
-        internal const int STATE_MIRRORED               = 0x40000000;
+        internal const int STATE_MIRRORED               = 0x40000000;        
 
         // HACK HACK HACK - when we change RightToLeft, we need to change the scrollbar thumb.
         // We can't do that until after the control has been created, and all the items added
@@ -216,6 +216,7 @@ namespace System.Windows.Forms {
         private  const int STATE2_UICUES                            = 0x00000200;
         private  const int STATE2_ISACTIVEX                         = 0x00000400;
         internal const int STATE2_USEPREFERREDSIZECACHE             = 0x00000800;
+        internal const int STATE2_TOPMDIWINDOWCLOSING               = 0x00001000;
 
         private static readonly object EventAutoSizeChanged           = new object();
         private static readonly object EventKeyDown                   = new object();
@@ -983,7 +984,6 @@ example usage
         // Public because this is interesting for ControlDesigners.
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Advanced)]
         public virtual LayoutEngine LayoutEngine {
-            [System.Runtime.TargetedPatchingOptOutAttribute("Performance critical to inline across NGen image boundaries")]
             get { return DefaultLayout.Instance; }
         }
 
@@ -1384,7 +1384,6 @@ example usage
         ///     control has its events frozen.
         /// </devdoc>
         protected override bool CanRaiseEvents {
-            [System.Runtime.TargetedPatchingOptOutAttribute("Performance critical to inline across NGen image boundaries")]
             get {
                 if (IsActiveX) {
                     return !ActiveXEventsFrozen;
@@ -1426,7 +1425,6 @@ example usage
         SRDescription(SR.ControlCaptureDescr)
         ]
         public bool Capture {
-            [System.Runtime.TargetedPatchingOptOutAttribute("Performance critical to inline across NGen image boundaries")]
             get {
                 return CaptureInternal;
             }
@@ -1442,7 +1440,6 @@ example usage
 
         // SECURITY WARNING: This property bypasses a security demand. Use with caution!
         internal bool CaptureInternal {
-            [System.Runtime.TargetedPatchingOptOutAttribute("Performance critical to inline across NGen image boundaries")]
             get {
                 return IsHandleCreated && UnsafeNativeMethods.GetCapture() == Handle;
             }
@@ -1943,6 +1940,21 @@ example usage
 
                     return false;
                 }
+            }
+        }
+
+        /// <devdoc>
+        ///     returns bool indicating whether the Top MDI Window is closing.
+        ///     This property is set in the MDI children in WmClose method in form.cs when the top window is closing.
+        ///     This property will be used in ActiveControl to determine if we want to skip set focus and window handle re-creation for the control.
+        /// </devdoc>
+        /// <internalonly/>
+        internal bool IsTopMdiWindowClosing {
+            set {
+                SetState2(STATE2_TOPMDIWINDOWCLOSING, value);
+            }
+            get {
+                return GetState2(STATE2_TOPMDIWINDOWCLOSING);
             }
         }
 
@@ -3343,7 +3355,6 @@ example usage
 
         // SECURITY WARNING: This property bypasses a security demand. Use with caution!
         internal virtual Control ParentInternal {
-            [System.Runtime.TargetedPatchingOptOutAttribute("Performance critical to inline across NGen image boundaries")]
             get {
                 return parent;
             }
@@ -3399,7 +3410,6 @@ example usage
         ///     space.
         /// </devdoc>
         internal PropertyStore Properties {
-            [System.Runtime.TargetedPatchingOptOutAttribute("Performance critical to inline across NGen image boundaries")]
             get {
                 return propertyStore;
             }
@@ -13252,9 +13262,14 @@ example usage
         private void WmOwnerDraw(ref Message m) {          
             bool reflectCalled = false;
 
-            IntPtr p = UnsafeNativeMethods.GetDlgItem(new HandleRef(null, m.HWnd), unchecked((int)(long)m.WParam));
+            int ctrlId = unchecked((int)(long)m.WParam);
+            IntPtr p = UnsafeNativeMethods.GetDlgItem(new HandleRef(null, m.HWnd), ctrlId);
             if (p == IntPtr.Zero) {
-                p = m.WParam;
+                // On 64-bit platforms wParam is already 64 bit but the control ID stored in it is only 32-bit
+                // Empirically, we have observed that the 64 bit HWND is just a sign extension of the 32-bit ctrl ID
+                // Since WParam is already 64-bit, we need to discard the high dword first and then re-extend the 32-bit value
+                // treating it as signed
+                p = (IntPtr)(long)ctrlId;
             }
             if (!ReflectMessageInternal(p, ref m)) {
                 //Additional Check For Control .... TabControl truncates the Hwnd value...
@@ -13339,7 +13354,16 @@ example usage
 #endif
                             }
                             catch (Exception ex) {
-                                if (ClientUtils.IsCriticalException(ex)) {
+                                // BufferContext.Allocate will throw out of memory exceptions
+                                // when it fails to create a device dependent bitmap while trying to 
+                                // get information about the device we are painting on.
+                                // That is not the same as a system running out of memory and there is a 
+                                // very good chance that we can continue to paint successfully. We cannot
+                                // check whether double buffering is supported in this case, and we will disable it.
+                                // We could set a specific string when throwing the exception and check for it here
+                                // to distinguish between that case and real out of memory exceptions but we
+                                // see no reasons justifying the additional complexity.
+                                if (ClientUtils.IsCriticalException(ex) && !(ex is OutOfMemoryException)) {
                                     throw;
                                 }
 #if DEBUG
@@ -14202,7 +14226,6 @@ example usage
             }
 
             // IWindowTarget method
-            [System.Runtime.TargetedPatchingOptOutAttribute("Performance critical to inline across NGen image boundaries")]
             public void OnMessage(ref Message m) {
                 control.WndProc(ref m);
             }
@@ -14558,7 +14581,6 @@ example usage
                 return foundControls;
             }
           
-            [System.Runtime.TargetedPatchingOptOutAttribute("Performance critical to inline across NGen image boundaries")]
             public override IEnumerator GetEnumerator() { 
                 return new ControlCollectionEnumerator(this); 
             }
@@ -14857,7 +14879,6 @@ example usage
                 }
 
                 public object Current {
-                    [System.Runtime.TargetedPatchingOptOutAttribute("Performance critical to inline across NGen image boundaries")]
                     get {
                         if (current == -1) {
                             return null;
@@ -19619,7 +19640,7 @@ example usage
 
                         // fake it
                         //
-                        if (productVersion.Length == 0) {
+                        if (productVersion == null || productVersion.Length == 0) {
                             productVersion = "1.0.0.0";
                         }
                     }

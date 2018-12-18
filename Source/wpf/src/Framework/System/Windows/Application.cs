@@ -647,7 +647,7 @@ namespace System.Windows
 
             s_NestedBamlLoadInfo.Push(loadBamlSyncInfo);
             try
-            {    
+            {
                 // LoadBaml will close the stream.
                 rootElement = XamlReader.LoadBaml(stream, pc, null, true);
             }
@@ -794,7 +794,11 @@ namespace System.Windows
             //
             SiteOfOriginContainer sooContainer = (SiteOfOriginContainer)GetResourcePackage(packageUri);
 
-            sooPart = sooContainer.GetPart(partUri) as SiteOfOriginPart;
+            // the SiteOfOriginContainer is shared across threads;  synchronize access to it
+            lock (_packageLock)
+            {
+                sooPart = sooContainer.GetPart(partUri) as SiteOfOriginPart;
+            }
 
             //
             // Verify if the sooPart is for a valid remote file.
@@ -2261,7 +2265,14 @@ namespace System.Windows
             //
             ResourceContainer resContainer = (ResourceContainer)GetResourcePackage(packageUri);
 
-            return resContainer.GetPart(partUri);
+            // the ResourceContainer is shared across threads;  synchronize access to it
+            PackagePart part = null;
+            lock (_packageLock)
+            {
+                part = resContainer.GetPart(partUri);
+            }
+
+            return part;
         }
 
         /// <summary> Helper for getting the pack://application or pack://siteoforigin resource package. </summary>
@@ -2524,8 +2535,8 @@ namespace System.Windows
                 //Since we cancel PreBPReady event here, the other navigation events won't fire twice.
                 appWin.Navigate(root, new NavigateInfo(uri));
 
-                // To avoid flash and re-layout, call Window.Show() asynchronously, at Normal priority, which 
-                // will happen right after navigation to the content completes. 
+                // To avoid flash and re-layout, call Window.Show() asynchronously, at Normal priority, which
+                // will happen right after navigation to the content completes.
                 Dispatcher.BeginInvoke(DispatcherPriority.Normal,
                     new SendOrPostCallback((window) =>
                     {
@@ -2759,6 +2770,7 @@ namespace System.Windows
         static private bool                             _appCreatedInThisAppDomain;
         static private Application                      _appInstance;
         static private Assembly                         _resourceAssembly;
+        static private object                           _packageLock = new Object();
 
         // Keep LoadBamlSyncInfo stack so that the Outer LoadBaml and Inner LoadBaml( ) for the same
         // Uri share the related information.

@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{e4fae737-f889-49a8-8db5-92488fc98c22}</ProjectGuid>
+    <ProjectGuid>{41970311-a2a7-4957-b118-3e82738754bb}</ProjectGuid>
     <OutputPath>.</OutputPath>
     <OutputType>Library</OutputType>
     <AssemblyName>System</AssemblyName>
@@ -20,13 +20,15 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\clr\src\bcl\mscorlib.csproj">
-      <Project>{edd76f80-29f6-4590-a3ef-f885b38da1b0}</Project>
+      <Project>{224f6f5b-c254-4b89-95cd-b690effa845e}</Project>
       <Name>mscorlib</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\InternalApis\Clr\inc\AppContextDefaultValues.cs" />
+    <Compile Include="..\..\..\InternalApis\Clr\inc\LocalAppContext.cs" />
     <Compile Include="..\..\..\InternalApis\NDP_Common\inc\PinnableBufferCache.cs" />
     <Compile Include="..\..\..\InternalApis\NDP_FX\inc\ZLibNative.cs" />
     <Compile Include="compmod\microsoft\csharp\csharpcodeprovider.cs" />
@@ -538,6 +540,10 @@
     <Compile Include="net\System\_UriSyntax.cs" />
     <Compile Include="net\System\_UriTypeConverter.cs" />
     <Compile Include="net\System\GenericUriParser.cs" />
+    <Compile Include="net\System\IriHelper.cs" />
+    <Compile Include="net\System\Net\_AuthenticationManager2.cs" />
+    <Compile Include="net\System\Net\_AuthenticationManagerBase.cs" />
+    <Compile Include="net\System\Net\_AuthenticationManagerDefault.cs" />
     <Compile Include="net\System\Net\_AuthenticationState.cs" />
     <Compile Include="net\System\Net\_AutoWebProxyScriptEngine.cs" />
     <Compile Include="net\System\Net\_AutoWebProxyScriptHelper.cs" />
@@ -559,6 +565,7 @@
     <Compile Include="net\System\Net\_HeaderInfo.cs" />
     <Compile Include="net\System\Net\_HeaderInfoTable.cs" />
     <Compile Include="net\System\Net\_HTTPDateParse.cs" />
+    <Compile Include="net\System\Net\_IAuthenticationManager.cs" />
     <Compile Include="net\System\Net\_IRequestLifetimeTracker.cs" />
     <Compile Include="net\System\Net\_ISessionAuthenticationModule.cs" />
     <Compile Include="net\System\Net\_IStreams.cs" />
@@ -578,6 +585,7 @@
     <Compile Include="net\System\Net\_NtlmClient.cs" />
     <Compile Include="net\System\Net\_OSSOCK.cs" />
     <Compile Include="net\System\Net\_PooledStream.cs" />
+    <Compile Include="net\System\Net\_PrefixLookup.cs" />
     <Compile Include="net\System\Net\_ProxyChain.cs" />
     <Compile Include="net\System\Net\_RegBlobWebProxyDataBuilder.cs" />
     <Compile Include="net\System\Net\_RequestLifetimeSetter.cs" />
@@ -776,6 +784,7 @@
     <Compile Include="net\System\Net\mail\WhitespaceReader.cs" />
     <Compile Include="net\System\Net\mail\WriteStateInfoBase.cs" />
     <Compile Include="net\System\Net\NativeMethods.cs" />
+    <Compile Include="net\System\Net\NetRegistryConfiguration.cs" />
     <Compile Include="net\System\Net\NetWebProxyFinder.cs" />
     <Compile Include="net\System\Net\NetworkAccess.cs" />
     <Compile Include="net\System\Net\NetworkCredential.cs" />
@@ -1067,8 +1076,10 @@
     <Compile Include="services\timers\system\timers\ElapsedEventHandler.cs" />
     <Compile Include="services\timers\system\timers\Timer.cs" />
     <Compile Include="services\timers\system\timers\TimersDescriptionAttribute.cs" />
+    <Compile Include="sys\AppContextDefaultValues.Defaults.cs" />
     <Compile Include="sys\AssemblyInfo.cs" />
     <Compile Include="sys\baseline.cs" />
+    <Compile Include="sys\LocalAppContextSwitches.cs" />
     <Compile Include="sys\misc\AssemblyAttributes.cs" />
     <Compile Include="sys\system\collections\concurrent\BlockingCollection.cs" />
     <Compile Include="sys\system\collections\concurrent\ConcurrentBag.cs" />

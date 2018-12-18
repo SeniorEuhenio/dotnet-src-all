@@ -488,7 +488,14 @@ namespace System.Runtime.Remoting {
         // Internal flavor without security!
         [System.Security.SecurityCritical]  // auto-generated
         internal static ObjRef MarshalInternal(MarshalByRefObject Obj, String ObjURI, Type RequestedType, bool updateChannelData)
-        {        
+        {
+            return MarshalInternal(Obj, ObjURI, RequestedType, updateChannelData, isInitializing: false);
+        }
+
+        // Internal flavor without security!
+        [System.Security.SecurityCritical]  // auto-generated
+        internal static ObjRef MarshalInternal(MarshalByRefObject Obj, String ObjURI, Type RequestedType, bool updateChannelData, bool isInitializing)
+        {     
             BCLDebug.Trace("REMOTE", "Entered Marshal for URI" +  ObjURI + "\n");
 
             if (null == Obj)
@@ -497,7 +504,7 @@ namespace System.Runtime.Remoting {
             ObjRef objectRef = null;
             Identity idObj = null;
 
-            idObj = GetOrCreateIdentity(Obj, ObjURI);
+            idObj = GetOrCreateIdentity(Obj, ObjURI, isInitializing);
             if (RequestedType != null)
             {
                 ServerIdentity srvIdObj = idObj as ServerIdentity;
@@ -658,8 +665,20 @@ namespace System.Runtime.Remoting {
         [System.Security.SecurityCritical]  // auto-generated
         private static Identity GetOrCreateIdentity(
             MarshalByRefObject Obj,
-            String ObjURI)
+            String ObjURI,
+            bool isInitializing)
         {
+            int idOpsFlags = IdOps.StrongIdentity;
+
+            // DevDiv 720951 and 911924:
+            // This flag is propagated into the new ServerIdentity to indicate
+            // it is not yet ready for use.  CreateWellKnownObject is the only
+            // code path that sets it to 'true'.
+            if (isInitializing)
+            {
+                idOpsFlags |= IdOps.IsInitializing;
+            }
+
             Identity idObj = null;
             if (IsTransparentProxy(Obj))
             {
@@ -679,7 +698,7 @@ namespace System.Runtime.Remoting {
                     idObj = IdentityHolder.FindOrCreateServerIdentity(
                                                 Obj,
                                                 ObjURI,
-                                                IdOps.StrongIdentity);
+                                                idOpsFlags);
 
                     idObj.RaceSetTransparentProxy(Obj);
                 }
@@ -712,7 +731,7 @@ namespace System.Runtime.Remoting {
                     idObj = IdentityHolder.FindOrCreateServerIdentity(
                                 srvID.TPOrObject,
                                 ObjURI,
-                                IdOps.StrongIdentity);
+                                idOpsFlags);
 
                     // if an objURI was specified we need to make sure that
                     //   the same one was used.
@@ -776,7 +795,7 @@ namespace System.Runtime.Remoting {
                 idObj = IdentityHolder.FindOrCreateServerIdentity(
                                             Obj,
                                             ObjURI,
-                                            IdOps.StrongIdentity);
+                                            idOpsFlags);
 
                 // If the object had an ID to begin with that is the one 
                 // we must have set in the table.                                                    

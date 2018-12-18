@@ -81,7 +81,8 @@ namespace System.Windows.Input
         /// </returns>
         protected MouseButtonState GetButtonState(MouseButton mouseButton)
         {
-            if ( _stylusDevice != null )
+            // Bug 839668,StylusDevice could have been disposed internally here.
+            if ( _stylusDevice != null && _stylusDevice.IsValid) 
                 return _stylusDevice.GetMouseButtonState(mouseButton, this);
             else
                 return GetButtonStateFromSystem(mouseButton);

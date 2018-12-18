@@ -32,14 +32,16 @@ namespace System.Windows.Forms {
         /// <include file='doc\ToolStripOverflowButton.uex' path='docs/doc[@for="ToolStripOverflowButton.ToolStripOverflowButton"]/*' />
 	    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         internal ToolStripOverflowButton(ToolStrip parentToolStrip) {
-            if (!isScalingInitialized) {
-                if (DpiHelper.IsScalingRequired) {
+            if (!isScalingInitialized)
+            {
+                if (DpiHelper.IsScalingRequired)
+                {
                     maxWidth = DpiHelper.LogicalToDeviceUnitsX(MAX_WIDTH);
                     maxHeight = DpiHelper.LogicalToDeviceUnitsY(MAX_HEIGHT);
                 }
 
                 isScalingInitialized = true;
-            }      
+            }
 
             SupportsItemClick = false;
             this.parentToolStrip = parentToolStrip;

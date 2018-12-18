@@ -392,7 +392,7 @@ namespace System.Transactions.Oletx
                             throw TransactionException.Create(
                                 SR.GetString( SR.TraceSourceOletx ),
                                 SR.GetString( SR.OletxTooManyEnlistments ),
-                                comException );
+                                comException, enlistment == null ? Guid.Empty : enlistment.DistributedTxId );
                         }
 
                         OletxTransactionManager.ProxyException( comException );
@@ -982,6 +982,28 @@ namespace System.Transactions.Oletx
         protected Guid enlistmentGuid;
         protected OletxResourceManager oletxResourceManager;
         protected OletxTransaction oletxTransaction;
+        internal OletxTransaction OletxTransaction
+        {
+            get
+            {
+                return this.oletxTransaction;
+            }
+        }
+
+        internal Guid DistributedTxId
+        {
+            get
+            {
+                Guid returnValue = Guid.Empty;
+
+                if (this.OletxTransaction != null)
+                {
+                    returnValue = this.OletxTransaction.DistributedTxId;
+                }
+                return returnValue;
+            }
+        }
+
         protected string transactionGuidString;
         protected int enlistmentId;
         // this needs to be internal so it can be set from the recovery information during Reenlist.

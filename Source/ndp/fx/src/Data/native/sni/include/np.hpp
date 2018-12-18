@@ -47,7 +47,7 @@ typedef struct
 	bool		 fLocal;
 	bool		 fPendingAccept;
 	bool		 fTerminated;
-	CHAR         szPipeName[MAX_PATH+1];	// Named-Pipe name...
+	WCHAR         wszPipeName[MAX_PATH+1];	// Named-Pipe name...
 	NpSecurityInfo * pSecInfo;
 	ProviderNum	 prot;
 	DWORD        dwNetworkSize;
@@ -191,7 +191,7 @@ private:
 
 	BOOL FCloseRefHandle(); 
 
-	DWORD OpenPipe( __in LPSTR szPipeName, __in DWORD dwTimeout );
+	DWORD OpenPipe( __in LPWSTR wszPipeName, __in DWORD dwTimeout );
 
 	DWORD PostReadAsync( SNI_Packet *pPacket ); 
 

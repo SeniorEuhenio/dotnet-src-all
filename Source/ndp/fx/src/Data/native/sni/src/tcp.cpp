@@ -27,22 +27,10 @@
 #ifdef SNI_BASED_CLIENT
 #include "nlregc.h"
 #else
-//	This is a work-around to include NLregS header file with proper
-//	ASCII/UNICODE characters and string-formatting functions.  
-//	It looks like we cannot rely on the definition of UNICODE used
-//	by nlregs.h because in this file 'TCHAR' appears to be defined as
-//	'char' but '_tcslen' is 'wcslen'.  
-//	Since most of the parameters we are passing to and getting from NLregS
-//	are ASCII, we use the ASCII version of NLregS.  To read the nlregs.h
-//	file as ASCII, we define an NLregS-specific macro NLREGS_ASCII, which
-//	will ensure that nlregs.h is interpreted as ASCII regardless of the 
-//	definition of UNICODE and/or other related macros.  
-//
-#define NLREGS_ASCII
-#include "nlregs.h"
+#include "nlregc.h"
 
 extern CLUSTER_API gClusApi;
-extern char 		gszAsciiClusterName[];
+extern WCHAR 		gwszClusterName[];
 
 #endif
 
@@ -489,7 +477,7 @@ Exit:
 //	Get the handle of the Network Name resource of interests.
 //
 //	Inputs:
-//		[in]	char* szVirtualServerName:
+//		[in]	WCHAR* wszVirtualServerName:
 //				The name of the virtual server in ASCII
 //		[in] 	HCLUSTER	 hCluster:
 //				The handle to the cluster
@@ -504,14 +492,14 @@ Exit:
 //
 // Note: if returns successfully, don't forget to free the resource handle
 //
-DWORD GetNetworkNameHandle(char* szVirtualServerName, 
+DWORD GetNetworkNameHandle(WCHAR* wszVirtualServerName, 
 							HCLUSTER	hCluster,
 							HRESOURCE	 hSQLResource, 
 							HRESOURCE* phNetResource )
 {
 
-	BidxScopeAutoSNI4( SNIAPI_TAG _T( "szVirtualServerName: %p{char*}, hCluster: %p{HCLUSTER}, hSQLResource: %p{HRESOURCE}, phNetResource: %p{HRESOURCE*}\n"), 
-					szVirtualServerName, hCluster, hSQLResource, phNetResource );
+	BidxScopeAutoSNI4( SNIAPI_TAG _T( "wszVirtualServerName: %p{WCHAR*}, hCluster: %p{HCLUSTER}, hSQLResource: %p{HRESOURCE}, phNetResource: %p{HRESOURCE*}\n"), 
+					wszVirtualServerName, hCluster, hSQLResource, phNetResource );
 
 	DWORD dwRet = ERROR_FAIL;
 
@@ -523,7 +511,7 @@ DWORD GetNetworkNameHandle(char* szVirtualServerName,
 	DWORD		cchNameBuffSize=0;
 	DWORD		cchName ;
 		
-	if ( NULL == szVirtualServerName || !*szVirtualServerName )
+	if ( NULL == wszVirtualServerName || !*wszVirtualServerName )
 	{
 
 		dwRet = ERROR_INVALID_PARAMETER;	
@@ -531,37 +519,14 @@ DWORD GetNetworkNameHandle(char* szVirtualServerName,
 		BidTraceU1( SNI_BID_TRACE_ON, RETURN_TAG _T("%d{WINERR}\n"), dwRet);
 		return dwRet;
 			
-    	}
-
-	WCHAR	wszVirtualServerName[ MAX_NAME_SIZE+1 ];
-
-	size_t cbCmpNameLength;
-
+    }
 
 	// get the length of computer name  in characters, in bytes in this case
-	if ( FAILED (StringCchLengthA( szVirtualServerName, MAX_NAME_SIZE, &cbCmpNameLength)))
+	if ( FAILED (StringCchLengthW( wszVirtualServerName, MAX_NAME_SIZE, &cbCmpNameLength)))
 	{
 		dwRet = ERROR_INVALID_PARAMETER;
 		goto Exit;
 	}
-
-
-	//convert ANSI string to UNICODE, be prepared to compare with the name
-	if( 0 == MultiByteToWideChar(
-				CP_ACP,         // code page
-				MB_ERR_INVALID_CHARS,
-				szVirtualServerName, 		// string to map
-				static_cast<DWORD>(cbCmpNameLength + 1),// plus one for NULL terminator 
-			  	wszVirtualServerName,  	// wide-character buffer
-			  	MAX_NAME_SIZE 			// size of buffer
-				))
-	{
-		
-		dwRet = GetLastError();
-		goto Exit;
-	}
-
-
 
 	hNetResEnum = gClusApi.ClusterResourceOpenEnum(hSQLResource, dwType);
 
@@ -691,17 +656,17 @@ Exit:
 //				The handle to the cluster
 //		[in] HRESOURCE hResource:
 //				The handle of the Network Name resource of interests
-//		[out] ADDRINFO ** ppAI:
-//				file ADDRINFO data structure which contains all IP addresses need to listen on.
+//		[out] ADDRINFOW ** ppAIW:
+//				file ADDRINFOW data structure which contains all IP addresses need to listen on.
 //	Returns:
 //		ERROR_SUCCESS, if the call succeeds, 
 //		else, error code
 //
 // Note: if returns successfully, don't forget to *ppAI using freeaddrinfo_l
-DWORD GetClusterResAddrInfo( HCLUSTER hCluster,  HRESOURCE hResource,  ADDRINFO ** ppAI)
+DWORD GetClusterResAddrInfo( HCLUSTER hCluster,  HRESOURCE hResource,  ADDRINFOW ** ppAIW)
 {
-	BidxScopeAutoSNI3( SNIAPI_TAG _T( "hCluster: %p{HCLUSTER}, hResource: %p{HRESOURCE}, ppAI: %p{ADDRINFO **}\n"), 
-					hCluster, hResource, ppAI);
+	BidxScopeAutoSNI3( SNIAPI_TAG _T( "hCluster: %p{HCLUSTER}, hResource: %p{HRESOURCE}, ppAIW: %p{ADDRINFOW **}\n"), 
+					hCluster, hResource, ppAIW);
 
 	DWORD 		dwRet = ERROR_FAIL;
 	HRESENUM	hResEnum = NULL;
@@ -709,7 +674,6 @@ DWORD GetClusterResAddrInfo( HCLUSTER hCluster,  HRESOURCE hResource,  ADDRINFO 
 
 
 	LPWSTR		wszAddrValue	= NULL; 
-	char 		szAddrValue[ MAX_NAME_SIZE+1 ];
 	DWORD		dwType = CLUSTER_RESOURCE_ENUM_DEPENDS;
 	DWORD 		dwControlCode = CLUSCTL_RESOURCE_GET_PRIVATE_PROPERTIES; 			
 
@@ -717,10 +681,10 @@ DWORD GetClusterResAddrInfo( HCLUSTER hCluster,  HRESOURCE hResource,  ADDRINFO 
 	DWORD		cchNameBuffSize=0;
 	DWORD		cchName ;
 
-	ADDRINFO 	*pAddrHead = NULL;
-	ADDRINFO 	*pAddrTemp = NULL;
-	ADDRINFO	*pAddrCurr	= NULL;
-	ADDRINFO  	Hints;
+	ADDRINFOW 	*pAddrWHead = NULL;
+	ADDRINFOW 	*pAddrWTemp = NULL;
+	ADDRINFOW	*pAddrWCurr	= NULL;
+	ADDRINFOW  	Hints;
 
 
     	if (NULL == hResource)
@@ -753,7 +717,7 @@ DWORD GetClusterResAddrInfo( HCLUSTER hCluster,  HRESOURCE hResource,  ADDRINFO 
 		if (ERROR_NO_MORE_ITEMS == dwRet )
 		{
 			//expected exit point, finish enum
-			if ( NULL != pAddrHead )			//we get at least one IP address
+			if ( NULL != pAddrWHead )			//we get at least one IP address
 				dwRet = ERROR_SUCCESS;		
 
 			goto Exit;
@@ -812,53 +776,34 @@ DWORD GetClusterResAddrInfo( HCLUSTER hCluster,  HRESOURCE hResource,  ADDRINFO 
 			}
 
 			Assert( NULL  !=  wszAddrValue );
-				
-
-			// we successfully got one IP now. 
-			dwRet = WideCharToMultiByte( CP_ACP,
-					     0,
-					     wszAddrValue,
-					     -1,
-					     szAddrValue,
-					     MAX_NAME_SIZE,
-					     NULL,
-					     NULL );
-	
-			if( 00 == dwRet )
-			{
-				dwRet = GetLastError();		
-				break;
-			}
-
-			szAddrValue[ MAX_NAME_SIZE ] ='\0';
 
 			ZeroMemory( &Hints, sizeof(Hints) );
 			Hints.ai_family = PF_UNSPEC;
 			Hints.ai_socktype = SOCK_STREAM;
 			Hints.ai_flags = AI_PASSIVE;
 
-			// get the addrinfo by ip addr, *szAddrValue is a.b.c.d
-			if( getaddrinfo_l( szAddrValue, "0", &Hints, &pAddrCurr, GetDefaultLocale() ) )
+			// get the addrinfo by ip addr, *wszAddrValue is a.b.c.d
+			if( GetAddrInfoW_l( wszAddrValue, L"0", &Hints, &pAddrWCurr, GetDefaultLocale() ) )
 			{
 				dwRet = WSAGetLastError();
 
 				break;
 			}
 
-			Assert( pAddrCurr );
+			Assert( pAddrWCurr );
 
-			if( NULL == pAddrHead )
+			if( NULL == pAddrWHead )
 			{
-				pAddrHead =		pAddrCurr;
+				pAddrWHead =		pAddrWCurr;
 			}
 			else
 			{
-				pAddrTemp = pAddrCurr;
-				while( pAddrTemp->ai_next )
-					pAddrTemp=pAddrTemp->ai_next;
+				pAddrWTemp = pAddrWCurr;
+				while( pAddrWTemp->ai_next )
+					pAddrWTemp=pAddrWTemp->ai_next;
 				
-				pAddrTemp->ai_next = pAddrHead;
-				pAddrHead = pAddrCurr;
+				pAddrWTemp->ai_next = pAddrWHead;
+				pAddrWHead = pAddrWCurr;
 			}
 			
 			// free the memory allocated in GetResourcePropertyValue_SZ()
@@ -877,11 +822,11 @@ DWORD GetClusterResAddrInfo( HCLUSTER hCluster,  HRESOURCE hResource,  ADDRINFO 
 
 	//unexpected end of for loop:  by "break"
 
-	if ( pAddrHead )
+	if ( pAddrWHead )
 	{
 
-		freeaddrinfo( pAddrHead );
-		pAddrHead = NULL;
+		FreeAddrInfoW( pAddrWHead );
+		pAddrWHead = NULL;
 
 	}
 	
@@ -900,7 +845,7 @@ Exit:
 	if( wszResourceName )
 		delete [] wszResourceName;
 	
-	*ppAI = pAddrHead;
+	*ppAIW = pAddrWHead;
 
 	if( ERROR_SUCCESS != dwRet )
 		SNI_SET_LAST_ERROR( TCP_PROV, SNIE_SYSTEM, dwRet );
@@ -913,11 +858,11 @@ Exit:
 
 }
 
-DWORD GetClusterListenIpAddrInfo(char* szVirtualServerName, ADDRINFO ** ppAI)
+DWORD GetClusterListenIpAddrInfo(WCHAR* wszVirtualServerName, ADDRINFOW ** ppAIW)
 {
 
-	BidxScopeAutoSNI2( SNIAPI_TAG _T( "szVirtualServerName: %p{char*}, ppAI: %p{ADDRINFO**}\n"), 
-					szVirtualServerName, ppAI );
+	BidxScopeAutoSNI2( SNIAPI_TAG _T( "wszVirtualServerName: %p{WCHAR*}, ppAIW: %p{ADDRINFOW**}\n"), 
+					wszVirtualServerName, ppAIW );
 
 
 		// a cluster, query it using cluster API
@@ -952,7 +897,7 @@ DWORD GetClusterListenIpAddrInfo(char* szVirtualServerName, ADDRINFO ** ppAI)
 
 
 		// get the Network Name resource handle of the virtual server. 
-		if ( ERROR_SUCCESS != ( dwRet = GetNetworkNameHandle( szVirtualServerName, hCluster, hSQLResource, &hNetResource ) ) )
+		if ( ERROR_SUCCESS != ( dwRet = GetNetworkNameHandle( wszVirtualServerName, hCluster, hSQLResource, &hNetResource ) ) )
 		{
 
 			SNI_SET_LAST_ERROR( TCP_PROV, SNIE_SYSTEM, dwRet );
@@ -967,7 +912,7 @@ DWORD GetClusterListenIpAddrInfo(char* szVirtualServerName, ADDRINFO ** ppAI)
 
 
 		// get the dependent IP addresses of a Network Name resource
-		if( ERROR_SUCCESS != (dwRet = GetClusterResAddrInfo( hCluster, hNetResource, ppAI) )  )
+		if( ERROR_SUCCESS != (dwRet = GetClusterResAddrInfo( hCluster, hNetResource, ppAIW) )  )
 		{
 			SNI_SET_LAST_ERROR( TCP_PROV, SNIE_SYSTEM, dwRet );
 			gClusApi.CloseClusterResource( hNetResource );
@@ -994,31 +939,31 @@ Exit:
 }	
 
 
-DWORD GetLoopbackListenIpAddrInfo( ADDRINFO ** ppAI)
+DWORD GetLoopbackListenIpAddrInfo( ADDRINFOW ** ppAIW)
 {
-	BidxScopeAutoSNI1( SNIAPI_TAG _T("ppAI: %p{ADDRINFO**}\n"), ppAI );
+	BidxScopeAutoSNI1( SNIAPI_TAG _T("ppAIW: %p{ADDRINFOW**}\n"), ppAIW );
 
 	DWORD dwRet = ERROR_SUCCESS;
-	ADDRINFO * pAddrIpv4 = NULL;
-	ADDRINFO * pAddrIpv6 = NULL;
+	ADDRINFOW * pAddrWIpv4 = NULL;
+	ADDRINFOW * pAddrWIpv6 = NULL;
 OACR_WARNING_SUPPRESS(IPV6_ADDRESS_STRUCTURE_IPV4_SPECIFIC , " TEMPORARY SUPPRESSION UNTIL DEVELOPER'S ANALYSIS. See VSTS 376830 ")
 	SOCKADDR_IN * pSockAddrIpv4 = NULL;
 	SOCKADDR_IN6 * pSockAddrIpv6 = NULL;
 
-	*ppAI = NULL; 
+	*ppAIW = NULL; 
 
 	// IPv4
 	//
 	if( g_fIpv4Supported )
 	{
-		if( NULL == ( pAddrIpv4 = NewNoX(gpmo) ADDRINFO ) )
+		if( NULL == ( pAddrWIpv4 = NewNoX(gpmo) ADDRINFOW ) )
 		{
 			dwRet = ERROR_OUTOFMEMORY;
 			SNI_SET_LAST_ERROR( TCP_PROV, SNIE_SYSTEM, dwRet ); 
 			goto Exit;
 		}
 
-		memset( pAddrIpv4, 0, sizeof( *pAddrIpv4 ) ); 
+		memset( pAddrWIpv4, 0, sizeof( *pAddrWIpv4 ) ); 
 
 		if( NULL == ( pSockAddrIpv4 = NewNoX(gpmo) SOCKADDR_IN ) )
 		{
@@ -1031,22 +976,22 @@ OACR_WARNING_SUPPRESS(IPV6_ADDRESS_STRUCTURE_IPV4_SPECIFIC , " TEMPORARY SUPPRES
 
 		// Fill in ADDRINFO for IPv4
 		//
-		pAddrIpv4->ai_flags = 0;
-	    pAddrIpv4->ai_family = AF_INET;			// IPv4
-	    pAddrIpv4->ai_socktype = SOCK_STREAM;	// TCP	
-	    pAddrIpv4->ai_protocol = 0;
+		pAddrWIpv4->ai_flags = 0;
+	    pAddrWIpv4->ai_family = AF_INET;			// IPv4
+	    pAddrWIpv4->ai_socktype = SOCK_STREAM;	// TCP	
+	    pAddrWIpv4->ai_protocol = 0;
 
 OACR_WARNING_PUSH
 OACR_WARNING_DISABLE(IPV6_ADDRESS_STRUCTURE_IPV4_SPECIFIC , " TEMPORARY SUPPRESSION UNTIL DEVELOPER'S ANALYSIS. See VSTS 376830 ")
 
-	    pAddrIpv4->ai_addrlen = 
+	    pAddrWIpv4->ai_addrlen = 
 			sizeof( SOCKADDR_IN );				// Length of ai_addr
 
 OACR_WARNING_POP
 
-	    pAddrIpv4->ai_canonname = NULL;
-	    pAddrIpv4->ai_addr = NULL;        		// Binary address.  Filled below.  
-	    pAddrIpv4->ai_next = NULL; 				// Next structure in linked list
+	    pAddrWIpv4->ai_canonname = NULL;
+	    pAddrWIpv4->ai_addr = NULL;        		// Binary address.  Filled below.  
+	    pAddrWIpv4->ai_next = NULL; 				// Next structure in linked list
 
 		// Fill in SOCKADDR_IN
 		//
@@ -1055,7 +1000,7 @@ OACR_WARNING_POP
 		pSockAddrIpv4->sin_addr.S_un.S_addr = 
 			htonl( INADDR_LOOPBACK );
 
-		pAddrIpv4->ai_addr = reinterpret_cast<sockaddr *>(pSockAddrIpv4); 
+		pAddrWIpv4->ai_addr = reinterpret_cast<sockaddr *>(pSockAddrIpv4); 
 	}	// if( g_fIpv4Supported )
 		
 
@@ -1063,14 +1008,14 @@ OACR_WARNING_POP
 	//
 	if( g_fIpv6Supported )
 	{
-		if( NULL == ( pAddrIpv6 = NewNoX(gpmo) ADDRINFO ) )
+		if( NULL == ( pAddrWIpv6 = NewNoX(gpmo) ADDRINFOW ) )
 		{
 			dwRet = ERROR_OUTOFMEMORY;
 			SNI_SET_LAST_ERROR( TCP_PROV, SNIE_SYSTEM, dwRet ); 
 			goto Exit;
 		}
 
-		memset( pAddrIpv6, 0, sizeof( *pAddrIpv6 ) ); 
+		memset( pAddrWIpv6, 0, sizeof( *pAddrWIpv6 ) ); 
 
 		if( NULL == ( pSockAddrIpv6 = NewNoX(gpmo) SOCKADDR_IN6 ) )
 		{
@@ -1083,15 +1028,15 @@ OACR_WARNING_POP
 
 		// Fill in ADDRINFO for IPv6
 		//
-		pAddrIpv6->ai_flags = 0;
-	    pAddrIpv6->ai_family = AF_INET6;		// IPv6	
-	    pAddrIpv6->ai_socktype = SOCK_STREAM;	// TCP	
-	    pAddrIpv6->ai_protocol = 0;
-	    pAddrIpv6->ai_addrlen = 
+		pAddrWIpv6->ai_flags = 0;
+	    pAddrWIpv6->ai_family = AF_INET6;		// IPv6	
+	    pAddrWIpv6->ai_socktype = SOCK_STREAM;	// TCP	
+	    pAddrWIpv6->ai_protocol = 0;
+	    pAddrWIpv6->ai_addrlen = 
 			sizeof( SOCKADDR_IN6 );				// Length of ai_addr
-	    pAddrIpv6->ai_canonname = NULL;
-	    pAddrIpv6->ai_addr = NULL;        		// Binary address.  Filled below.  
-	    pAddrIpv6->ai_next = NULL; 				// Next structure in linked list
+	    pAddrWIpv6->ai_canonname = NULL;
+	    pAddrWIpv6->ai_addr = NULL;        		// Binary address.  Filled below.  
+	    pAddrWIpv6->ai_next = NULL; 				// Next structure in linked list
 
 		// Fill in SOCKADDR_IN6
 		//
@@ -1107,20 +1052,20 @@ OACR_WARNING_POP
 			sizeof( pSockAddrIpv6->sin6_addr.u.Byte ) ); 
 		pSockAddrIpv6->sin6_scope_id = 0;
 
-		pAddrIpv6->ai_addr = reinterpret_cast<sockaddr *>(pSockAddrIpv6); 
+		pAddrWIpv6->ai_addr = reinterpret_cast<sockaddr *>(pSockAddrIpv6); 
 	}	// if( g_fIpv6Supported )
 
 
 	// Pass the structures to the caller.  
 	//
-	if( NULL != pAddrIpv6 )
+	if( NULL != pAddrWIpv6 )
 	{
-		pAddrIpv6->ai_next = pAddrIpv4; 
-		*ppAI = pAddrIpv6;
+		pAddrWIpv6->ai_next = pAddrWIpv4; 
+		*ppAIW = pAddrWIpv6;
 	}
-	else if( NULL != pAddrIpv4 )
+	else if( NULL != pAddrWIpv4 )
 	{
-		*ppAI = pAddrIpv4;
+		*ppAIW = pAddrWIpv4;
 	}
 	else
 	{
@@ -1136,14 +1081,14 @@ Exit:
 	{
 		// Free any allocated structures.  
 		//
-		if( NULL != pAddrIpv4 )
+		if( NULL != pAddrWIpv4 )
 		{
-			delete pAddrIpv4; 
+			delete pAddrWIpv4; 
 		}
 
-		if( NULL != pAddrIpv6 )
+		if( NULL != pAddrWIpv6 )
 		{
-			delete pAddrIpv6; 
+			delete pAddrWIpv6; 
 		}
 
 		if( NULL != pSockAddrIpv4 )
@@ -1163,17 +1108,17 @@ Exit:
 
 #endif
 
-void FreeCustomAddrInfo( __in_opt ADDRINFO * pAddrInfoHead )
+void FreeCustomAddrInfo( __in_opt ADDRINFOW * pAddrInfoWHead )
 {
-	while( NULL != pAddrInfoHead )
+	while( NULL != pAddrInfoWHead )
 	{
-		ADDRINFO * pAddrInfo = pAddrInfoHead; 
+		ADDRINFOW * pAddrInfoW = pAddrInfoWHead; 
 
-		pAddrInfoHead = pAddrInfo->ai_next; 
+		pAddrInfoWHead = pAddrInfoW->ai_next; 
 
-		Assert( NULL == pAddrInfo->ai_canonname ); 
-		delete pAddrInfo->ai_addr; 
-		delete pAddrInfo; 
+		Assert( NULL == pAddrInfoW->ai_canonname ); 
+		delete pAddrInfoW->ai_addr; 
+		delete pAddrInfoW; 
 	}
 }
 
@@ -1742,7 +1687,7 @@ private:
 #endif
 
 	OVERLAPPED *m_pOverlapped; // Overlapped structure that is used for Windows async IO
-	const ADDRINFO *m_pTargetAddress; // a shallow pointer to an ADDRINFO struct, pointing to the remote target for this connection
+	const ADDRINFOW *m_pwTargetAddress; // a shallow pointer to an ADDRINFO struct, pointing to the remote target for this connection
 	HANDLE m_hEvent; // hold a copy of the event, external to the Overlapped, so that it can be cleaned up even if we are going to leak the Overlapped struct.
 	SOCKET m_socket;
 	bool m_fOutstandingOverlappedIO;
@@ -1908,7 +1853,7 @@ private:
 public:
 	TcpConnection() : 
 		m_pOverlapped(NULL)
-		,m_pTargetAddress(NULL)
+		,m_pwTargetAddress(NULL)
 		,m_hEvent(NULL)
 		,m_socket(INVALID_SOCKET)
 		,m_fOutstandingOverlappedIO(false)
@@ -1960,7 +1905,7 @@ public:
 			m_pOverlapped = NULL;
 		}
 		
-		m_pTargetAddress = NULL; // This class only owns a shallow pointer to the ADDRINFO, so it shouldn't delete it.
+		m_pwTargetAddress = NULL; // This class only owns a shallow pointer to the ADDRINFO, so it shouldn't delete it.
 		
 		if( NULL != m_hEvent )
 		{
@@ -1982,7 +1927,7 @@ public:
 		Assert( TcpConnectionState_AsyncInited == m_State );
 		
 		LPFN_CONNECTEX pfnConnectEx = NULL;
-		DWORD dwRet = GetConnecEx(m_pTargetAddress->ai_family, &pfnConnectEx);
+		DWORD dwRet = GetConnecEx(m_pwTargetAddress->ai_family, &pfnConnectEx);
 
 		if( ERROR_SUCCESS != dwRet )
 		{
@@ -1995,8 +1940,8 @@ public:
 		
 		if( pfnConnectEx(
 				m_socket, 
-				m_pTargetAddress->ai_addr,
-				(int)m_pTargetAddress->ai_addrlen,
+				m_pwTargetAddress->ai_addr,
+				(int)m_pwTargetAddress->ai_addrlen,
 				NULL,	//	lpSendBuffer
 				0,		//	dwSendDataLength
 				NULL,	//	lpdwBytesSent 
@@ -2173,18 +2118,18 @@ public:
 	}
 	
 	// Allocates objects and allocates/binds the socket - does not actually open the socket.
-	DWORD FInit(const Tcp *pTcp, const ADDRINFO *pTargetAddress)
+	DWORD FInit(const Tcp *pTcp, const ADDRINFOW *pwTargetAddress)
 	{
-		BidxScopeAutoSNI2( SNIAPI_TAG _T("pTcp: %p{Tcp}, pTargetAddress: %p{ADDRINFO*}\n"), pTcp, pTargetAddress );
+		BidxScopeAutoSNI2( SNIAPI_TAG _T("pTcp: %p{Tcp}, pwTargetAddress: %p{ADDRINFOW*}\n"), pTcp, pwTargetAddress );
 		
 		// Also trace out the IP address
-		switch( pTargetAddress->ai_family )
+		switch( pwTargetAddress->ai_family )
 		{
 			case AF_INET: 
 			{
-				if( pTargetAddress->ai_addrlen >= sizeof(SOCKADDR_IN) )
+				if( pwTargetAddress->ai_addrlen >= sizeof(SOCKADDR_IN) )
 				{
-					ULONG ulAddress = ((SOCKADDR_IN*)(pTargetAddress->ai_addr))->sin_addr.s_addr;
+					ULONG ulAddress = ((SOCKADDR_IN*)(pwTargetAddress->ai_addr))->sin_addr.s_addr;
 					BidTraceU4(SNI_BID_TRACE_ON, SNI_TAG _T("target IPv4 address: %u.%u.%u.%u\n"), 
 						ulAddress & 0xFF, 
 						(ulAddress >> 8) & 0xFF, 
@@ -2195,9 +2140,9 @@ public:
 			}
 			case AF_INET6:
 			{
-				if( pTargetAddress->ai_addrlen >= sizeof(SOCKADDR_IN6) )
+				if( pwTargetAddress->ai_addrlen >= sizeof(SOCKADDR_IN6) )
 				{
-					in6_addr *psin6_addr = &(((SOCKADDR_IN6*)(pTargetAddress->ai_addr))->sin6_addr);
+					in6_addr *psin6_addr = &(((SOCKADDR_IN6*)(pwTargetAddress->ai_addr))->sin6_addr);
 					BidTraceU8(SNI_BID_TRACE_ON, SNI_TAG _T("target IPv6 address: %x:%x:%x:%x:%x:%x:%x:%x\n"), 
 						ntohs(psin6_addr->s6_words[0]), 
 						ntohs(psin6_addr->s6_words[1]), 
@@ -2219,7 +2164,7 @@ public:
 		BidObtainItemID2A( &m_iBidId, SNI_ID_TAG "%p{.} created by %u#{Tcp}", 
 			this, pTcp->GetBidId() );
 		
-		m_socket = socket( pTargetAddress->ai_family, pTargetAddress->ai_socktype, pTargetAddress->ai_protocol );
+		m_socket = socket( pwTargetAddress->ai_family, pwTargetAddress->ai_socktype, pwTargetAddress->ai_protocol );
 		
 		if( INVALID_SOCKET == m_socket )
 		{
@@ -2240,7 +2185,7 @@ public:
 			goto ErrorExit;
 		}
 		
-		m_pTargetAddress = pTargetAddress;
+		m_pwTargetAddress = pwTargetAddress;
 		dwRet = ERROR_SUCCESS;
 		
 		DBG_ONLY(m_State = TcpConnectionState_ObjectInited);
@@ -2261,8 +2206,8 @@ public:
 		Assert( TcpConnectionState_ObjectInited == m_State );
 		DWORD dwRet;
 		
-		ADDRINFO LocalHints;
-		ADDRINFO *pLocalAddress = NULL;
+		ADDRINFOW LocalHints;
+		ADDRINFOW *pwLocalAddress = NULL;
 		
 		m_pOverlapped = NewNoX(gpmo) OVERLAPPED;
 		if( NULL == m_pOverlapped )
@@ -2287,22 +2232,22 @@ public:
 		m_pOverlapped->hEvent = m_hEvent;
 		
 		ZeroMemory( &LocalHints, sizeof(LocalHints) );
-		LocalHints.ai_family = m_pTargetAddress->ai_family;
+		LocalHints.ai_family = m_pwTargetAddress->ai_family;
 		LocalHints.ai_socktype = SOCK_STREAM;
 		LocalHints.ai_flags = AI_PASSIVE;
 		
 		// Obtain the wildcard local address
-		if( getaddrinfo_l( NULL, "0", &LocalHints, &pLocalAddress, GetDefaultLocale() ) )
+		if( GetAddrInfoW_l( NULL, L"0", &LocalHints, &pwLocalAddress, GetDefaultLocale() ) )
 		{
 			dwRet = WSAGetLastError();
 			SetErrorAndLevel(dwRet,TcpConnectionErrorLevel_Win32API);
-			BidTrace1( ERROR_TAG _T("getaddrinfo_l(): %d{WINERR}\n"), dwRet ); 
+			BidTrace1( ERROR_TAG _T("GetAddrInfoW_l(): %d{WINERR}\n"), dwRet ); 
 			goto ErrorExit;
 		}
 		
 		if( SOCKET_ERROR == bind( m_socket, 
-								pLocalAddress->ai_addr, 
-								(int)pLocalAddress->ai_addrlen ))
+								pwLocalAddress->ai_addr, 
+								(int)pwLocalAddress->ai_addrlen ))
 		{
 			dwRet = WSAGetLastError();
 			SetErrorAndLevel(dwRet,TcpConnectionErrorLevel_OtherWinsock);
@@ -2320,10 +2265,10 @@ public:
 		
 	Exit:
 		// once the bind call is complete, we no longer need the local address
-		if( NULL != pLocalAddress )
+		if( NULL != pwLocalAddress )
 		{
-			freeaddrinfo(pLocalAddress);
-			pLocalAddress = NULL;
+			FreeAddrInfoW(pwLocalAddress);
+			pwLocalAddress = NULL;
 		}
 		
 		BidTraceU1( SNI_BID_TRACE_ON, RETURN_TAG _T("%d{WINERR}\n"), dwRet);
@@ -2362,7 +2307,7 @@ public:
 		Assert( TcpConnectionState_ObjectInited == m_State );
 		DWORD dwRet = ERROR_SUCCESS;
 		
-		if( SOCKET_ERROR == connect(m_socket, m_pTargetAddress->ai_addr, (int)m_pTargetAddress->ai_addrlen ) )
+		if( SOCKET_ERROR == connect(m_socket, m_pwTargetAddress->ai_addr, (int)m_pwTargetAddress->ai_addrlen ) )
 		{
 			dwRet = WSAGetLastError();
 			SetConnectErrorAndLevel(dwRet);
@@ -2433,60 +2378,60 @@ public:
 
 //listen on the Port on particular interface
 //if the Port is 0 then we will set it to the port number system gives us
-DWORD ListenPort( __in ADDRINFO *AI, __out SOCKET *pSock, __inout USHORT *pPort )
+DWORD ListenPort( __in ADDRINFOW *AIW, __out SOCKET *pSock, __inout USHORT *pPort )
 {
-	BidxScopeAutoSNI3( SNIAPI_TAG _T("AI: %p{ADDRINFO*}, pSock: %p{SOCKET*}, pPort: %p{USHORT*}\n"), 
-					AI, pSock, pPort );
+	BidxScopeAutoSNI3( SNIAPI_TAG _T("AIW: %p{ADDRINFOW*}, pSock: %p{SOCKET*}, pPort: %p{USHORT*}\n"), 
+					AIW, pSock, pPort );
 	
 	DWORD dwRet = ERROR_FAIL;
 	
 	SOCKET sock = INVALID_SOCKET;
 
-	switch( AI->ai_family )
+	switch( AIW->ai_family )
 	{
 	case AF_INET:
 		
 OACR_WARNING_SUPPRESS(IPV6_ADDRESS_STRUCTURE_IPV4_SPECIFIC , " TEMPORARY SUPPRESSION UNTIL DEVELOPER'S ANALYSIS. See VSTS 376830 ")
-		if (AI->ai_addrlen < sizeof(SOCKADDR_IN))
+		if (AIW->ai_addrlen < sizeof(SOCKADDR_IN))
 		{
 OACR_WARNING_PUSH
 OACR_WARNING_DISABLE(IPV6_ADDRESS_STRUCTURE_IPV4_SPECIFIC , " TEMPORARY SUPPRESSION UNTIL DEVELOPER'S ANALYSIS. See VSTS 376830 ")
-			BidTrace2( ERROR_TAG _T("Invalid buffer length of IPv4 address member of ADDRINFO parameter. %d{size_t}, required: %d{size_t}\n"),
-				AI->ai_addrlen, sizeof(SOCKADDR_IN) );
+			BidTrace2( ERROR_TAG _T("Invalid buffer length of IPv4 address member of ADDRINFOW parameter. %d{size_t}, required: %d{size_t}\n"),
+				AIW->ai_addrlen, sizeof(SOCKADDR_IN) );
 OACR_WARNING_POP
-			Assert(0 && " Invalid buffer length of IPv4 address member of ADDRINFO parameter\n");
+			Assert(0 && " Invalid buffer length of IPv4 address member of ADDRINFOW parameter\n");
 			dwRet = ERROR_INVALID_PARAMETER;
 			SNI_SET_LAST_ERROR( TCP_PROV, SNIE_5, dwRet );	// "Invalid parameter(s) found"
 			scierrlog (26062, dwRet, 1 /*state*/);
 			goto ErrorExit;
 		}
-		((SOCKADDR_IN *)AI->ai_addr)->sin_port = htons(*pPort);
+		((SOCKADDR_IN *)AIW->ai_addr)->sin_port = htons(*pPort);
 		break;
 
 	case AF_INET6:
 
-		if (AI->ai_addrlen < sizeof(SOCKADDR_IN6))
+		if (AIW->ai_addrlen < sizeof(SOCKADDR_IN6))
 		{
-			BidTrace2( ERROR_TAG _T("Invalid buffer length of IPv6 address member of ADDRINFO parameter. %d{size_t}, required:  %d{size_t}\n"), 
-				AI->ai_addrlen, sizeof(SOCKADDR_IN6) );
-			Assert(0 && " Invalid buffer length of IPv6 address member of ADDRINFO parameter\n");
+			BidTrace2( ERROR_TAG _T("Invalid buffer length of IPv6 address member of ADDRINFOW parameter. %d{size_t}, required:  %d{size_t}\n"), 
+				AIW->ai_addrlen, sizeof(SOCKADDR_IN6) );
+			Assert(0 && " Invalid buffer length of IPv6 address member of ADDRINFOW parameter\n");
 			dwRet = ERROR_INVALID_PARAMETER;
 			SNI_SET_LAST_ERROR( TCP_PROV, SNIE_5, dwRet );	// "Invalid parameter(s) found"
 			scierrlog (26062, dwRet, 2 /*state*/);
 			goto ErrorExit;
 		}
-		((SOCKADDR_IN6 *)AI->ai_addr)->sin6_port = htons(*pPort);
+		((SOCKADDR_IN6 *)AIW->ai_addr)->sin6_port = htons(*pPort);
 		break;
 
 	default:
 		//this assertion is used to catch unexpected function usage.
 		Assert( 0 && " IP family number is unknown\n" );
-		BidTrace1( ERROR_TAG _T("IP family number is unknown. %d{DWORD}\n"), AI->ai_family );
+		BidTrace1( ERROR_TAG _T("IP family number is unknown. %d{DWORD}\n"), AIW->ai_family );
 		scierrlog (26062, dwRet, 3 /*state*/);
 		goto ErrorExit;
 	}
 
-	sock = socket( AI->ai_family, AI->ai_socktype, AI->ai_protocol);
+	sock = socket( AIW->ai_family, AIW->ai_socktype, AIW->ai_protocol);
 	if( INVALID_SOCKET == sock )
 	{
 		dwRet = WSAGetLastError();
@@ -2517,7 +2462,7 @@ OACR_WARNING_POP
 		goto ErrorExit;
 	}
 	
-	if( SOCKET_ERROR == bind( sock, AI->ai_addr, (int)AI->ai_addrlen ))
+	if( SOCKET_ERROR == bind( sock, AIW->ai_addr, (int)AIW->ai_addrlen ))
 	{
 		dwRet = WSAGetLastError();
 
@@ -2528,7 +2473,7 @@ OACR_WARNING_POP
 		
 	if( 0 == *pPort )
 	{
-		if( AI->ai_family == AF_INET )
+		if( AIW->ai_family == AF_INET )
 		{
 OACR_WARNING_SUPPRESS(IPV6_ADDRESS_STRUCTURE_IPV4_SPECIFIC , " TEMPORARY SUPPRESSION UNTIL DEVELOPER'S ANALYSIS. See VSTS 376830 ")
 			SOCKADDR_IN addr4;
@@ -2548,7 +2493,7 @@ OACR_WARNING_SUPPRESS(IPV6_ADDRESS_STRUCTURE_IPV4_SPECIFIC , " TEMPORARY SUPPRES
 		}
 		else
 		{
-			Assert( AI->ai_family == AF_INET6);
+			Assert( AIW->ai_family == AF_INET6);
 
 			SOCKADDR_IN6 addr6;
 			
@@ -2605,10 +2550,10 @@ DWORD InterfaceListen( __inout TcpListenInfo *pListenInfo, __inout ListenObject 
 	
 	DWORD dwRet = ERROR_FAIL;
 	BOOL fSystemAddrInfo = TRUE; 
-	char * szServer = pListenInfo->ipaddress; 
+	WCHAR * wszServer = pListenInfo->ipaddress; 
 	
-	ADDRINFO *AddrInfo=0;
-	ADDRINFO *AI, Hints;
+	ADDRINFOW *AddrInfoW=0;
+	ADDRINFOW *AIW, Hints;
 
 	ZeroMemory( &Hints, sizeof Hints );
 	Hints.ai_family = PF_UNSPEC;
@@ -2621,10 +2566,10 @@ DWORD InterfaceListen( __inout TcpListenInfo *pListenInfo, __inout ListenObject 
 	if( gClusApi.hClusterLibrary && gClusApi.hResourceLibrary )
 	{
 
-		szServer = gszAsciiClusterName;			
+		wszServer = gwszClusterName;			
 
 		THREAD_PREEMPTIVE_ON_START (PWAIT_PREEMPTIVE_OS_CLUSTEROPS); 
-		dwRet = GetClusterListenIpAddrInfo( gszAsciiClusterName,  &AddrInfo );
+		dwRet = GetClusterListenIpAddrInfo( gwszClusterName,  &AddrInfoW );
 		THREAD_PREEMPTIVE_ON_END; 
 
 		if( ERROR_SUCCESS != dwRet )
@@ -2633,7 +2578,7 @@ DWORD InterfaceListen( __inout TcpListenInfo *pListenInfo, __inout ListenObject 
 			goto ErrorExit;
 		}
 
-		dwRet = SNI_ServiceBindings::SetClusterAddresses(AddrInfo);
+		dwRet = SNI_ServiceBindings::SetClusterAddresses(AddrInfoW);
 
 		if( ERROR_SUCCESS != dwRet )
 		{
@@ -2643,32 +2588,32 @@ DWORD InterfaceListen( __inout TcpListenInfo *pListenInfo, __inout ListenObject 
 			goto ErrorExit;
 		}
 
-		// AddrInfo should be released later. 
-		Assert ( AddrInfo );
+		// AddrInfoW should be released later. 
+		Assert ( AddrInfoW );
 
 	}
-	else if( !szServer && 
+	else if( !wszServer && 
 		( 0 != ( pListenInfo->dwFlags & SNI_TCP_INFO_FLAG_LOOPBACK ) ) )
 	{
 		// stand-alone listening on loopback addresses
-		dwRet = GetLoopbackListenIpAddrInfo( &AddrInfo ); 
+		dwRet = GetLoopbackListenIpAddrInfo( &AddrInfoW ); 
 
 		if( ERROR_SUCCESS != dwRet )
 		{
-			Assert( NULL == AddrInfo ); 
+			Assert( NULL == AddrInfoW ); 
 			goto ErrorExit;
 		}
 
-		// AddrInfo should be released later by our own function instead of
+		// AddrInfoW should be released later by our own function instead of
 		// Winsock's freeaddrinfo(). 
 		fSystemAddrInfo = FALSE; 
-		Assert ( AddrInfo );		
+		Assert ( AddrInfoW );		
 	}
 	else
 #endif
 	{
 		//not a cluster, use DNS query	
-		if( getaddrinfo_l( szServer, "0", &Hints, &AddrInfo, GetDefaultLocale()))
+		if( GetAddrInfoW_l( wszServer, L"0", &Hints, &AddrInfoW, GetDefaultLocale()))
 		{
 			dwRet = WSAGetLastError();
 
@@ -2700,27 +2645,27 @@ DWORD InterfaceListen( __inout TcpListenInfo *pListenInfo, __inout ListenObject 
 
 	int nTempSockets = 0;
 
-	for( AI = AddrInfo; AI;  )
+	for( AIW = AddrInfoW; AIW;  )
 	{
-		char * szIpAddressToLog = szServer; 
-		char   szRetreivedIpAddress[NI_MAXHOST + 1];  
+		WCHAR * wszIpAddressToLog = wszServer; 
+		WCHAR   wszRetreivedIpAddress[NI_MAXHOST + 1];  
 
-		if( AI->ai_family != AF_INET && AI->ai_family != AF_INET6 )
+		if( AIW->ai_family != AF_INET && AIW->ai_family != AF_INET6 )
 		{
-			AI = AI->ai_next;
+			AIW = AIW->ai_next;
 			continue;
 		}
 
 		//Sometimes addrinfo gives us a ipv6/ipv4 address to listen on even
 		//when it is not supported so we do a manual check here
-		if( AI->ai_family==AF_INET6 && false == g_fIpv6Supported )
+		if( AIW->ai_family==AF_INET6 && false == g_fIpv6Supported )
 		{
-			AI = AI->ai_next;
+			AIW = AIW->ai_next;
 			continue;
 		}
-		else if( AI->ai_family==AF_INET && false == g_fIpv4Supported )
+		else if( AIW->ai_family==AF_INET && false == g_fIpv4Supported )
 		{
-			AI = AI->ai_next;
+			AIW = AIW->ai_next;
 			continue;
 		}
 
@@ -2730,29 +2675,29 @@ DWORD InterfaceListen( __inout TcpListenInfo *pListenInfo, __inout ListenObject 
 		// where we pass in a virtual server name, and want to log the 
 		// cluster IP addresses the server is listening on.  
 		//
-		if( szServer || 
+		if( wszServer || 
 			( 0 != ( pListenInfo->dwFlags & SNI_TCP_INFO_FLAG_LOOPBACK ) ) )
 		{
-			szRetreivedIpAddress[sizeof(szRetreivedIpAddress) /
-				sizeof(szRetreivedIpAddress[0]) - 1] = 0x00;
+			wszRetreivedIpAddress[sizeof(wszRetreivedIpAddress) /
+				sizeof(wszRetreivedIpAddress[0]) - 1] = 0x00;
 			
 			// Note: if getaneminfo() fails, we will log whatever we passed 
 			// into Winsock.  This should not really happen.  
 			//
-	        if( 0 == getnameinfo_l( AI->ai_addr, 
-								  static_cast<socklen_t>(AI->ai_addrlen), 
-								  szRetreivedIpAddress,
-	                       		  sizeof(szRetreivedIpAddress) - sizeof(szRetreivedIpAddress[0]), 
+	        if( 0 == GetNameInfoW_l( AIW->ai_addr, 
+								  static_cast<socklen_t>(AIW->ai_addrlen), 
+								  wszRetreivedIpAddress,
+	                       		  ARRAYSIZE(wszRetreivedIpAddress), 
 	                       		  NULL, //	not interested in "service"
 	                       		  0, 
 	                       		  NI_NUMERICHOST, GetDefaultLocale()) )
 	        {
-				szIpAddressToLog = szRetreivedIpAddress; 
+				wszIpAddressToLog = wszRetreivedIpAddress; 
 	        }
 		}
 		
 		
-		dwRet = ListenPort( AI, &sock, &Port );
+		dwRet = ListenPort( AIW, &sock, &Port );
 		if( ERROR_SUCCESS != dwRet )
 		{
 			// Winsock can return either WSAEADDRINUSE or WSAEACCES
@@ -2772,24 +2717,24 @@ DWORD InterfaceListen( __inout TcpListenInfo *pListenInfo, __inout ListenObject 
 					if( --nRetryLimit  == 0 )
 					{
 						scierrlog(	26023,
-							szIpAddressToLog ? szIpAddressToLog:"\'any\'",
-							AI->ai_family==AF_INET6 ? "ipv6":"ipv4",
+							wszIpAddressToLog ? wszIpAddressToLog:L"\'any\'",
+							AIW->ai_family==AF_INET6 ? L"ipv6":L"ipv4",
 							pListenInfo->Port );  //On erroring out, we log the original port number passed in
 
 						goto ErrorExit;
 					}
 					
 					Port = 0;
-					AI = AddrInfo;
+					AIW = AddrInfoW;
 					continue;
 			}
 			else if ( WSAEAFNOSUPPORT == dwRet )
 			{	
-				if( AI->ai_family == AF_INET )  
+				if( AIW->ai_family == AF_INET )  
 				{
 					g_fIpv4Supported  =  false;
 				}
-				else if( AI->ai_family == AF_INET6 ) 
+				else if( AIW->ai_family == AF_INET6 ) 
 				{
 					g_fIpv6Supported  = false;
 				}
@@ -2806,8 +2751,8 @@ DWORD InterfaceListen( __inout TcpListenInfo *pListenInfo, __inout ListenObject 
 				}
 					
 				scierrlog(	26024,
-							szIpAddressToLog ? szIpAddressToLog:"\'any\'",
-							AI->ai_family==AF_INET6 ? "ipv6":"ipv4",
+							wszIpAddressToLog ? wszIpAddressToLog:L"\'any\'",
+							AIW->ai_family==AF_INET6 ? L"ipv6":L"ipv4",
 							pListenInfo->Port,  //On erroring out, we log the original port number passed in
 							dwRet);
 				
@@ -2817,7 +2762,7 @@ DWORD InterfaceListen( __inout TcpListenInfo *pListenInfo, __inout ListenObject 
 
 		nTempSockets++;
 
-		dwRet = pListenObject->Add( sock, AI->ai_family);
+		dwRet = pListenObject->Add( sock, AIW->ai_family);
 		if( ERROR_SUCCESS != dwRet )
 		{
 			closesocket(sock);
@@ -2825,11 +2770,11 @@ DWORD InterfaceListen( __inout TcpListenInfo *pListenInfo, __inout ListenObject 
 		}
 
 		scierrlog(	26022,
-				szIpAddressToLog ? szIpAddressToLog:"\'any\'",
-				AI->ai_family==AF_INET6 ? "ipv6":"ipv4",
+				wszIpAddressToLog ? wszIpAddressToLog:L"\'any\'",
+				AIW->ai_family==AF_INET6 ? L"ipv6":L"ipv4",
 				Port); //On binding success, we log the binded port number.
 
-		AI = AI->ai_next;
+		AIW = AIW->ai_next;
 	}
 
 	if( 0 >= nTempSockets )
@@ -2851,11 +2796,11 @@ DWORD InterfaceListen( __inout TcpListenInfo *pListenInfo, __inout ListenObject 
 
 	if( fSystemAddrInfo )
 	{
-		freeaddrinfo( AddrInfo );
+		FreeAddrInfoW( AddrInfoW );
 	}
 	else
 	{
-		FreeCustomAddrInfo( AddrInfo ); 
+		FreeCustomAddrInfo( AddrInfoW ); 
 	}
 
 	BidTraceU1( SNI_BID_TRACE_ON, RETURN_TAG _T("%d{WINERR}\n"), ERROR_SUCCESS);
@@ -2864,15 +2809,15 @@ DWORD InterfaceListen( __inout TcpListenInfo *pListenInfo, __inout ListenObject 
 
 ErrorExit:
 
-	if( AddrInfo )
+	if( AddrInfoW )
 	{
 		if( fSystemAddrInfo )
 		{		
-			freeaddrinfo( AddrInfo );
+			FreeAddrInfoW( AddrInfoW );
 		}
 		else
 		{
-			FreeCustomAddrInfo( AddrInfo ); 
+			FreeCustomAddrInfo( AddrInfoW ); 
 		}
 	}		
 
@@ -3328,9 +3273,9 @@ DWORD Tcp::SetLocalAddrInfo(sockaddr * pSockAddr, int iSockAddr)
 	
 	DWORD dwError = ERROR_SUCCESS;
 	
-	m_LocalAddr.PeerAddrLen = sizeof(m_LocalAddr.PeerAddr)-1;
+	m_LocalAddr.PeerAddrLen = ARRAYSIZE(m_LocalAddr.PeerAddr)-1;
 
-	if( getnameinfo_l( pSockAddr, 
+	if( GetNameInfoW_l( pSockAddr, 
 				    iSockAddr, 
 				    m_LocalAddr.PeerAddr, 
 				    m_LocalAddr.PeerAddrLen, 
@@ -3345,7 +3290,7 @@ DWORD Tcp::SetLocalAddrInfo(sockaddr * pSockAddr, int iSockAddr)
 		goto ErrorExit;
 	}
 
-	m_LocalAddr.PeerAddrLen = (int) strlen(m_LocalAddr.PeerAddr);
+	m_LocalAddr.PeerAddrLen = (int) wcslen(m_LocalAddr.PeerAddr);
 
 	if(AF_INET == pSockAddr->sa_family)
 	{
@@ -3358,7 +3303,7 @@ DWORD Tcp::SetLocalAddrInfo(sockaddr * pSockAddr, int iSockAddr)
 	}
 
 	BidTraceU3( SNI_BID_TRACE_ON, SNI_TAG _T("%u#, ")
-										  _T("LocalAddr: %hs, ")
+										  _T("LocalAddr: %s, ")
 										  _T("m_LocalPort: %d\n"), 
 										  m_iBidId, 
 										  m_LocalAddr.PeerAddr, 
@@ -3382,9 +3327,9 @@ DWORD Tcp::SetPeerAddrInfo(sockaddr * pSockAddr, int iSockAddr)
 	
 	DWORD dwError = ERROR_SUCCESS;
 	
-	m_PeerAddr.PeerAddrLen = sizeof(m_PeerAddr.PeerAddr)-1;
+	m_PeerAddr.PeerAddrLen = ARRAYSIZE(m_PeerAddr.PeerAddr)-1;
 
-	if( getnameinfo_l( pSockAddr, 
+	if( GetNameInfoW_l( pSockAddr, 
 				    iSockAddr, 
 				    m_PeerAddr.PeerAddr, 
 				    m_PeerAddr.PeerAddrLen, 
@@ -3399,7 +3344,7 @@ DWORD Tcp::SetPeerAddrInfo(sockaddr * pSockAddr, int iSockAddr)
 		goto ErrorExit;
 	}
 
-	m_PeerAddr.PeerAddrLen = (int) strlen(m_PeerAddr.PeerAddr);
+	m_PeerAddr.PeerAddrLen = (int) wcslen(m_PeerAddr.PeerAddr);
 
 	if(AF_INET == pSockAddr->sa_family)
 	{
@@ -3412,7 +3357,7 @@ DWORD Tcp::SetPeerAddrInfo(sockaddr * pSockAddr, int iSockAddr)
 	}
 
 	BidTraceU3( SNI_BID_TRACE_ON, SNI_TAG _T("%u#, ")
-										  _T("PeerAddr: %hs, ")
+										  _T("PeerAddr: %s, ")
 										  _T("m_PeerPort: %d\n"), 
 										  m_iBidId, 
 										  m_PeerAddr.PeerAddr, 
@@ -3456,10 +3401,10 @@ DWORD Tcp::AcceptDone( SNI_Conn * pConn,
 
 		if( pConn && pTcp )
 		{
-			pConn->m_pEPInfo->tcpInfo.szIpaddress[MAX_PATH] = '\0';
-			if(FAILED(StringCchPrintf_lA( pConn->m_pEPInfo->tcpInfo.szIpaddress,
-						 CCH_ANSI_STRING(pConn->m_pEPInfo->tcpInfo.szIpaddress),
-						 "%s", GetDefaultLocale(),
+			pConn->m_pEPInfo->tcpInfo.wszIpaddress[MAX_PATH] = L'\0';
+			if(FAILED(StringCchPrintf_lW( pConn->m_pEPInfo->tcpInfo.wszIpaddress,
+						 ARRAYSIZE(pConn->m_pEPInfo->tcpInfo.wszIpaddress),
+						 L"%s", GetDefaultLocale(),
 						 pAcc->m_pParentListenObject->m_TcpListenInfo.ipaddress)))
 			{
 				SNI_SET_LAST_ERROR( TCP_PROV, SNIE_SYSTEM, ERROR_INVALID_PARAMETER );
@@ -3788,10 +3733,10 @@ DWORD Tcp::GetPeerPort(__in SNI_Conn * pConn, __out USHORT * port)
 }
 
 
-DWORD Tcp::GetDnsName( char *szAddress, __out_ecount(len) char *szDnsName, int len)
+DWORD Tcp::GetDnsName( WCHAR *wszAddress, __out_ecount(len) WCHAR *wszDnsName, int len)
 {
-	BidxScopeAutoSNI3( SNIAPI_TAG _T( "szAddress: %p{PCSTR}, szDnsName: %p{PCSTR}, len: %d\n"), 
-					szAddress, szDnsName, len);
+	BidxScopeAutoSNI3( SNIAPI_TAG _T( "wszAddress: %p{PCWSTR}, wszDnsName: %p{PCWSTR}, len: %d\n"), 
+					wszAddress, wszDnsName, len);
 	
 	Assert( len >= NI_MAXHOST);
 
@@ -3806,19 +3751,19 @@ DWORD Tcp::GetDnsName( char *szAddress, __out_ecount(len) char *szDnsName, int l
 
 	DWORD dwRet;
 	
-	ADDRINFO *AddrInfo;
-	ADDRINFO Hints;
+	ADDRINFOW *AddrInfoW;
+	ADDRINFOW Hints;
 	
 	memset(&Hints, 0, sizeof(Hints));
 	Hints.ai_family = PF_UNSPEC;
 	Hints.ai_flags = AI_CANONNAME;
 
-	if(IsNumericAddress(szAddress))
+	if(IsNumericAddress(wszAddress))
 	{
 		Hints.ai_flags |=  AI_NUMERICHOST;	
 	}
 
-	if( getaddrinfo_l( szAddress, NULL, &Hints, &AddrInfo, GetDefaultLocale()))
+	if( GetAddrInfoW_l( wszAddress, NULL, &Hints, &AddrInfoW, GetDefaultLocale()))
 	{
 		dwRet = WSAGetLastError();
 
@@ -3829,13 +3774,13 @@ DWORD Tcp::GetDnsName( char *szAddress, __out_ecount(len) char *szDnsName, int l
 		return dwRet;
 	}
 	
-	if( AddrInfo->ai_canonname && !IsNumericAddress(AddrInfo->ai_canonname) )
+	if( AddrInfoW->ai_canonname && !IsNumericAddress(AddrInfoW->ai_canonname) )
 	{
-		if( len > (int)strlen(AddrInfo->ai_canonname) )
+		if( len > (int)wcslen(AddrInfoW->ai_canonname) )
 		{
-			(void) StringCchCopyA ( szDnsName, len, AddrInfo->ai_canonname );
+			(void) StringCchCopyW ( wszDnsName, len, AddrInfoW->ai_canonname );
 
-			freeaddrinfo( AddrInfo );
+			FreeAddrInfoW( AddrInfoW );
 
 			BidTraceU1( SNI_BID_TRACE_ON, RETURN_TAG _T("%d{WINERR}\n"), ERROR_SUCCESS);
 			
@@ -3848,7 +3793,7 @@ DWORD Tcp::GetDnsName( char *szAddress, __out_ecount(len) char *szDnsName, int l
 			
 			Assert( 0 );
 			
-			freeaddrinfo( AddrInfo );
+			FreeAddrInfoW( AddrInfoW );
 
 			SNI_SET_LAST_ERROR( TCP_PROV, SNIE_SYSTEM, ERROR_INSUFFICIENT_BUFFER );
 
@@ -3858,24 +3803,24 @@ DWORD Tcp::GetDnsName( char *szAddress, __out_ecount(len) char *szDnsName, int l
 		}
 	}
 
-	Assert( AddrInfo );
+	Assert( AddrInfoW );
 
 	//
 	// go through address list to do a reverse lookup
 	//
 	
-	for( ADDRINFO *AI = AddrInfo; AI !=0 ; AI = AI->ai_next )
+	for( ADDRINFOW *AIW = AddrInfoW; AIW !=0 ; AIW = AIW->ai_next )
 	{
-		if( !getnameinfo_l(
-				AI->ai_addr, 
-				(socklen_t)AI->ai_addrlen, 
-				szDnsName,
+		if( !GetNameInfoW_l(
+				AIW->ai_addr, 
+				(socklen_t)AIW->ai_addrlen, 
+				wszDnsName,
 				len, 
 				NULL, 
 				0,
 				NI_NAMEREQD, GetDefaultLocale()))
 		{
-			freeaddrinfo( AddrInfo );
+			FreeAddrInfoW( AddrInfoW );
 
 			BidTraceU1( SNI_BID_TRACE_ON, RETURN_TAG _T("%d{WINERR}\n"), ERROR_SUCCESS);
 			
@@ -3883,7 +3828,7 @@ DWORD Tcp::GetDnsName( char *szAddress, __out_ecount(len) char *szDnsName, int l
 		}
 	}
 
-	freeaddrinfo( AddrInfo );
+	FreeAddrInfoW( AddrInfoW );
 
 	dwRet = WSAGetLastError();
 
@@ -3897,17 +3842,17 @@ DWORD Tcp::GetDnsName( char *szAddress, __out_ecount(len) char *szDnsName, int l
 }
 
 // Determines if pszServer is a loopback.
-BOOL Tcp::FIsLoopBack(const char* pszServer)
+BOOL Tcp::FIsLoopBack(const WCHAR* pwszServer)
 {
-	ADDRINFO *pAIServer     = NULL;
-	ADDRINFO *pAILoopBackV4 = NULL;
-	ADDRINFO *pAILoopBackV6 = NULL;
-	ADDRINFO *pAIS, Hints;
+	ADDRINFOW *pAIWServer     = NULL;
+	ADDRINFOW *pAIWLoopBackV4 = NULL;
+	ADDRINFOW *pAIWLoopBackV6 = NULL;
+	ADDRINFOW *pAIWS, Hints;
 	BOOL fIsLoopback = FALSE;
 	
-	BidxScopeAutoSNI1( SNIAPI_TAG _T( "pszServer: \"%hs\"\n"), pszServer );
+	BidxScopeAutoSNI1( SNIAPI_TAG _T( "pwszServer: \"%s\"\n"), pwszServer );
 
-	Assert( pszServer );
+	Assert( pwszServer );
 
 	ZeroMemory( &Hints, sizeof(Hints) );
 	Hints.ai_family   = PF_UNSPEC;
@@ -3915,7 +3860,7 @@ BOOL Tcp::FIsLoopBack(const char* pszServer)
 	Hints.ai_flags    = AI_PASSIVE;
 
 	// Get addressinfo for server.  If this fails we cannot continue.
-	if ( getaddrinfo_l(pszServer, "0", &Hints, &pAIServer, GetDefaultLocale()) ) 
+	if ( GetAddrInfoW_l(pwszServer, L"0", &Hints, &pAIWServer, GetDefaultLocale()) ) 
 	{
 		DWORD dwRet = WSAGetLastError();
 		if ( EAI_NONAME == dwRet )
@@ -3923,7 +3868,7 @@ BOOL Tcp::FIsLoopBack(const char* pszServer)
 			//For numeric name in form of three-part address, e.g. 127.0.1 or two-part address, e.g. 127.1, retry getaddrinfo with AI_NUMERICHOST 
 			// as hint.ai_flags;			
 			Hints.ai_flags |=  AI_NUMERICHOST;			
-			if( getaddrinfo_l( pszServer,"0", &Hints, &pAIServer, GetDefaultLocale()))				
+			if( GetAddrInfoW_l( pwszServer,L"0", &Hints, &pAIWServer, GetDefaultLocale()))				
 			{
 				goto FIsLoopBackExit;
 			}
@@ -3940,31 +3885,31 @@ BOOL Tcp::FIsLoopBack(const char* pszServer)
 
 	// Get addressinfo for loopback IPv4, this can fail if system does not support IPv4.
 	Hints.ai_family = PF_INET;
-	getaddrinfo_l("127.0.0.1", "0", &Hints, &pAILoopBackV4, GetDefaultLocale());
+	GetAddrInfoW_l(L"127.0.0.1", L"0", &Hints, &pAIWLoopBackV4, GetDefaultLocale());
 
 	// Get addressinfo for loopback IPv6, this can fail if system does not support IPv6.
 	Hints.ai_family = PF_INET6;
-	getaddrinfo_l("::1", "0", &Hints, &pAILoopBackV6, GetDefaultLocale());
+	GetAddrInfoW_l(L"::1", L"0", &Hints, &pAIWLoopBackV6, GetDefaultLocale());
 
 	// Skip out if we fail to allocate both of these.
-	if ( (NULL==pAILoopBackV4) && (NULL==pAILoopBackV6) ) goto FIsLoopBackExit;
+	if ( (NULL==pAIWLoopBackV4) && (NULL==pAIWLoopBackV6) ) goto FIsLoopBackExit;
 
 	// Compare server addressinfo against loopback addressinfo (both IPv4 and IPv6).
-	for ( pAIS=pAIServer; pAIS; pAIS=pAIS->ai_next  )
+	for ( pAIWS=pAIWServer; pAIWS; pAIWS=pAIWS->ai_next  )
 	{
-		if ( pAILoopBackV4 &&
-			 ( AF_INET == pAIS->ai_family ) &&
-			 ( pAIS->ai_addrlen == pAILoopBackV4->ai_addrlen ) &&
-			 ( 0 == memcmp(pAIS->ai_addr, pAILoopBackV4->ai_addr, pAIS->ai_addrlen) ) )
+		if ( pAIWLoopBackV4 &&
+			 ( AF_INET == pAIWS->ai_family ) &&
+			 ( pAIWS->ai_addrlen == pAIWLoopBackV4->ai_addrlen ) &&
+			 ( 0 == memcmp(pAIWS->ai_addr, pAIWLoopBackV4->ai_addr, pAIWS->ai_addrlen) ) )
 		{
 			fIsLoopback = TRUE;
 			break;
 		}
 
-		if ( pAILoopBackV6 &&  
-			( AF_INET6 == pAIS->ai_family ) &&
-			( pAIS->ai_addrlen == pAILoopBackV6->ai_addrlen ) && 
-			( 0 == memcmp(pAIS->ai_addr, pAILoopBackV6->ai_addr, pAIS->ai_addrlen) ) )
+		if ( pAIWLoopBackV6 &&  
+			( AF_INET6 == pAIWS->ai_family ) &&
+			( pAIWS->ai_addrlen == pAIWLoopBackV6->ai_addrlen ) && 
+			( 0 == memcmp(pAIWS->ai_addr, pAIWLoopBackV6->ai_addr, pAIWS->ai_addrlen) ) )
 		{
 			fIsLoopback = TRUE;
 			break;
@@ -3973,9 +3918,9 @@ BOOL Tcp::FIsLoopBack(const char* pszServer)
 
 FIsLoopBackExit:
 
-	if ( pAIServer )      freeaddrinfo( pAIServer );
-	if ( pAILoopBackV4 )  freeaddrinfo( pAILoopBackV4 );
-	if ( pAILoopBackV6 )  freeaddrinfo( pAILoopBackV6 );
+	if ( pAIWServer )      FreeAddrInfoW( pAIWServer );
+	if ( pAIWLoopBackV4 )  FreeAddrInfoW( pAIWLoopBackV4 );
+	if ( pAIWLoopBackV6 )  FreeAddrInfoW( pAIWLoopBackV6 );
 
 	BidTraceU1( SNI_BID_TRACE_ON, RETURN_TAG _T("%d{BOOL}\n"), fIsLoopback);
 	return fIsLoopback;
@@ -4081,7 +4026,7 @@ DWORD Tcp::InitializeListener(HANDLE hSNIListener, __inout TcpListenInfo *pListe
 	}
 
 	// Allocate an IP address string
-	pListenObject->m_TcpListenInfo.ipaddress = NewNoX(gpmo) char[MAX_PATH+1];
+	pListenObject->m_TcpListenInfo.ipaddress = NewNoX(gpmo) WCHAR[MAX_PATH+1];
 
 	if( !pListenObject->m_TcpListenInfo.ipaddress )
 	{
@@ -4105,11 +4050,11 @@ DWORD Tcp::InitializeListener(HANDLE hSNIListener, __inout TcpListenInfo *pListe
 	}
 
 	// Copy the Tcp info locally
-	pListenObject->m_TcpListenInfo.ipaddress[MAX_PATH] = '\0';
-	if(FAILED(StringCchPrintf_lA( pListenObject->m_TcpListenInfo.ipaddress,
+	pListenObject->m_TcpListenInfo.ipaddress[MAX_PATH] = L'\0';
+	if(FAILED(StringCchPrintf_lW(pListenObject->m_TcpListenInfo.ipaddress,
 				 MAX_PATH+1,
-				 "%s", GetDefaultLocale(),
-				 pListenInfo->ipaddress ? pListenInfo->ipaddress : "0")) )
+				 L"%s", GetDefaultLocale(),
+				 pListenInfo->ipaddress ? pListenInfo->ipaddress : L"0")) )
 	{
 		dwRet = ERROR_INVALID_PARAMETER;
 		SNI_SET_LAST_ERROR( TCP_PROV, SNIE_SYSTEM, dwRet );
@@ -4143,9 +4088,9 @@ ErrorExit:
 	return dwRet;
 }
 
-bool Tcp::IsNumericAddress( LPSTR name)
+bool Tcp::IsNumericAddress( LPWSTR name)
 {
-	BidxScopeAutoSNI1( SNIAPI_TAG _T( "name: \"%hs\"\n"), name);
+	BidxScopeAutoSNI1( SNIAPI_TAG _T( "name: \"%s\"\n"), name);
 	
 	SOCKADDR_STORAGE addr;
 
@@ -4181,15 +4126,15 @@ bool Tcp::IsNumericAddress( LPSTR name)
 }
 
 // Using ConnectEx, create a connected socket based on the specified linked list of ADDRINFO, by opening sockets in parallel.
-DWORD Tcp::SocketOpenParallel(const ADDRINFO *AI, DWORD timeout)
+DWORD Tcp::SocketOpenParallel(const ADDRINFOW *AIW, DWORD timeout)
 {
 	BidxScopeAutoSNI4( SNIAPI_TAG _T("%u#, ")
-								  _T("AI: %p{ADDRINFO*}, ")
+								  _T("AIW: %p{ADDRINFOW*}, ")
 								  _T("ai_family: %d, ")
 								  _T("timeout: %d\n"),
-								  m_iBidId, AI, AI->ai_family, timeout);
+								  m_iBidId, AIW, AIW->ai_family, timeout);
 	DWORD dwRet = ERROR_SUCCESS;
-	Assert(NULL != AI);
+	Assert(NULL != AIW);
 	
 	DWORD dwAddresses = 0;
 	DWORD dwStart = GetTickCount();
@@ -4200,8 +4145,8 @@ DWORD Tcp::SocketOpenParallel(const ADDRINFO *AI, DWORD timeout)
 	HANDLE *rgConnectionEvents = NULL;
 	
 	// walk the struct and find out how many addresses it has.
-	const ADDRINFO *paiTemp = AI;
-	for(; NULL != paiTemp; paiTemp = paiTemp->ai_next)
+	const ADDRINFOW *pAIWTemp = AIW;
+	for(; NULL != pAIWTemp; pAIWTemp = pAIWTemp->ai_next)
 	{
 		dwAddresses++;
 		
@@ -4240,17 +4185,17 @@ DWORD Tcp::SocketOpenParallel(const ADDRINFO *AI, DWORD timeout)
 		goto Exit;
 	}
 	
-	paiTemp = AI;
+	pAIWTemp = AIW;
 	for(DWORD i=0;i<dwAddresses;i++)
 	{
-		Assert(NULL != paiTemp);
+		Assert(NULL != pAIWTemp);
 
 		// For each of these TcpConnection API calls, we have nothing to do in case of actual failure, except 
 		// to move on to the next address. If all the parallel connection attempts eventually fail, the 
 		// error code from wherever the failure occurred will be considered in calculating the overall return code,
 		// but that consideration will be done by the TcpConnection objects themselves, not by this function.
 		
-		if( ERROR_SUCCESS == pTcpConnections[i].FInit(this, paiTemp) )
+		if( ERROR_SUCCESS == pTcpConnections[i].FInit(this, pAIWTemp) )
 		{
 			if( ERROR_SUCCESS == pTcpConnections[i].FInitForAsync() )
 			{
@@ -4270,7 +4215,7 @@ DWORD Tcp::SocketOpenParallel(const ADDRINFO *AI, DWORD timeout)
 				}
 			}
 		}
-		paiTemp = paiTemp->ai_next;
+		pAIWTemp = pAIWTemp->ai_next;
 	}
 
 	while( 0 < dwConnectionsPending )
@@ -4421,21 +4366,21 @@ Exit:
 // 1. use connectex if connectex exists and timeout is not infinite;
 // 2. use connect if timeout value is inifinite.
 //
-DWORD Tcp::SocketOpenSync(__in ADDRINFO* AI, int timeout)
+DWORD Tcp::SocketOpenSync(__in ADDRINFOW* AIW, int timeout)
 {
 
-	BidxScopeAutoSNI3( SNIAPI_TAG _T("AI: %p{ADDRINFO*}, ")
+	BidxScopeAutoSNI3( SNIAPI_TAG _T("AIW: %p{ADDRINFOW*}, ")
 								  _T("ai_family: %d, ")
 								  _T("timeout: %d\n"),
-								  AI, AI->ai_family, timeout);
+								  AIW, AIW->ai_family, timeout);
 	
 	DWORD dwRet = ERROR_SUCCESS;
 
-	Assert( NULL != AI );
+	Assert( NULL != AIW );
 	Assert( INVALID_SOCKET == m_sock );
 
 	TcpConnection tcpConnection;
-	dwRet = tcpConnection.FInit(this, AI);
+	dwRet = tcpConnection.FInit(this, AIW);
 	if( ERROR_SUCCESS != dwRet )
 	{
 		goto Exit;
@@ -4547,14 +4492,14 @@ DWORD Tcp::Open( 	SNI_Conn 		* pConn,
 		goto ErrorExit;
 	}
 
-	ADDRINFO *AddrInfo = NULL;
-	ADDRINFO Hints;
+	ADDRINFOW *AddrInfoW = NULL;
+	ADDRINFOW Hints;
 
 	memset(&Hints, 0, sizeof(Hints));
 	Hints.ai_family = PF_UNSPEC;
 	Hints.ai_socktype = SOCK_STREAM;
 
-	if( getaddrinfo_l( pProtElem->m_szServerName, pProtElem->Tcp.szPort, &Hints, &AddrInfo, GetDefaultLocale()))
+	if( GetAddrInfoW_l( pProtElem->m_wszServerName, pProtElem->Tcp.wszPort, &Hints, &AddrInfoW, GetDefaultLocale()))
 	{
 		dwRet = WSAGetLastError();
 		if ( EAI_NONAME == dwRet )
@@ -4562,7 +4507,7 @@ DWORD Tcp::Open( 	SNI_Conn 		* pConn,
 			//For numeric name in form of three-part address, e.g. 127.0.1 or two-part address, e.g. 127.1, retry getaddrinfo with AI_NUMERICHOST 
 			// as hint.ai_flags;			
 			Hints.ai_flags |=  AI_NUMERICHOST;			
-			if( getaddrinfo_l( pProtElem->m_szServerName, pProtElem->Tcp.szPort, &Hints, &AddrInfo, GetDefaultLocale()))				
+			if( GetAddrInfoW_l( pProtElem->m_wszServerName, pProtElem->Tcp.wszPort, &Hints, &AddrInfoW, GetDefaultLocale()))				
 			{
 				dwRet = WSAGetLastError();			
 				SNI_SET_LAST_ERROR( TCP_PROV, SNIE_SYSTEM, dwRet );
@@ -4599,7 +4544,7 @@ DWORD Tcp::Open( 	SNI_Conn 		* pConn,
 			}
 			BidTraceU1( SNI_BID_TRACE_ON, SNI_TAG _T("timeout remaining: %d\n"), timeleft );
 		}
-		dwRet = pTcpProv->SocketOpenParallel(AddrInfo, timeleft);
+		dwRet = pTcpProv->SocketOpenParallel(AddrInfoW, timeleft);
 		// Should have a valid socket handle IFF SocketOpenParallel returned success.
 		Assert( (ERROR_SUCCESS == dwRet && pTcpProv->m_sock != INVALID_SOCKET) || (ERROR_SUCCESS != dwRet && pTcpProv->m_sock == INVALID_SOCKET) );
 		if( dwRet != ERROR_SUCCESS )
@@ -4617,14 +4562,14 @@ DWORD Tcp::Open( 	SNI_Conn 		* pConn,
 	{
 		//First we try ipv4 addresses, so there won't be a delay while connecting
 		//to a old servers which don't listen on ipv6 addresses
-		ADDRINFO *AI;
+		ADDRINFOW *AIW;
 		int afs[] = {AF_INET, AF_INET6};
 
 		for( int i = 0; i < sizeof(afs)/sizeof(int); i++ )
 		{
-			for( AI = AddrInfo; AI != 0; AI = AI->ai_next )
+			for( AIW = AddrInfoW; AIW != 0; AIW = AIW->ai_next )
 			{
-				if( AI->ai_family != afs[i] )
+				if( AIW->ai_family != afs[i] )
 					continue;
 
 				// Adjust the timeout to take acccount the time spent thus far, including DNS and failed SocketOpenSync calls.
@@ -4650,7 +4595,7 @@ DWORD Tcp::Open( 	SNI_Conn 		* pConn,
 				//TDS will cap the total timeout with necessary tolerance to decide whether this connection should 
 				//succeed.
 				//
-				if( ERROR_SUCCESS == (dwRet = pTcpProv->SocketOpenSync(AI, timeleft )))
+				if( ERROR_SUCCESS == (dwRet = pTcpProv->SocketOpenSync(AIW, timeleft )))
 				{
 					// Adjust the timeout to take acccount the time spent thus far, including DNS and all SocketOpenSync calls so far.
 					// Used for bidtrace the timeleft only. 
@@ -4665,16 +4610,16 @@ DWORD Tcp::Open( 	SNI_Conn 		* pConn,
 				}
 			}
 
-			//if AI is 0, it means we couldn't connect yet
-			if( AI == 0 )
-				AI = AddrInfo;
+			//if AIW is 0, it means we couldn't connect yet
+			if( AIW == 0 )
+				AIW = AddrInfoW;
 			else
 				break;	//we are connected, skip loop
 		}
 	}
 	
-	freeaddrinfo( AddrInfo );
-	AddrInfo = NULL;
+	FreeAddrInfoW( AddrInfoW );
+	AddrInfoW = NULL;
 
 	if( pTcpProv->m_sock == INVALID_SOCKET)
 	{
@@ -4759,11 +4704,11 @@ DWORD Tcp::Open( 	SNI_Conn 		* pConn,
 #ifndef SNI_BASED_CLIENT
 	Assert(pConn->m_pEPInfo);
 	
-	pConn->m_pEPInfo->tcpInfo.szIpaddress[MAX_PATH] = '\0';
+	pConn->m_pEPInfo->tcpInfo.wszIpaddress[MAX_PATH] = L'\0';
 	
-	if (FAILED(StringCchPrintf_lA( pConn->m_pEPInfo->tcpInfo.szIpaddress,
-				 CCH_ANSI_STRING(pConn->m_pEPInfo->tcpInfo.szIpaddress),
-				 "%.*s", GetDefaultLocale(),
+	if (FAILED(StringCchPrintf_lW( pConn->m_pEPInfo->tcpInfo.wszIpaddress,
+				 wcslen(pConn->m_pEPInfo->tcpInfo.wszIpaddress),
+				 L"%.*s", GetDefaultLocale(),
 				 pTcpProv->m_LocalAddr.PeerAddrLen, 
 				 pTcpProv->m_LocalAddr.PeerAddr)))
 	{
@@ -4805,10 +4750,10 @@ DWORD Tcp::Open( 	SNI_Conn 		* pConn,
 	
 ErrorExit:
 
-	if( NULL != AddrInfo )
+	if( NULL != AddrInfoW )
 	{
-		freeaddrinfo( AddrInfo );
-		AddrInfo = NULL;
+		FreeAddrInfoW( AddrInfoW );
+		AddrInfoW = NULL;
 	}
 
 	if( INVALID_HANDLE_VALUE != hConnectEvent )

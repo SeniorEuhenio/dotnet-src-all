@@ -75,6 +75,9 @@ namespace System.Windows.Forms {
         // Indicates whether we have doubleClicked
         private bool doubleClickFired = false;
 
+        private static bool isScalingInitialized = false;
+        private static int defaultButtonsWidth = DefaultButtonsWidth;
+
         /// <include file='doc\UpDownBase.uex' path='docs/doc[@for="UpDownBase.UpDownBase"]/*' />
         /// <devdoc>
         ///    <para>
@@ -83,6 +86,13 @@ namespace System.Windows.Forms {
         ///    </para>
         /// </devdoc>
         public UpDownBase() {
+
+            if (!isScalingInitialized) {
+                if (DpiHelper.IsScalingRequired) {
+                    defaultButtonsWidth = DpiHelper.LogicalToDeviceUnitsX(DefaultButtonsWidth);
+                }
+                isScalingInitialized = true;
+            }
 
             upDownButtons = new UpDownButtons(this);
             upDownEdit = new UpDownEdit(this);
@@ -94,7 +104,7 @@ namespace System.Windows.Forms {
             upDownEdit.LostFocus += new EventHandler(this.OnTextBoxLostFocus);
             upDownEdit.Resize += new EventHandler(this.OnTextBoxResize);
             upDownButtons.TabStop = false;
-            upDownButtons.Size = new Size(DefaultButtonsWidth, PreferredHeight);
+            upDownButtons.Size = new Size(defaultButtonsWidth, PreferredHeight);
             upDownButtons.UpDown += new UpDownEventHandler(this.OnUpDown);
 
             Controls.AddRange(new Control[] { upDownButtons, upDownEdit} );
@@ -1067,7 +1077,7 @@ namespace System.Windows.Forms {
             //
             if (upDownEdit != null) {
                 upDownEditBounds = clientArea;
-                upDownEditBounds.Size = new Size(clientArea.Width - DefaultButtonsWidth, clientArea.Height);
+                upDownEditBounds.Size = new Size(clientArea.Width - defaultButtonsWidth, clientArea.Height);
             }
 
             // Reposition and resize the updown buttons
@@ -1077,9 +1087,9 @@ namespace System.Windows.Forms {
                 if (borderStyle == BorderStyle.None) {
                     borderFixup = 0;
                 }
-                upDownButtonsBounds = new Rectangle(/*x*/clientArea.Right - DefaultButtonsWidth+borderFixup,
+                upDownButtonsBounds = new Rectangle(/*x*/clientArea.Right - defaultButtonsWidth+borderFixup,
                                                     /*y*/clientArea.Top-borderFixup,
-                                                    /*w*/DefaultButtonsWidth,
+                                                    /*w*/defaultButtonsWidth,
                                                     /*h*/clientArea.Height+(borderFixup*2));
             }
 
@@ -1653,7 +1663,7 @@ namespace System.Windows.Forms {
                         vsr.SetParameters(VisualStyleElement.Spin.Up.Pressed);
                     }
 
-                    vsr.DrawBackground(e.Graphics, new Rectangle(0, 0, DefaultButtonsWidth, half_height));
+                    vsr.DrawBackground(e.Graphics, new Rectangle(0, 0, defaultButtonsWidth, half_height));
 
                     if (!Enabled) {
                         vsr.SetParameters(VisualStyleElement.Spin.Down.Disabled);
@@ -1665,16 +1675,16 @@ namespace System.Windows.Forms {
                         vsr.SetParameters(mouseOver == ButtonID.Down ? VisualStyleElement.Spin.Down.Hot : VisualStyleElement.Spin.Down.Normal);
                     }
 
-                    vsr.DrawBackground(e.Graphics, new Rectangle(0, half_height, DefaultButtonsWidth, half_height));
+                    vsr.DrawBackground(e.Graphics, new Rectangle(0, half_height, defaultButtonsWidth, half_height));
                 }
                 else {
                     ControlPaint.DrawScrollButton(e.Graphics,
-                                                  new Rectangle(0, 0, DefaultButtonsWidth, half_height),
+                                                  new Rectangle(0, 0, defaultButtonsWidth, half_height),
                                                   ScrollButton.Up,
                                                   pushed == ButtonID.Up ? ButtonState.Pushed : (Enabled ? ButtonState.Normal : ButtonState.Inactive));
 
                     ControlPaint.DrawScrollButton(e.Graphics,
-                                                  new Rectangle(0, half_height, DefaultButtonsWidth, half_height),
+                                                  new Rectangle(0, half_height, defaultButtonsWidth, half_height),
                                                   ScrollButton.Down,
                                                   pushed == ButtonID.Down ? ButtonState.Pushed : (Enabled ? ButtonState.Normal : ButtonState.Inactive));
                 }

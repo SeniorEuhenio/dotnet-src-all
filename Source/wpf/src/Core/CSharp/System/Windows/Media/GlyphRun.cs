@@ -1293,11 +1293,22 @@ namespace System.Windows.Media
             // The amount of inflation depends on the fontsize, so that scaling
             // the result doesn't cause false hit-testing far away from the text
             // (see Dev11 483394).  But inflate by at most 1px.
-            if (!bounds.IsEmpty)
+            if (CoreCompatibilityPreferences.GetIncludeAllInkInBoundingBox())
             {
-                // Inflate bounds
-                double inflation = Math.Min(_renderingEmSize / 7.0, 1.0);
-                bounds.Inflate(inflation, inflation);
+                if (!bounds.IsEmpty)
+                {
+                    // Inflate bounds
+                    double inflation = Math.Min(_renderingEmSize / 7.0, 1.0);
+                    bounds.Inflate(inflation, inflation);
+                }
+            }
+            else // user opted out of the fix - this is the 4.0 code
+            {
+                if (TextFormattingMode.Display == _textFormattingMode && !bounds.IsEmpty)
+                {
+                    // Inflate bounds
+                    bounds.Inflate(1.0, 1.0);
+                }
             }
 
             if ((_flags & GlyphRunFlags.CacheInkBounds) != 0)

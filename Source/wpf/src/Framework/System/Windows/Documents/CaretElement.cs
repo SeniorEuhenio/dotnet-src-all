@@ -5,7 +5,7 @@
 // Copyright (C) Microsoft Corporation.  All rights reserved.
 //
 // Description: Caret rendering visual.
-// 
+//
 //---------------------------------------------------------------------------
 
 namespace System.Windows.Documents
@@ -28,7 +28,7 @@ namespace System.Windows.Documents
 #pragma warning disable 1634, 1691
 
     /// <summary>
-    /// This class is sealed because it calls OnVisualChildrenChanged virtual in the 
+    /// This class is sealed because it calls OnVisualChildrenChanged virtual in the
     /// constructor and it does not override it, but derived classes could.
     /// </summary>
     internal sealed class CaretElement : Adorner
@@ -38,7 +38,7 @@ namespace System.Windows.Documents
         //  Constructors
         //
         //------------------------------------------------------
-        
+
         #region Constructors
 
         /// <summary>
@@ -66,14 +66,14 @@ namespace System.Windows.Documents
             // caret dimensions
             _systemCaretWidth = SystemParameters.CaretWidth;
             _height = 0.0;
-        
+
             // Set AllowDropProperty as "False" not to inherit the value from the ancestor.
             AllowDrop = false;
 
             _caretElement = new CaretSubElement();
             _caretElement.ClipToBounds = false;
 
-            AddVisualChild(_caretElement);            
+            AddVisualChild(_caretElement);
         }
 
         #endregion Constructors
@@ -83,7 +83,7 @@ namespace System.Windows.Documents
         //  Public Methods
         //
         //------------------------------------------------------
- 
+
         #region Public Methods
 
         #endregion Public Methods
@@ -93,7 +93,7 @@ namespace System.Windows.Documents
         //  Protected Methods
         //
         //------------------------------------------------------
- 
+
         #region Protected Methods
 
         /// <summary>
@@ -113,7 +113,7 @@ namespace System.Windows.Documents
             {
                 throw new ArgumentOutOfRangeException("index", index, SR.Get(SRID.Visual_ArgumentOutOfRange));
             }
-            
+
             return _caretElement;
         }
 
@@ -149,7 +149,7 @@ namespace System.Windows.Documents
         }
 
         /// <summary>
-        /// Measurement override. 
+        /// Measurement override.
         /// </summary>
         /// <param name="availableSize">
         /// Available size for the component
@@ -162,7 +162,7 @@ namespace System.Windows.Documents
             base.MeasureOverride(availableSize);
             _caretElement.InvalidateVisual();
 
-            // Return the available width and height. Please don't 
+            // Return the available width and height. Please don't
             // return AdornedElement.RenderSize since it will be scrolled
             // in case of the reder size is greater than the available size.
             // Reference bug#1068444.
@@ -179,7 +179,7 @@ namespace System.Windows.Documents
         }
 
         /// <summary>
-        /// Arrange override. 
+        /// Arrange override.
         /// </summary>
         /// <param name="availableSize">
         /// Available size for the component
@@ -196,9 +196,9 @@ namespace System.Windows.Documents
                 ((TextSelection)_textEditor.Selection).UpdateCaretState(CaretScrollMethod.None);
                 _pendingGeometryUpdate = false;
             }
-                        
+
             point = new Point(_left, _top);
-            
+
             _caretElement.Arrange(new Rect(point, availableSize));
 
             return availableSize;
@@ -257,7 +257,7 @@ namespace System.Windows.Documents
             EnsureAttachedToView();
 
             // Enforce caret refresh for the case when it appears after invisible state
-            bool justAppearing = visible && !_showCaret;            
+            bool justAppearing = visible && !_showCaret;
 
             if (_showCaret != visible)
             {
@@ -272,7 +272,7 @@ namespace System.Windows.Documents
             // Define new coordinates and dimensions of the caret.
             // We don't consider caret visibility here because even if the
             // caret is hidden, we need to calc the geometry info to scroll
-            // the active edge of the selection into view.            
+            // the active edge of the selection into view.
 
             if (caretRectangle.IsEmpty || caretRectangle.Height <= 0)
             {
@@ -288,17 +288,17 @@ namespace System.Windows.Documents
                 newHeight = caretRectangle.Height;
                 newWidth = SystemParameters.CaretWidth;
             }
-  
+
             // Initialize flag requiring to refresh the caret
-            positionChanged = justAppearing || italic != _italic;                 
+            positionChanged = justAppearing || italic != _italic;
 
             if (!DoubleUtil.AreClose(_left, newLeft))
-            {                
+            {
                 _left = newLeft;
                 positionChanged = true;
             }
             if (!DoubleUtil.AreClose(_top, newTop))
-            {             
+            {
                 _top = newTop;
                 positionChanged = true;
             }
@@ -322,7 +322,7 @@ namespace System.Windows.Documents
             // Refresh caret and ensure the caret to the view if the caret position is changed or
             // caret is currently out of view area which scrollToOriginPosition is set.
             // scrollToOriginPosition will be set properly to view the caret correctly if caret is
-            // currently out of view boundary. For example, typing bidi characters on LTR flow direction 
+            // currently out of view boundary. For example, typing bidi characters on LTR flow direction
             // or typing western characters on RTL flow direction from the out of view.
             if (positionChanged || !double.IsNaN(scrollToOriginPosition))
             {
@@ -375,7 +375,7 @@ namespace System.Windows.Documents
             if (!double.IsNaN(scrollToOriginPosition))
             {
                 MS.Internal.Documents.TextViewBase.BringRectIntoViewMinimally(_textEditor.TextView, new Rect(scrollToOriginPosition, scrollRectangle.Y, scrollRectangle.Width, scrollRectangle.Height));
-                
+
                 // Since we've moved the viewport, and scrollRectangle is relative to the viewport. scrollRectangle
                 // is no longer correct.  Adjust it by the distance we scrolled to make it correct.
                 scrollRectangle.X -= scrollToOriginPosition;
@@ -395,7 +395,7 @@ namespace System.Windows.Documents
             if (scroller != null)
             {
                 Point targetPoint = new Point(targetRect.Left, targetRect.Top);
-              
+
                 GeneralTransform transform = _textEditor.TextView.RenderScope.TransformToAncestor(scroller);
 
                 if (transform.TryTransform(targetPoint, out targetPoint))
@@ -531,7 +531,7 @@ namespace System.Windows.Documents
                 // Skip the animation if the animation isn't set. E.g. DragDrop caret.
                 SetBlinking(/*isBlinkEnabled:*/false);
 
-                // Destroy Win32 caret 
+                // Destroy Win32 caret
                 Win32DestroyCaret();
             }
         }
@@ -661,8 +661,8 @@ namespace System.Windows.Documents
                     // on font properties - they discovered that variations look annoying.
                     // NOTE: We ignore _italic setting in _bidi case. This is Word behavior.
                     // When flow direction is Right to Left, we need to reverse the caret transform.
-                    // 
-                    // Get the flow direction which is the flow direction of AdornedElement. 
+                    //
+                    // Get the flow direction which is the flow direction of AdornedElement.
                     // CaretElement is rendering the caret that based on AdornedElement, so we can
                     // render the right italic caret whatever the text content set the flow direction.
                     FlowDirection flowDirection = (FlowDirection)AdornedElement.GetValue(FlowDirectionProperty);
@@ -706,7 +706,7 @@ namespace System.Windows.Documents
                     // the enough margin to display BiDi indicator.
                     double bidiCaretIndicatorWidth = BidiCaretIndicatorWidth;
 
-                    // Get the flow direction which is the flow direction of AdornedElement. 
+                    // Get the flow direction which is the flow direction of AdornedElement.
                     // Because CaretElement is rendering the caret that based on AdornedElement.
                     // With getting the flow direction, we can render the BiDi caret indicator correctly
                     // whatever AdornedElement's flow direction is set.
@@ -788,7 +788,7 @@ namespace System.Windows.Documents
                 return ((ITextSelection)TextEditor._ThreadLocalStore.FocusedTextSelection).TextView.RenderScope as FrameworkElement;  // TextBlock / TextFlow
             }
         }
-       
+
         #endregion Internal methods
 
         //------------------------------------------------------
@@ -959,20 +959,20 @@ namespace System.Windows.Documents
         /// Critical - as this calls PresentationSource.FromVisual() and PresentationSource.Handle
         ///            under elevation.
         /// Safe - as this doesn't expose the information. The call to CreateCaret here
-        ///        will destroy the caret only for the current window and create new empty bitmap 
-        ///        and show it for Win32 caret to handle the accesibility event well without 
-        ///        exposing the information. 
+        ///        will destroy the caret only for the current window and create new empty bitmap
+        ///        and show it for Win32 caret to handle the accesibility event well without
+        ///        exposing the information.
         /// </SecurityNote>
         [SecurityCritical, SecurityTreatAsSafe]
         private void Win32CreateCaret()
         {
             if (!_isSelectionActive)
             {
-                // We do not want to interfere with Win32 caret 
+                // We do not want to interfere with Win32 caret
                 // if this Adorner isnt representing active selection
                 return;
             }
-            
+
             // Create Win32 caret if the height of caret is changed or
             // doesn't exist Win32 caret.
             if (!_win32Caret || _win32Height != _height)
@@ -1001,10 +1001,10 @@ namespace System.Windows.Documents
                     // Convert _height (fixed at 96 dpi) to device units.
                     double deviceHeight = source.CompositionTarget.TransformToDevice.Transform(new Point(0, _height)).Y;
 
-                    // Win32 CreateCaret automatically destroys the previous caret shape,  
-                    // if any, regardless of the window that owns the caret. 
+                    // Win32 CreateCaret automatically destroys the previous caret shape,
+                    // if any, regardless of the window that owns the caret.
 
-                    // Create and show Win32 empty caret for win32 compatibility. 
+                    // Create and show Win32 empty caret for win32 compatibility.
                     // Creating Win32 empty caret and show it will generate the accesibility event
                     // so that Win32 application will have the compatibility who listen the caret event.
                     // Specified height with the current caret height will [....] the win32 caret which
@@ -1041,11 +1041,11 @@ namespace System.Windows.Documents
         {
             if (!_isSelectionActive)
             {
-                // We do not want to interfere with Win32 caret 
+                // We do not want to interfere with Win32 caret
                 // if this Adorner isnt representing active selection
                 return;
             }
-            
+
             // We only destroy the caret what we created a Win32 caret.
             if (_win32Caret)
             {
@@ -1077,11 +1077,11 @@ namespace System.Windows.Documents
         {
             if (!_isSelectionActive)
             {
-                // We do not want to interfere with Win32 caret 
+                // We do not want to interfere with Win32 caret
                 // if this Adorner isnt representing active selection
                 return;
             }
-            
+
             // Create Win32 caret if win32 caret isn't created yet or destroyed already.
             if (!_win32Caret)
             {
@@ -1143,7 +1143,7 @@ namespace System.Windows.Documents
             {
                 i = 0;
             }
-            if (value < Int32.MinValue)
+            else if (value < Int32.MinValue)
             {
                 i = Int32.MinValue;
             }
@@ -1163,16 +1163,16 @@ namespace System.Windows.Documents
         private int Win32GetCaretBlinkTime()
         {
             Invariant.Assert(_isSelectionActive, "Blink animation should only be required for an owner with active selection.");
-            
-            // Disable PreSharp#6523 - Win32 GetCaretBlinkTime can return "0" 
+
+            // Disable PreSharp#6523 - Win32 GetCaretBlinkTime can return "0"
             // without the error if SetCaretBlinkTime set as "0".
 #pragma warning disable 6523
 
             int caretBlinkTime = (int)SafeNativeMethods.GetCaretBlinkTime();
             if (caretBlinkTime == 0)
             {
-                // Return "-1" which is no blinking caret instead of throwing 
-                // exception. 
+                // Return "-1" which is no blinking caret instead of throwing
+                // exception.
                 return -1;
             }
 
@@ -1195,11 +1195,11 @@ namespace System.Windows.Documents
         {
             get
             {
-                // Returns true if the interim width is specified and shows 
+                // Returns true if the interim width is specified and shows
                 // the interim block caret.
                 return _interimWidth != 0;
             }
-        }            
+        }
 
         #endregion Private Properties
 
@@ -1211,7 +1211,7 @@ namespace System.Windows.Documents
 
         #region Internal Fields
 
-        // BiDi caret indicator width. 
+        // BiDi caret indicator width.
         internal const double BidiCaretIndicatorWidth = 2.0;
 
         // Caret padding width to ensure the visible caret for Bidi and Italic.
@@ -1318,7 +1318,7 @@ namespace System.Windows.Documents
         //  selection related data
         private Geometry _selectionGeometry;
         internal const double c_geometryCombineTolerance = 1e-4;
-        internal const double c_endOfParaMagicMultiplier = 0.5;     
+        internal const double c_endOfParaMagicMultiplier = 0.5;
 
         // ZOrder
         internal const int ZOrderValue = System.Int32.MaxValue / 2;

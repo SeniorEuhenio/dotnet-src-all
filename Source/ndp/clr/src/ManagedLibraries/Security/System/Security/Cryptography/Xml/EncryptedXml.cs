@@ -25,6 +25,23 @@ namespace System.Security.Cryptography.Xml
     using System.Text;
     using System.Xml;
 
+    /// <summary>
+    /// This exception helps catch the signed XML recursion limit error.
+    /// This is being caught in the SignedXml class while computing the
+    /// hash. ComputeHash can throw different kind of exceptions.
+    /// This unique exception helps catch the recursion limit issue.
+    /// </summary>
+    [Serializable]
+    internal class CryptoSignedXmlRecursionException : XmlException {
+        public CryptoSignedXmlRecursionException() : base() { }
+        public CryptoSignedXmlRecursionException(string message) : base(message) { }
+        public CryptoSignedXmlRecursionException(string message, System.Exception inner) : base(message, inner) { }
+        // A constructor is needed for serialization when an 
+        // exception propagates from a remoting server to the client.  
+        protected CryptoSignedXmlRecursionException(System.Runtime.Serialization.SerializationInfo info,
+        System.Runtime.Serialization.StreamingContext context) { }
+    }
+
     [System.Security.Permissions.HostProtection(MayLeakOnAbort = true)]
     public class EncryptedXml {
 
@@ -85,11 +102,12 @@ namespace System.Security.Cryptography.Xml
         private CipherMode m_mode;
         private Encoding m_encoding;
         private string m_recipient;
+        private int m_xmlDsigSearchDepthCounter = 0;
+        private int m_xmlDsigSearchDepth;
 
         //
         // public constructors
         //
-
         public EncryptedXml () : this (new XmlDocument()) {}
 
         public EncryptedXml (XmlDocument document) : this (document, null) {}
@@ -105,6 +123,31 @@ namespace System.Security.Cryptography.Xml
             // By default the encoding is going to be UTF8
             m_encoding = Encoding.UTF8;
             m_keyNameMapping = new Hashtable(m_capacity);
+            m_xmlDsigSearchDepth = Utils.GetXmlDsigSearchDepth();
+        }
+
+        /// <summary>
+        /// This mentod validates the m_xmlDsigSearchDepthCounter counter
+        /// if the counter is over the limit defined by admin or developer.
+        /// </summary>
+        /// <returns>returns true if the limit has reached otherwise false</returns>
+        private bool IsOverXmlDsigRecursionLimit() {
+            if (m_xmlDsigSearchDepthCounter > XmlDSigSearchDepth) {
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Gets / Sets the max limit for recursive search of encryption key in signed XML
+        /// </summary>
+        public int XmlDSigSearchDepth {
+            get {
+                return m_xmlDsigSearchDepth;
+            }
+            set {
+                m_xmlDsigSearchDepth = value;
+            }
         }
 
         //
@@ -405,7 +448,21 @@ namespace System.Security.Cryptography.Xml
                     string idref = Utils.ExtractIdFromLocalUri(kiRetrievalMethod.Uri);
                     ek = new EncryptedKey();
                     ek.LoadXml(GetIdElement(m_document, idref));
-                    return DecryptEncryptedKey(ek);
+                    try {
+                        //Following checks if XML dsig processing is in loop and within the limit defined by machine
+                        // admin or developer. Once the recursion depth crosses the defined limit it will throw exception.
+                        m_xmlDsigSearchDepthCounter++;
+                        if (IsOverXmlDsigRecursionLimit()) {
+                            //Throw exception once recursion limit is hit. 
+                            throw new CryptoSignedXmlRecursionException();
+                        }
+                        else {
+                            return DecryptEncryptedKey(ek);
+                        }
+                    }
+                    finally {
+                        m_xmlDsigSearchDepthCounter--;
+                    }
                 }
                 kiEncKey = keyInfoEnum.Current as KeyInfoEncryptedKey;
                 if (kiEncKey != null) {

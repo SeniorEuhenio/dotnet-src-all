@@ -54,7 +54,7 @@ namespace System.Transactions
 
             if ( transaction.complete )
             {
-                throw TransactionException.CreateTransactionCompletedException( SR.GetString( SR.TraceSourceLtm ) );
+                throw TransactionException.CreateTransactionCompletedException(SR.GetString(SR.TraceSourceLtm), transaction.DistributedTxId);
             }
 
             OletxTransaction oletxTx = transaction.Promote();

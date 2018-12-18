@@ -55,7 +55,14 @@ namespace MS.Internal.FontFace
             Dictionary<XmlLanguage, string> convertedDictionary = new Dictionary<XmlLanguage, string>();
             foreach (KeyValuePair<CultureInfo, string> pair in dictionary)
             {
-                convertedDictionary.Add(XmlLanguage.GetLanguage(pair.Key.Name), pair.Value);
+                // DevDiv.1153238 : In Windows 10, the dictionary argument to this method may contain two different entries
+                // for the same language if two fonts in the same font family report two different localized family names.
+                // We check for this case, and only add the first one we encounter into convertedDictionary.
+                XmlLanguage language = XmlLanguage.GetLanguage(pair.Key.Name);
+                if (!convertedDictionary.ContainsKey(language))
+                {
+                    convertedDictionary.Add(language, pair.Value);
+                }
             }
 
             return convertedDictionary;

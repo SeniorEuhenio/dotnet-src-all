@@ -254,7 +254,6 @@ namespace System.Drawing {
         /// </devdoc>
         internal IntPtr NativeGraphics
         {
-            [System.Runtime.TargetedPatchingOptOutAttribute("Performance critical to inline across NGen image boundaries")]
             get
             {
                 Debug.Assert( this.nativeGraphics != IntPtr.Zero, "this.nativeGraphics == IntPtr.Zero." );

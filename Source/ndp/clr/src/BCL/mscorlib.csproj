@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{edd76f80-29f6-4590-a3ef-f885b38da1b0}</ProjectGuid>
+    <ProjectGuid>{224f6f5b-c254-4b89-95cd-b690effa845e}</ProjectGuid>
     <OutputPath>.</OutputPath>
     <OutputType>Library</OutputType>
     <AssemblyName>mscorlib</AssemblyName>
@@ -12,16 +12,12 @@
     <NoStdLib>True</NoStdLib>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>
-    <DefineConstants>CODE_ANALYSIS_BASELINE;MDA_SUPPORTED;_USE_NLS_PLUS_TABLE;GENERICS_WORK;ARRAY_GENERIC_METHODS;RESOURCE_SATELLITE_CONFIG;NEW_EXPERIMENTAL_ASYNC_IO;ETW_SUPPORTED;ISOLATION_IN_MSCORLIB;INSIDE_CLR;PINNABLEBUFFERCACHE_MSCORLIB;FEATURE_APPDOMAINMANAGER_INITOPTIONS;FEATURE_APPDOMAIN_RESOURCE_MONITORING;FEATURE_APPX;FEATURE_APTCA;FEATURE_ASCII;FEATURE_ASYNC_IO;FEATURE_BCL_FORMATTING;FEATURE_CAS_POLICY;FEATURE_CLASSIC_COMINTEROP;FEATURE_CLICKONCE;FEATURE_CODEPAGES_FILE;FEATURE_COLLECTIBLE_TYPES;FEATURE_COMINTEROP;FEATURE_COMINTEROP_APARTMENT_SUPPORT;FEATURE_COMINTEROP_MANAGED_ACTIVATION;FEATURE_COMINTEROP_UNMANAGED_ACTIVATION;FEATURE_COMINTEROP_WINRT_DESKTOP_HOST;FEATURE_COMPRESSEDSTACK;FEATURE_CORRUPTING_EXCEPTIONS;FEATURE_CRYPTO;FEATURE_DISPLAY_CULTURE_INFO;FEATURE_DISPLAY_REGION_INFO;FEATURE_ENCODINGNLS;FEATURE_EXCEPTIONDISPATCHINFO;FEATURE_EXCEPTION_NOTIFICATIONS;FEATURE_FUSION;FEATURE_HOSTED_BINDER;FEATURE_HOSTING;FEATURE_IDENTITY_REFERENCE;FEATURE_IMPERSONATION;FEATURE_INCLUDE_ALL_INTERFACES;FEATURE_ISOLATED_STORAGE_QUOTA_ENFORCEMENT;FEATURE_ISOSTORE;FEATURE_LATIN1;FEATURE_LEAK_CULTURE_INFO;FEATURE_LEGACYSURFACEAREA;FEATURE_LIST_PREDICATES;FEATURE_LOADER_OPTIMIZATION;FEATURE_MACL;FEATURE_MANAGED_ETW;FEATURE_METHOD_RENTAL;FEATURE_MULTIMODULE_ASSEMBLIES;FEATURE_MULTIPLATFORM;FEATURE_NONGENERIC_COLLECTIONS;FEATURE_PERFMON;FEATURE_PLS;FEATURE_RANDOMIZED_STRING_HASHING;FEATURE_REFLECTION_ONLY_LOAD;FEATURE_REMOTING;FEATURE_RWLOCK;FEATURE_SERIALIZATION;FEATURE_SORT_TABLES;FEATURE_STRONGNAME_MIGRATION;FEATURE_SYNCHRONIZATIONCONTEXT;FEATURE_SYNCHRONIZATIONCONTEXT_WAIT;FEATURE_SYNTHETIC_CULTURES;FEATURE_TYPEEQUIVALENCE;FEATURE_USE_INSTANCE_TAGGED_SEH_CODES;FEATURE_USE_LCID;FEATURE_UTF32;FEATURE_UTF7;FEATURE_VALIDATOR;FEATURE_WIN32_REGISTRY;FEATURE_X509;FEATURE_X509_SECURESTRINGS;PROFILING_SUPPORTED;FEATURE_MULTICOREJIT;FEATURE_USE_ASM_GC_WRITE_BARRIERS;FEATURE_SYMDIFF;FEATURE_WIN_DB_APPCOMPAT;TRACE;RETAIL;WIN32</DefineConstants>
+    <DefineConstants>CODE_ANALYSIS_BASELINE;MDA_SUPPORTED;_USE_NLS_PLUS_TABLE;GENERICS_WORK;ARRAY_GENERIC_METHODS;RESOURCE_SATELLITE_CONFIG;NEW_EXPERIMENTAL_ASYNC_IO;ETW_SUPPORTED;ISOLATION_IN_MSCORLIB;INSIDE_CLR;PINNABLEBUFFERCACHE_MSCORLIB;FEATURE_APPDOMAINMANAGER_INITOPTIONS;FEATURE_APPDOMAIN_RESOURCE_MONITORING;FEATURE_APPX;FEATURE_APPX_BINDER;FEATURE_APTCA;FEATURE_ASCII;FEATURE_ASYNC_IO;FEATURE_BCL_FORMATTING;FEATURE_CAS_POLICY;FEATURE_CLASSIC_COMINTEROP;FEATURE_CLICKONCE;FEATURE_CODEPAGES_FILE;FEATURE_COLLECTIBLE_TYPES;FEATURE_COMINTEROP;FEATURE_COMINTEROP_APARTMENT_SUPPORT;FEATURE_COMINTEROP_MANAGED_ACTIVATION;FEATURE_COMINTEROP_UNMANAGED_ACTIVATION;FEATURE_COMINTEROP_WINRT_MANAGED_ACTIVATION;FEATURE_COMINTEROP_WINRT_DESKTOP_HOST;FEATURE_COMPRESSEDSTACK;FEATURE_CORRUPTING_EXCEPTIONS;FEATURE_CRYPTO;FEATURE_DISPLAY_CULTURE_INFO;FEATURE_DISPLAY_REGION_INFO;FEATURE_ENCODINGNLS;FEATURE_EXCEPTIONDISPATCHINFO;FEATURE_EXCEPTION_NOTIFICATIONS;FEATURE_FUSION;FEATURE_HOSTED_BINDER;FEATURE_HOSTING;FEATURE_IDENTITY_REFERENCE;FEATURE_IMPERSONATION;FEATURE_INCLUDE_ALL_INTERFACES;FEATURE_ISOLATED_STORAGE_QUOTA_ENFORCEMENT;FEATURE_ISOSTORE;FEATURE_LATIN1;FEATURE_LEAK_CULTURE_INFO;FEATURE_LOADER_OPTIMIZATION;FEATURE_MACL;FEATURE_MANAGED_ETW;FEATURE_MANAGED_ETW_CHANNELS;FEATURE_METHOD_RENTAL;FEATURE_MULTIMODULE_ASSEMBLIES;FEATURE_NONGENERIC_COLLECTIONS;FEATURE_PERFMON;FEATURE_PLS;FEATURE_RANDOMIZED_STRING_HASHING;FEATURE_REFLECTION_ONLY_LOAD;FEATURE_REMOTING;FEATURE_RWLOCK;FEATURE_SERIALIZATION;FEATURE_SORT_TABLES;FEATURE_STRONGNAME_MIGRATION;FEATURE_SYNCHRONIZATIONCONTEXT_WAIT;FEATURE_SYNTHETIC_CULTURES;FEATURE_TYPEEQUIVALENCE;FEATURE_USE_LCID;FEATURE_UTF32;FEATURE_UTF7;FEATURE_VALIDATOR;FEATURE_WIN32_REGISTRY;FEATURE_X509;FEATURE_X509_SECURESTRINGS;PROFILING_SUPPORTED;FEATURE_MULTICOREJIT;FEATURE_USE_ASM_GC_WRITE_BARRIERS;FEATURE_SYMDIFF;FEATURE_WIN_DB_APPCOMPAT;TRACE;RETAIL;WIN32</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " >
   </PropertyGroup>
-  <ItemGroup>
-  </ItemGroup>
-  <ItemGroup>
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\..\InternalApis\NDP_Common\inc\PinnableBufferCache.cs" />
     <Compile Include="..\..\..\..\InternalApis\NDP_Common\inc\StrongNameHelpers.cs" />
@@ -56,9 +52,16 @@
     <Compile Include="system\activationcontext.cs" />
     <Compile Include="system\activator.cs" />
     <Compile Include="system\AggregateException.cs" />
+    <Compile Include="system\AppContext\AppContext.cs" />
+    <Compile Include="system\AppContext\AppContextDefaultValues.cs" />
+    <Compile Include="system\AppContext\AppContextDefaultValues.Defaults.Central.cs" />
+    <Compile Include="system\AppContext\AppContextDefaultValues.Defaults.cs" />
+    <Compile Include="system\AppContext\AppContextDefaultValues.DesktopOverrides.cs" />
+    <Compile Include="system\AppContext\AppContextSwitches.cs" />
     <Compile Include="system\appdomain.cs" />
     <Compile Include="system\appdomainattributes.cs" />
     <Compile Include="system\appdomainmanager.cs" />
+    <Compile Include="system\AppDomainSetup.cs" />
     <Compile Include="system\appdomainunloadedexception.cs" />
     <Compile Include="system\applicationactivator.cs" />
     <Compile Include="system\applicationexception.cs" />
@@ -188,11 +191,45 @@
     <Compile Include="system\diagnostics\debugger.cs" />
     <Compile Include="system\diagnostics\debuggerattributes.cs" />
     <Compile Include="system\diagnostics\editandcontinuehelper.cs" />
+    <Compile Include="system\diagnostics\eventing\activitytracker.cs" />
+    <Compile Include="system\diagnostics\eventing\eventactivityoptions.cs" />
     <Compile Include="system\diagnostics\eventing\eventdescriptor.cs" />
     <Compile Include="system\diagnostics\eventing\eventprovider.cs" />
-    <Compile Include="system\diagnostics\eventing\eventproviderbase.cs" />
+    <Compile Include="system\diagnostics\eventing\eventsource.cs" />
     <Compile Include="system\diagnostics\eventing\eventsourceexception.cs" />
     <Compile Include="system\diagnostics\eventing\frameworkeventsource.cs" />
+    <Compile Include="system\diagnostics\eventing\StubEnvironment.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\ArrayTypeInfo.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\ConcurrentSet.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\ConcurrentSetItem.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\DataCollector.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\EmptyStruct.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\EnumerableTypeInfo.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\EnumHelper.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\EventDataAttribute.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\EventFieldAttribute.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\EventFieldFormat.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\EventIgnoreAttribute.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\EventPayload.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\EventSourceActivity.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\EventSourceOptions.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\FieldMetadata.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\InvokeTypeInfo.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\NameInfo.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\PropertyAccessor.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\PropertyAnalysis.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\SimpleEventTypes.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\SimpleTypeInfos.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\Statics.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\TraceLoggingDataCollector.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\TraceLoggingDataType.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\TraceLoggingEventSource.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\TraceLoggingEventTraits.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\TraceLoggingEventTypes.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\TraceLoggingMetadataCollector.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\TraceLoggingTypeInfo.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\TraceLoggingTypeInfo_T.cs" />
+    <Compile Include="System\Diagnostics\Eventing\TraceLogging\TypeAnalysis.cs" />
     <Compile Include="system\diagnostics\eventing\winmeta.cs" />
     <Compile Include="system\diagnostics\ICustomDebuggerNotification.cs" />
     <Compile Include="system\diagnostics\log.cs" />
@@ -229,6 +266,7 @@
     <Compile Include="system\fieldaccessexception.cs" />
     <Compile Include="system\flagsattribute.cs" />
     <Compile Include="system\formatexception.cs" />
+    <Compile Include="system\FormattableString.cs" />
     <Compile Include="system\gc.cs" />
     <Compile Include="system\globalization\appdomainsortingsetupinfo.cs" />
     <Compile Include="system\globalization\bidicategory.cs" />
@@ -236,6 +274,7 @@
     <Compile Include="system\globalization\calendaralgorithmtype.cs" />
     <Compile Include="system\globalization\calendardata.cs" />
     <Compile Include="system\globalization\calendarweekrule.cs" />
+    <Compile Include="system\globalization\CalendricalCalculationsHelper.cs" />
     <Compile Include="system\globalization\charunicodeinfo.cs" />
     <Compile Include="system\globalization\chineselunisolarcalendar.cs" />
     <Compile Include="system\globalization\compareinfo.cs" />
@@ -391,6 +430,7 @@
     <Compile Include="system\outofmemoryexception.cs" />
     <Compile Include="system\overflowexception.cs" />
     <Compile Include="system\paramarrayattribute.cs" />
+    <Compile Include="system\paramsarray.cs" />
     <Compile Include="system\parsenumbers.cs" />
     <Compile Include="system\platformid.cs" />
     <Compile Include="system\platformnotsupportedexception.cs" />
@@ -547,10 +587,12 @@
     <Compile Include="system\runtime\compilerservices\datetimeconstantattribute.cs" />
     <Compile Include="system\runtime\compilerservices\decimalconstantattribute.cs" />
     <Compile Include="system\runtime\compilerservices\decoratednameattribute.cs" />
+    <Compile Include="system\runtime\compilerservices\disableprivatereflectionattribute.cs" />
     <Compile Include="system\runtime\compilerservices\discardableattribute.cs" />
     <Compile Include="system\runtime\compilerservices\extensionattribute.cs" />
     <Compile Include="system\runtime\compilerservices\fixedaddressvaluetypeattribute.cs" />
     <Compile Include="system\runtime\compilerservices\fixedbufferattribute.cs" />
+    <Compile Include="system\Runtime\CompilerServices\FormattableStringFactory.cs" />
     <Compile Include="system\runtime\compilerservices\hascopysemanticsattribute.cs" />
     <Compile Include="system\runtime\compilerservices\IAsyncStateMachine.cs" />
     <Compile Include="system\runtime\compilerservices\idispatchconstantattribute.cs" />
@@ -710,7 +752,6 @@
     <Compile Include="system\runtime\interopservices\windowsruntime\imap.cs" />
     <Compile Include="system\runtime\interopservices\windowsruntime\imapviewtoireadonlydictionaryadapter.cs" />
     <Compile Include="system\runtime\interopservices\windowsruntime\ipropertyvalue.cs" />
-    <Compile Include="system\runtime\interopservices\windowsruntime\ipropertyvaluefactory.cs" />
     <Compile Include="system\runtime\interopservices\windowsruntime\ireadonlydictionarytoimapviewadapter.cs" />
     <Compile Include="system\runtime\interopservices\windowsruntime\ireadonlylisttoivectorviewadapter.cs" />
     <Compile Include="system\runtime\interopservices\windowsruntime\ireference.cs" />
@@ -855,6 +896,7 @@
     <Compile Include="system\runtime\versioning\CompatibilitySwitch.cs" />
     <Compile Include="system\runtime\versioning\componentguaranteesattribute.cs" />
     <Compile Include="system\runtime\versioning\multitargetinghelpers.cs" />
+    <Compile Include="system\runtime\versioning\NonVersionableAttribute.cs" />
     <Compile Include="system\runtime\versioning\resourceattributes.cs" />
     <Compile Include="system\runtime\versioning\targetframeworkattribute.cs" />
     <Compile Include="system\runtime\versioning\targetframeworkid.cs" />
@@ -896,6 +938,7 @@
     <Compile Include="system\security\cryptography\asymmetricsignaturedeformatter.cs" />
     <Compile Include="system\security\cryptography\asymmetricsignatureformatter.cs" />
     <Compile Include="system\security\cryptography\base64transforms.cs" />
+    <Compile Include="system\security\cryptography\capinative.cs" />
     <Compile Include="system\security\cryptography\crypto.cs" />
     <Compile Include="system\security\cryptography\cryptoapitransform.cs" />
     <Compile Include="system\security\cryptography\cryptoconfig.cs" />
@@ -908,6 +951,7 @@
     <Compile Include="system\security\cryptography\dsasignaturedeformatter.cs" />
     <Compile Include="system\security\cryptography\dsasignatureformatter.cs" />
     <Compile Include="system\security\cryptography\hashalgorithm.cs" />
+    <Compile Include="system\security\cryptography\HashAlgorithmName.cs" />
     <Compile Include="system\security\cryptography\hmac.cs" />
     <Compile Include="system\security\cryptography\hmacmd5.cs" />
     <Compile Include="system\security\cryptography\hmacripemd160.cs" />
@@ -936,12 +980,16 @@
     <Compile Include="system\security\cryptography\rngcryptoserviceprovider.cs" />
     <Compile Include="system\security\cryptography\rsa.cs" />
     <Compile Include="system\security\cryptography\rsacryptoserviceprovider.cs" />
+    <Compile Include="system\security\cryptography\RSAEncryptionPadding.cs" />
+    <Compile Include="system\security\cryptography\RSAEncryptionPaddingMode.cs" />
     <Compile Include="system\security\cryptography\rsaoaepkeyexchangedeformatter.cs" />
     <Compile Include="system\security\cryptography\rsaoaepkeyexchangeformatter.cs" />
     <Compile Include="system\security\cryptography\rsapkcs1keyexchangedeformatter.cs" />
     <Compile Include="system\security\cryptography\rsapkcs1keyexchangeformatter.cs" />
     <Compile Include="system\security\cryptography\rsapkcs1signaturedeformatter.cs" />
     <Compile Include="system\security\cryptography\rsapkcs1signatureformatter.cs" />
+    <Compile Include="system\security\cryptography\RSASignaturePadding.cs" />
+    <Compile Include="system\security\cryptography\RSASignaturePaddingMode.cs" />
     <Compile Include="system\security\cryptography\safecryptohandles.cs" />
     <Compile Include="system\security\cryptography\sha1.cs" />
     <Compile Include="system\security\cryptography\sha1cryptoserviceprovider.cs" />
@@ -1108,6 +1156,7 @@
     <Compile Include="system\text\encoding.cs" />
     <Compile Include="system\text\encodinginfo.cs" />
     <Compile Include="system\text\encodingnls.cs" />
+    <Compile Include="system\text\encodingprovider.cs" />
     <Compile Include="system\text\eucjpencoding.cs" />
     <Compile Include="system\text\gb18030encoding.cs" />
     <Compile Include="system\text\isciiencoding.cs" />
@@ -1126,6 +1175,7 @@
     <Compile Include="system\threadattributes.cs" />
     <Compile Include="system\threading\abandonedmutexexception.cs" />
     <Compile Include="system\threading\apartmentstate.cs" />
+    <Compile Include="system\threading\asynclocal.cs" />
     <Compile Include="system\threading\autoresetevent.cs" />
     <Compile Include="system\threading\CancellationToken.cs" />
     <Compile Include="system\threading\CancellationTokenRegistration.cs" />
@@ -1192,6 +1242,7 @@
     <Compile Include="system\threading\volatile.cs" />
     <Compile Include="system\threading\waithandle.cs" />
     <Compile Include="system\threading\waithandlecannotbeopenedexception.cs" />
+    <Compile Include="system\threading\waithandleExtensions.cs" />
     <Compile Include="system\threadstaticattribute.cs" />
     <Compile Include="system\throwhelper.cs" />
     <Compile Include="system\timeoutexception.cs" />

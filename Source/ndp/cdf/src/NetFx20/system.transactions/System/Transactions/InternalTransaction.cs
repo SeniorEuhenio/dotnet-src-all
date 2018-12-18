@@ -195,6 +195,15 @@ namespace System.Transactions
             }
         }
 
+        internal Guid DistributedTxId
+        {
+            get
+            {
+                return this.State.get_Identifier(this);
+            }
+        }
+
+
         // Double-checked locking pattern requires volatile for read/write synchronization
         static volatile string instanceIdentifier;
         static internal string InstanceIdentifier
@@ -358,7 +367,8 @@ namespace System.Transactions
                         Debug.Assert( false, "InternalTransaction.DistributedTransactionOutcome - Unexpected TransactionStatus" );
                         TransactionException.CreateInvalidOperationException( SR.GetString( SR.TraceSourceLtm ), 
                             "",
-                            null
+                            null,
+                            tx.DistributedTxId
                             );
                         break;
                     }

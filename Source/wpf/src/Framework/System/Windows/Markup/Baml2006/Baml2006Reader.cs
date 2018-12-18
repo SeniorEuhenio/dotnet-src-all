@@ -5,6 +5,7 @@ using System.Xaml;
 using System.Diagnostics;
 using System.ComponentModel;
 using System.Reflection;
+using System.Windows.Diagnostics;
 using System.Windows.Media.Media3D;
 using System.Windows.Media;
 using MS.Internal;
@@ -2413,6 +2414,18 @@ namespace System.Windows.Baml2006
 
                             _xamlWriterStack.Push(_xamlNodesWriter);
                             _xamlNodesWriter = _xamlTemplateNodeList.Writer;
+
+                            if (XamlSourceInfoHelper.IsXamlSourceInfoEnabled)
+                            {
+                                // Push the current line info in the new XamlNodeList
+                                // This is needed to ensure that template root element carries a line info
+                                // which can then be used when it is instantiated
+                                IXamlLineInfoConsumer consumer = _xamlNodesWriter as IXamlLineInfoConsumer;
+                                if (consumer != null)
+                                {
+                                    consumer.SetLineInfo(_context.LineNumber, _context.LineOffset);
+                                }
+                            }
                         }
                     }
                 }

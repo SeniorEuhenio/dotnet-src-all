@@ -293,16 +293,7 @@ namespace System.Windows.Interop
             _restoreFocusMode = parameters.RestoreFocusMode;
             _acquireHwndFocusInMenuMode = parameters.AcquireHwndFocusInMenuMode;
 
-            // A window must be marked WS_EX_LAYERED if (and only if):
-            // 1) it is not a child window
-            //    -- AND --
-            // 2) a color-key is specified
-            // 3) or an opacity other than 1.0 is specified
-            // 4) or per-pixel alpha is requested.
-            if((parameters.WindowStyle & NativeMethods.WS_CHILD) == 0 &&
-               ( //parameters.ColorKey != null ||
-                 //!MS.Internal.DoubleUtil.AreClose(parameters.Opacity, 1.0) ||
-                parameters.UsesPerPixelOpacity))
+            if (parameters.EffectivePerPixelOpacity)
             {
                 parameters.ExtendedWindowStyle |= NativeMethods.WS_EX_LAYERED;
             }
@@ -327,7 +318,7 @@ namespace System.Windows.Interop
             _hwndTarget = new HwndTarget(_hwndWrapper.Handle);
             //_hwndTarget.ColorKey = parameters.ColorKey;
             //_hwndTarget.Opacity = parameters.Opacity;
-            _hwndTarget.UsesPerPixelOpacity = parameters.UsesPerPixelOpacity;
+            _hwndTarget.UsesPerPixelOpacity = parameters.EffectivePerPixelOpacity;
             if(_hwndTarget.UsesPerPixelOpacity)
             {
                 _hwndTarget.BackgroundColor = Colors.Transparent;
@@ -1405,7 +1396,7 @@ namespace System.Windows.Interop
             if(!handled && (_constructionParameters != null || IsUsable))
             {
                 // Get the usesPerPixelOpacity from either the constructor parameters or the HwndTarget.
-                bool usesPerPixelOpacity = _constructionParameters != null ? ((HwndSourceParameters)_constructionParameters).UsesPerPixelOpacity : _hwndTarget.UsesPerPixelOpacity;
+                bool usesPerPixelOpacity = _constructionParameters != null ? ((HwndSourceParameters)_constructionParameters).EffectivePerPixelOpacity : _hwndTarget.UsesPerPixelOpacity;
 
                 switch(message)
                 {
@@ -3188,5 +3179,6 @@ namespace System.Windows.Interop
         //
         [ThreadStatic]
         internal static bool _eatCharMessages; // used from HwndKeyboardInputProvider
+
     }
 }

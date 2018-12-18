@@ -1474,19 +1474,24 @@ namespace Microsoft.Win32 {
                                 int pageProtectionMode
                                 );
 
-            [DllImport(KERNEL32, CharSet = CharSet.Auto, SetLastError = true)]
+            [SecurityCritical]
+            internal static bool GlobalMemoryStatusEx(ref MEMORYSTATUSEX lpBuffer)
+            {
+                lpBuffer.dwLength = (uint)Marshal.SizeOf(typeof(MEMORYSTATUSEX));
+                return GlobalMemoryStatusExNative(ref lpBuffer);
+            }
+                                
+            [DllImport(KERNEL32, CharSet = CharSet.Auto, SetLastError = true, EntryPoint = "GlobalMemoryStatusEx")]
             [SecurityCritical]
             [return: MarshalAs(UnmanagedType.Bool)]
-            internal static extern bool GlobalMemoryStatusEx([In, Out] MEMORYSTATUSEX lpBuffer);
+            private static extern bool GlobalMemoryStatusExNative([In, Out] ref MEMORYSTATUSEX lpBuffer);
+
+            [DllImport(KERNEL32, SetLastError = true)]
+            [SecurityCritical]
+            internal static unsafe extern bool CancelIoEx(SafeHandle handle, NativeOverlapped* lpOverlapped);
 
             [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-            internal class MEMORYSTATUSEX {
-
-                [System.Security.SecurityCritical]
-                internal MEMORYSTATUSEX() {
-                    this.dwLength = (uint)Marshal.SizeOf(typeof(MEMORYSTATUSEX));
-                }
-
+            internal struct MEMORYSTATUSEX {
                 internal uint dwLength;
                 internal uint dwMemoryLoad;
                 internal ulong ullTotalPhys;

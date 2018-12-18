@@ -817,7 +817,6 @@ namespace System.Drawing {
         ///    </para>
         /// </devdoc>
         public Size Size {
-            [System.Runtime.TargetedPatchingOptOutAttribute("Performance critical to inline across NGen image boundaries")]
             get {
                 return new Size(Width, Height);
             }
@@ -833,7 +832,6 @@ namespace System.Drawing {
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)
         ]
         public int Width {
-            [System.Runtime.TargetedPatchingOptOutAttribute("Performance critical to inline across NGen image boundaries")]
             get {
                 int width; 
 
@@ -856,7 +854,6 @@ namespace System.Drawing {
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)
         ]
         public int Height {
-            [System.Runtime.TargetedPatchingOptOutAttribute("Performance critical to inline across NGen image boundaries")]
             get {
                 int height; 
 
@@ -946,7 +943,6 @@ namespace System.Drawing {
         ///    Gets the pixel format for this <see cref='System.Drawing.Image'/>.
         /// </devdoc>
         public PixelFormat PixelFormat {
-            [System.Runtime.TargetedPatchingOptOutAttribute("Performance critical to inline across NGen image boundaries")]
             get {
                 int format;
 

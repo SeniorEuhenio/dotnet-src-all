@@ -44,8 +44,18 @@ namespace System.Windows.Input
         /// Cursor from .ani or .cur file
         /// </summary>
         /// <param name="cursorFile"></param>
-        public Cursor(string cursorFile)
+        public Cursor(string cursorFile):this(cursorFile, false)
         {
+        }
+        
+        /// <summary>
+        /// Cursor from .ani or .cur file
+        /// </summary>
+        /// <param name="cursorFile"></param>
+        /// <param name="scaleWithDpi"></param>
+        public Cursor(string cursorFile, bool scaleWithDpi)
+        {
+            _scaleWithDpi = scaleWithDpi;
             if (cursorFile == null)
                 throw new ArgumentNullException("cursorFile");
         
@@ -61,20 +71,28 @@ namespace System.Windows.Input
                 throw new ArgumentException(SR.Get(SRID.Cursor_UnsupportedFormat , cursorFile));
             }
         }
-
+        
         /// <summary>
         /// Cursor from Stream
         /// </summary>
         /// <param name="cursorStream"></param>
-        public Cursor(Stream cursorStream)
+        public Cursor(Stream cursorStream):this(cursorStream, false)
         {
+        }
+        
+        /// <summary>
+        /// Cursor from Stream
+        /// </summary>
+        /// <param name="cursorStream"></param>
+        /// <param name="scaleWithDpi"></param>
+        public Cursor(Stream cursorStream, bool scaleWithDpi)
+        {
+            _scaleWithDpi = scaleWithDpi;
             if (cursorStream == null)
             {
                 throw new ArgumentNullException("cursorStream");
             }
-
             LoadFromStream(cursorStream);
-
         }
 
         /// <summary>
@@ -190,7 +208,8 @@ namespace System.Windows.Input
                                                                 NativeMethods.IMAGE_CURSOR,
                                                                 0, 0,  
                                                                 NativeMethods.LR_DEFAULTCOLOR |
-                                                                NativeMethods.LR_LOADFROMFILE);
+                                                                NativeMethods.LR_LOADFROMFILE |
+                                                                (_scaleWithDpi? NativeMethods.LR_DEFAULTSIZE : 0x0000));
 
             int errorCode = Marshal.GetLastWin32Error();
             if (_cursorHandle == null || _cursorHandle.IsInvalid)
@@ -272,7 +291,8 @@ namespace System.Windows.Input
                                                                     NativeMethods.IMAGE_CURSOR,
                                                                     0, 0,  
                                                                     NativeMethods.LR_DEFAULTCOLOR |
-                                                                    NativeMethods.LR_LOADFROMFILE);
+                                                                    NativeMethods.LR_LOADFROMFILE |
+                                                                    (_scaleWithDpi? NativeMethods.LR_DEFAULTSIZE : 0x0000));
                 if (_cursorHandle == null || _cursorHandle.IsInvalid)
                 {
                      throw new ArgumentException(SR.Get(SRID.Cursor_InvalidStream));
@@ -321,6 +341,7 @@ namespace System.Windows.Input
 
         private string      _fileName     = String.Empty;
         private CursorType  _cursorType   = CursorType.None;
+        private bool        _scaleWithDpi = false;
 
         /// <SecurityNote>
         /// In v4, SafeHandle is marked as SecurityCritical. According to the new transparency enforcement model,

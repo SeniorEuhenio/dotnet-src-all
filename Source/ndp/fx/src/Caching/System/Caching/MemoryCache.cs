@@ -452,6 +452,9 @@ namespace System.Runtime.Caching {
         }
 
         public long Trim(int percent) {
+            if (percent > 100) {
+                percent = 100;
+            }
             long trimmed = 0;
             if (_disposed == 0) {
                 foreach (MemoryCacheStore store in _stores) {

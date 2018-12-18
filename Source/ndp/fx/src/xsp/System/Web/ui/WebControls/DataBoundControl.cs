@@ -445,11 +445,14 @@ namespace System.Web.UI.WebControls {
                 OnDataBinding(EventArgs.Empty);
             }
             DataSourceView view = GetData();
-            _arguments = CreateDataSourceSelectArguments();
             _ignoreDataSourceViewChanged = true;
             RequiresDataBinding = false;
             MarkAsDataBound();
-            view.Select(_arguments, OnDataSourceViewSelectCallback);
+
+            // when PerformSelect is called in async method, setting _arguments
+            // to a new instance causes an exception deep in ListView.
+            // Instead, we should use SelectArguments.
+            view.Select(SelectArguments, OnDataSourceViewSelectCallback);
         }
 
 

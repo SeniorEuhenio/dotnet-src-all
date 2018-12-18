@@ -13,6 +13,7 @@ using System;
 using System.Security;
 using System.Windows.Threading;
 using MS.Win32;
+using System.Windows.Diagnostics;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using System.Windows.Media.Animation;
@@ -2650,6 +2651,7 @@ namespace System.Windows.Media
             // Fire notifications
             this.OnVisualChildrenChanged(child, null /* no removed child */);
             child.FireOnVisualParentChanged(null);
+            VisualDiagnostics.OnVisualChildChanged(this, child, true);
         }
 
         /// <summary>
@@ -2672,7 +2674,9 @@ namespace System.Windows.Media
                 throw new ArgumentException(SR.Get(SRID.Visual_NotChild));
             }
 
-            if(InternalVisual2DOr3DChildrenCount == 0)
+            VisualDiagnostics.OnVisualChildChanged(this, child, false);
+
+            if (InternalVisual2DOr3DChildrenCount == 0)
             {
                 SetFlags(false, VisualFlags.HasChildren);
             }
@@ -5253,6 +5257,7 @@ namespace System.Windows.Media
 
         // index in parent child array. no meaning if parent is null.
         // note that we maintain in debug that the _parentIndex is -1 if the parent is null.
+        // Exception: children added to TextBoxView and InkPresenter.
         internal int _parentIndex;
 
         // ([....]) I think we have to change the API so that we can save

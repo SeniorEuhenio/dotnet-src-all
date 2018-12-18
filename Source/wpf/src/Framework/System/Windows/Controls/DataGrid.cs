@@ -6363,7 +6363,7 @@ namespace System.Windows.Controls
             if (rowHeader != null)
             {
                 DataGridRow parentRow = rowHeader.ParentRow;
-                if (parentRow != null)
+                if (parentRow != null && !parentRow.IsSelected)
                 {
                     HandleSelectionForRowHeaderAndDetailsInput(parentRow, /* startDragging = */ false);
                 }

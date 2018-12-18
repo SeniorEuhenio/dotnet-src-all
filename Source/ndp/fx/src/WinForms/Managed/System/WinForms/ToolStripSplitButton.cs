@@ -45,6 +45,9 @@ namespace System.Windows.Forms {
         private static readonly object EventButtonDoubleClick                          = new object();
         private static readonly object EventDropDownOpened                             = new object();
         private static readonly object EventDropDownClosed                             = new object();
+
+        private static bool isScalingInitialized = false;
+        private static int scaledDropDownButtonWidth = DEFAULT_DROPDOWN_WIDTH;
        
         /// <include file='doc\ToolStripComboButton.uex' path='docs/doc[@for="ToolStripSplitButton.ToolStripSplitButton"]/*' />
         /// <devdoc>
@@ -271,9 +274,16 @@ namespace System.Windows.Forms {
         /// This is here for serialization purposes.
         /// </devdoc>
         private int DefaultDropDownButtonWidth {
-            get { 
-                // lets start off with a size roughly equivilant to a combobox dropdown
-                return DEFAULT_DROPDOWN_WIDTH;
+            get {
+                // lets start off with a size roughly equivalent to a combobox dropdown
+                if (!isScalingInitialized) {
+                    if (DpiHelper.IsScalingRequired) {
+                        scaledDropDownButtonWidth = DpiHelper.LogicalToDeviceUnitsX(DEFAULT_DROPDOWN_WIDTH);
+                    }                   
+                    isScalingInitialized = true;
+                }
+
+                return scaledDropDownButtonWidth;
             }
         }
 
@@ -419,7 +429,7 @@ namespace System.Windows.Forms {
             CalculateLayout();
         }
 
-        private void Initialize() {
+        private void Initialize() {           
             dropDownButtonWidth = DefaultDropDownButtonWidth;
             SupportsSpaceKey = true;
         }

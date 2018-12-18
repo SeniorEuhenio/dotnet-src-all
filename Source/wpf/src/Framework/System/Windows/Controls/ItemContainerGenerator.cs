@@ -282,6 +282,13 @@ namespace System.Windows.Controls
             if (count <= 0)
                 throw new ArgumentException(SR.Get(SRID.RemoveRequiresPositiveCount, count), "count");
 
+            if (_itemMap == null)
+            {
+                // ignore reentrant call (during RemoveAllInternal)
+                Debug.Assert(false, "Unexpected reentrant call to ICG.Remove");
+                return;
+            }
+
             int index = position.Index;
             ItemBlock block;
 
@@ -826,6 +833,12 @@ namespace System.Windows.Controls
 
         private int GetCount(ItemBlock stop, bool returnLocalIndex)
         {
+            if (_itemMap == null)
+            {
+                // handle reentrant call
+                return 0;
+            }
+
             int count = 0;
             ItemBlock start = _itemMap;
             ItemBlock block = start.Next;
@@ -885,6 +898,12 @@ namespace System.Windows.Controls
         /// </summary>
         public DependencyObject ContainerFromIndex(int index)
         {
+            if (_itemMap == null)
+            {
+                // handle reentrant call
+                return null;
+            }
+
 #if DEBUG
             object target = (Parent == null) && (0 <= index  &&  index < Host.View.Count) ? Host.View[index] : null;
 #endif
@@ -1138,6 +1157,12 @@ namespace System.Windows.Controls
         // called when the host's AlternationCount changes
         internal void ChangeAlternationCount()
         {
+            if (_itemMap == null)
+            {
+                // handle reentrant call
+                return;
+            }
+
             // update my AlternationCount and adjust my containers
             SetAlternationCount();
 
@@ -2162,6 +2187,13 @@ namespace System.Windows.Controls
             int deletionOffset = deletedFromItems ? 1 : 0;
             position = new GeneratorPosition(-1, 0);
 
+            if (_itemMap == null)
+            {
+                // handle reentrant call
+                block = null;
+                return;
+            }
+
             for (block = _itemMap.Next;  block != _itemMap;  block = block.Next)
             {
                 UnrealizedItemBlock uib;
@@ -2425,6 +2457,14 @@ namespace System.Windows.Controls
         // Called when an item is added to the items collection
         void OnItemAdded(object item, int index)
         {
+            if (_itemMap == null)
+            {
+                // reentrant call (from RemoveAllInternal) shouldn't happen,
+                // but if it does, don't crash
+                Debug.Assert(false, "unexpected reentrant call to OnItemAdded");
+                return;
+            }
+
             ValidateAndCorrectIndex(item, ref index);
 
             GeneratorPosition position = new GeneratorPosition(-1,0);
@@ -2601,6 +2641,14 @@ namespace System.Windows.Controls
 
         void OnItemMoved(object item, int oldIndex, int newIndex)
         {
+            if (_itemMap == null)
+            {
+                // reentrant call (from RemoveAllInternal) shouldn't happen,
+                // but if it does, don't crash
+                Debug.Assert(false, "unexpected reentrant call to OnItemMoved");
+                return;
+            }
+
             DependencyObject container = null;    // the corresponding container
             int containerCount = 0;
             UnrealizedItemBlock uib;

@@ -257,25 +257,16 @@ namespace System.IO {
 
         public override bool CanRead {
             [Pure]
-#if !FEATURE_CORECLR
-            [TargetedPatchingOptOut("Performance critical to inline across NGen image boundaries")]
-#endif
             get { return _isOpen && (_access & FileAccess.Read) != 0; }
         }
 
         public override bool CanSeek {
             [Pure]
-#if !FEATURE_CORECLR
-            [TargetedPatchingOptOut("Performance critical to inline across NGen image boundaries")]
-#endif
             get { return _isOpen; }
         }
 
         public override bool CanWrite {
             [Pure]
-#if !FEATURE_CORECLR
-            [TargetedPatchingOptOut("Performance critical to inline across NGen image boundaries")]
-#endif
             get { return _isOpen && (_access & FileAccess.Write) != 0; }
         }
 
@@ -317,9 +308,6 @@ namespace System.IO {
 
 
         public override long Length {
-#if !FEATURE_CORECLR
-            [TargetedPatchingOptOut("Performance critical to inline across NGen image boundaries")]
-#endif
             get {
                 if (!_isOpen) __Error.StreamIsClosed();
                 return Interlocked.Read(ref _length);
@@ -334,9 +322,6 @@ namespace System.IO {
         }
 
         public override long Position {
-#if !FEATURE_CORECLR
-            [TargetedPatchingOptOut("Performance critical to inline across NGen image boundaries")]
-#endif
             get { 
                 if (!CanSeek) __Error.StreamIsClosed();
                 Contract.EndContractBlock();

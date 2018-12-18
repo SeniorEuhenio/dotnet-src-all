@@ -1,12 +1,11 @@
-﻿using System;
+﻿using MS.Internal.Xaml.Context;
+using MS.Utility;
 using System.Collections;
+using System.Windows.Baml2006;
+using System.Windows.Diagnostics;
+using System.Windows.Media;
 using System.Xaml;
 using System.Xaml.Permissions;
-using MS.Internal;
-using MS.Internal.Xaml.Context;
-using MS.Internal.Utility;
-using MS.Utility;
-using System.Windows.Baml2006;
 
 namespace System.Windows.Markup
 {
@@ -99,6 +98,8 @@ namespace System.Windows.Markup
                 {
                     uiElement.SetPersistId(persistId++);
                 }
+
+                XamlSourceInfoHelper.SetXamlSourceInfo(args.Instance, args, baseUri);
 
                 DependencyObject dObject = args.Instance as DependencyObject;
                 if (dObject != null && stack.CurrentFrame.XmlnsDictionary != null)

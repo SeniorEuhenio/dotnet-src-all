@@ -4405,7 +4405,7 @@ namespace System.Windows.Forms {
              RightToLeft origRightToLeft; // The combo box's RTL value when we were created
 
              private const int WhiteFillRectWidth = 5; // used for making the button look smaller than it is
-     
+
              private static bool isScalingInitialized = false;
              private static int OFFSET_2PIXELS = 2;
              protected static int Offset2X = OFFSET_2PIXELS;

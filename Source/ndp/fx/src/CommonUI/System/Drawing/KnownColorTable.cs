@@ -399,7 +399,6 @@ namespace System.Drawing {
             colorNameTable = values;
         }
         
-        [System.Runtime.TargetedPatchingOptOutAttribute("Performance critical to inline across NGen image boundaries")]
         public static int KnownColorToArgb(KnownColor color) {
             EnsureColorTable();
             if (color <= KnownColor.MenuHighlight) {

@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{20cd2a01-7dea-47c2-b111-2848f8428bb5}</ProjectGuid>
+    <ProjectGuid>{d59cc9d1-f23a-40ff-b4a3-9976e64e2d18}</ProjectGuid>
     <OutputPath>.</OutputPath>
     <OutputType>Library</OutputType>
     <AssemblyName>SMSvcHost</AssemblyName>
@@ -20,51 +20,51 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\clr\src\bcl\mscorlib.csproj">
-      <Project>{edd76f80-29f6-4590-a3ef-f885b38da1b0}</Project>
+      <Project>{224f6f5b-c254-4b89-95cd-b690effa845e}</Project>
       <Name>mscorlib</Name>
     </ProjectReference>
     <ProjectReference Include="..\SMDiagnostics\SMDiagnostics.csproj">
-      <Project>{40431cae-dd74-48fd-bfe3-d2b35e27b863}</Project>
+      <Project>{be166e17-892a-4ee3-91ca-c565cb871664}</Project>
       <Name>SMDiagnostics</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\System.csproj">
-      <Project>{e4fae737-f889-49a8-8db5-92488fc98c22}</Project>
+      <Project>{41970311-a2a7-4957-b118-3e82738754bb}</Project>
       <Name>System</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\Configuration\System.Configuration.csproj">
-      <Project>{d0e5c1bb-46f1-4fbe-9d9b-4d089d88ae09}</Project>
+      <Project>{c8acffc3-9a67-4b99-b153-3456d8d6a9e2}</Project>
       <Name>System.Configuration</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\Core\System.Core.csproj">
-      <Project>{39be40c7-445f-4b45-869c-b23a2e23fde2}</Project>
+      <Project>{8237366e-c580-4edf-9fbc-6bc04dd169c7}</Project>
       <Name>System.Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\IdentityModel\System.IdentityModel.csproj">
-      <Project>{3802c9c2-d063-4618-a4eb-32d22d9ea962}</Project>
+      <Project>{ff7c0811-5ba7-41c1-bc01-1ecaa814cbca}</Project>
       <Name>System.IdentityModel</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\NetFx20\System.Messaging\System.Messaging.csproj">
-      <Project>{7b393a86-4978-4a39-a643-691a00ba8f5b}</Project>
+      <Project>{c5804aed-f511-4a5d-8bd5-3f842a942360}</Project>
       <Name>System.Messaging</Name>
     </ProjectReference>
     <ProjectReference Include="..\ServiceModel\System.ServiceModel.csproj">
-      <Project>{6f4c0ed5-7678-495b-bc35-1d78d582539d}</Project>
+      <Project>{19535c41-9d6d-4c1b-a0ea-8a7b9ca448cb}</Project>
       <Name>System.ServiceModel</Name>
     </ProjectReference>
     <ProjectReference Include="..\System.ServiceModel.Activation\System.ServiceModel.Activation.csproj">
-      <Project>{44ac822a-f6f1-4723-a37b-7a535426b137}</Project>
+      <Project>{f582a38a-6f04-448d-93a2-9b12fb864cd8}</Project>
       <Name>System.ServiceModel.Activation</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\System.ServiceModel.Internals\System.ServiceModel.Internals.csproj">
-      <Project>{623f4031-ab77-4f86-8dd2-41700138c932}</Project>
+      <Project>{ca19e220-5feb-4181-80ff-d13fdd049bfa}</Project>
       <Name>System.ServiceModel.Internals</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\xsp\system\Web\System.Web.csproj">
-      <Project>{08ebc8e2-b653-4d46-989f-633abab8ebdf}</Project>
+      <Project>{6a36d565-8a5f-41fa-8245-4a49dfc23278}</Project>
       <Name>System.Web</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\Xml\System.Xml.csproj">
-      <Project>{cfe60703-bdf5-402e-b545-c675c65ae9c8}</Project>
+      <Project>{e8f114a4-6ee9-49ae-9129-c5d7579eb5e9}</Project>
       <Name>System.Xml</Name>
     </ProjectReference>
   </ItemGroup>

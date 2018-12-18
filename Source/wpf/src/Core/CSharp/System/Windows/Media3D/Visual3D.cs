@@ -18,6 +18,7 @@ using MS.Internal.PresentationCore;
 using System;
 using System.Diagnostics;
 using System.Security;
+using System.Windows.Diagnostics;
 using System.Windows.Media.Composition;
 using System.Windows.Media;
 
@@ -272,8 +273,9 @@ namespace System.Windows.Media.Media3D
 
             // Fire notifications
             OnVisualChildrenChanged(child, /* visualRemoved = */ null);
-            
+
             child.FireOnVisualParentChanged(null);
+            VisualDiagnostics.OnVisualChildChanged(this, child, true);
         }
 
 
@@ -296,6 +298,8 @@ namespace System.Windows.Media.Media3D
 
             Debug.Assert(child != null);
             Debug.Assert(child.InternalVisualParent == this);
+
+            VisualDiagnostics.OnVisualChildChanged(this, child, false);
 
             child.SetParent(/* newParent = */ (Visual3D) null);  // CS0121: Call is ambigious without casting null to Visual3D.
                     
