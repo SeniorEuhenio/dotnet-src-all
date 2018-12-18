@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{3efca51f-0962-4e69-afcd-4ec700680149}</ProjectGuid>
+    <ProjectGuid>{33ed3484-028b-400b-98f9-1d2ada6003d8}</ProjectGuid>
     <OutputPath>.</OutputPath>
     <OutputType>Library</OutputType>
     <AssemblyName>System.Data.Entity.Design</AssemblyName>
@@ -20,39 +20,39 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\clr\src\bcl\mscorlib.csproj">
-      <Project>{224f6f5b-c254-4b89-95cd-b690effa845e}</Project>
+      <Project>{67c368de-3511-4106-8749-000d91efd3fc}</Project>
       <Name>mscorlib</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\System.csproj">
-      <Project>{41970311-a2a7-4957-b118-3e82738754bb}</Project>
+      <Project>{54e500cb-cdce-4405-9ac7-200d8982ccd8}</Project>
       <Name>System</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Core\System.Core.csproj">
-      <Project>{8237366e-c580-4edf-9fbc-6bc04dd169c7}</Project>
+      <Project>{882677bb-a7dc-49f6-ab02-c7aff5befd7a}</Project>
       <Name>System.Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\data\System.Data.csproj">
-      <Project>{43a395d8-b07e-4166-a2ec-54449a6112aa}</Project>
+      <Project>{106e67ed-066e-453f-8be9-df69cbc14bef}</Project>
       <Name>System.Data</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\DataSet\System.Data.DataSetExtensions.csproj">
-      <Project>{156e8525-7f9f-4ec2-b179-08647469d444}</Project>
+      <Project>{b2a90663-49cd-4a75-a8a8-862d6827e368}</Project>
       <Name>System.Data.DataSetExtensions</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\DataEntity\System.Data.Entity.csproj">
-      <Project>{9105a4b3-fdec-4e1b-bba5-ef590dff9680}</Project>
+      <Project>{17fb29e5-3257-4c6a-ad52-8c7ff03be9c6}</Project>
       <Name>System.Data.Entity</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\xsp\system\Web\System.Web.csproj">
-      <Project>{6a36d565-8a5f-41fa-8245-4a49dfc23278}</Project>
+      <Project>{9d0c1b9b-9e4e-4b86-9996-2fc1e1bb1e96}</Project>
       <Name>System.Web</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Xml\System.Xml.csproj">
-      <Project>{e8f114a4-6ee9-49ae-9129-c5d7579eb5e9}</Project>
+      <Project>{7eccbad4-f184-4260-b750-d5c802c948d8}</Project>
       <Name>System.Xml</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\XLinq\System.Xml.Linq.csproj">
-      <Project>{b2264e1e-916e-43cf-9880-7fbc48493ee4}</Project>
+      <Project>{abc2facf-2e3a-4fdc-aff3-5d0f1e993027}</Project>
       <Name>System.Xml.Linq</Name>
     </ProjectReference>
   </ItemGroup>

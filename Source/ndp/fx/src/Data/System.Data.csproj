@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{43a395d8-b07e-4166-a2ec-54449a6112aa}</ProjectGuid>
+    <ProjectGuid>{106e67ed-066e-453f-8be9-df69cbc14bef}</ProjectGuid>
     <OutputPath>.</OutputPath>
     <OutputType>Library</OutputType>
     <AssemblyName>System.Data</AssemblyName>
@@ -20,31 +20,31 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\clr\src\bcl\mscorlib.csproj">
-      <Project>{224f6f5b-c254-4b89-95cd-b690effa845e}</Project>
+      <Project>{67c368de-3511-4106-8749-000d91efd3fc}</Project>
       <Name>mscorlib</Name>
     </ProjectReference>
     <ProjectReference Include="..\System.csproj">
-      <Project>{41970311-a2a7-4957-b118-3e82738754bb}</Project>
+      <Project>{54e500cb-cdce-4405-9ac7-200d8982ccd8}</Project>
       <Name>System</Name>
     </ProjectReference>
     <ProjectReference Include="..\Configuration\System.Configuration.csproj">
-      <Project>{c8acffc3-9a67-4b99-b153-3456d8d6a9e2}</Project>
+      <Project>{d055238a-9098-47e9-8d76-70acbfa31ac3}</Project>
       <Name>System.Configuration</Name>
     </ProjectReference>
     <ProjectReference Include="..\Core\System.Core.csproj">
-      <Project>{8237366e-c580-4edf-9fbc-6bc04dd169c7}</Project>
+      <Project>{882677bb-a7dc-49f6-ab02-c7aff5befd7a}</Project>
       <Name>System.Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\Numerics\System.Numerics.csproj">
-      <Project>{133748dd-0b3c-4405-be9d-72d73a500d8d}</Project>
+      <Project>{007186a8-5e4a-4d87-a943-3a3d334c264b}</Project>
       <Name>System.Numerics</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\cdf\src\NetFx20\System.Transactions\System.Transactions.csproj">
-      <Project>{3b5bed98-862f-47aa-b3c7-f3b8879a3d07}</Project>
+      <Project>{24807d62-c423-48dd-931b-a618672cce83}</Project>
       <Name>System.Transactions</Name>
     </ProjectReference>
     <ProjectReference Include="..\Xml\System.Xml.csproj">
-      <Project>{e8f114a4-6ee9-49ae-9129-c5d7579eb5e9}</Project>
+      <Project>{7eccbad4-f184-4260-b750-d5c802c948d8}</Project>
       <Name>System.Xml</Name>
     </ProjectReference>
   </ItemGroup>
@@ -447,6 +447,8 @@
     <Compile Include="System\Data\SqlClient\SqlClientWrapperSmiStream.cs" />
     <Compile Include="System\Data\SqlClient\SqlClientWrapperSmiStreamChars.cs" />
     <Compile Include="System\Data\SqlClient\SqlColumnEncryptionCertificateStoreProvider.cs" />
+    <Compile Include="System\Data\SqlClient\SqlColumnEncryptionCngProvider.cs" />
+    <Compile Include="System\Data\SqlClient\SqlColumnEncryptionCspProvider.cs" />
     <Compile Include="System\Data\SqlClient\SqlColumnEncryptionKeyStoreProvider.cs" />
     <Compile Include="System\Data\SqlClient\SqlCommand.cs" />
     <Compile Include="System\Data\SqlClient\SqlCommandBuilder.cs" />

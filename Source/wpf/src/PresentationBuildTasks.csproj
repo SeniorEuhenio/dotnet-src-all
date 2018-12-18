@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{fe2fa318-aab8-41bb-b423-ad44b921228d}</ProjectGuid>
+    <ProjectGuid>{ac08f766-d322-4aae-a132-d705aa258515}</ProjectGuid>
     <OutputPath>.</OutputPath>
     <OutputType>Library</OutputType>
     <AssemblyName>PresentationBuildTasks</AssemblyName>
@@ -20,19 +20,19 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\ndp\clr\src\bcl\mscorlib.csproj">
-      <Project>{224f6f5b-c254-4b89-95cd-b690effa845e}</Project>
+      <Project>{67c368de-3511-4106-8749-000d91efd3fc}</Project>
       <Name>mscorlib</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ndp\fx\src\System.csproj">
-      <Project>{41970311-a2a7-4957-b118-3e82738754bb}</Project>
+      <Project>{54e500cb-cdce-4405-9ac7-200d8982ccd8}</Project>
       <Name>System</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ndp\clr\src\managedlibraries\security\System.Security.csproj">
-      <Project>{fbc0d97a-d604-4806-aa26-4fb7c017f571}</Project>
+      <Project>{491b9884-e83b-40cf-bc81-9f30a8847434}</Project>
       <Name>System.Security</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ndp\fx\src\Xml\System.Xml.csproj">
-      <Project>{e8f114a4-6ee9-49ae-9129-c5d7579eb5e9}</Project>
+      <Project>{7eccbad4-f184-4260-b750-d5c802c948d8}</Project>
       <Name>System.Xml</Name>
     </ProjectReference>
   </ItemGroup>

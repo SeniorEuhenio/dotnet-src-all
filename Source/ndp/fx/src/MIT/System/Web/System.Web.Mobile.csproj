@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{fc6988cf-0722-470d-b3b6-2d0fc861a2a6}</ProjectGuid>
+    <ProjectGuid>{23839bb1-8200-4ab9-a320-c712ba3a887d}</ProjectGuid>
     <OutputPath>.</OutputPath>
     <OutputType>Library</OutputType>
     <AssemblyName>System.Web.Mobile</AssemblyName>
@@ -20,35 +20,35 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\clr\src\bcl\mscorlib.csproj">
-      <Project>{224f6f5b-c254-4b89-95cd-b690effa845e}</Project>
+      <Project>{67c368de-3511-4106-8749-000d91efd3fc}</Project>
       <Name>mscorlib</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\System.csproj">
-      <Project>{41970311-a2a7-4957-b118-3e82738754bb}</Project>
+      <Project>{54e500cb-cdce-4405-9ac7-200d8982ccd8}</Project>
       <Name>System</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Configuration\System.Configuration.csproj">
-      <Project>{c8acffc3-9a67-4b99-b153-3456d8d6a9e2}</Project>
+      <Project>{d055238a-9098-47e9-8d76-70acbfa31ac3}</Project>
       <Name>System.Configuration</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\data\System.Data.csproj">
-      <Project>{43a395d8-b07e-4166-a2ec-54449a6112aa}</Project>
+      <Project>{106e67ed-066e-453f-8be9-df69cbc14bef}</Project>
       <Name>System.Data</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\System.Drawing.csproj">
-      <Project>{25f1569b-f36d-466e-8854-89f1b79cd829}</Project>
+      <Project>{b5fe567f-721f-4cd8-82d6-c4b23d278d2d}</Project>
       <Name>System.Drawing</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\xsp\system\Web\System.Web.csproj">
-      <Project>{6a36d565-8a5f-41fa-8245-4a49dfc23278}</Project>
+      <Project>{9d0c1b9b-9e4e-4b86-9996-2fc1e1bb1e96}</Project>
       <Name>System.Web</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\System.Windows.Forms.csproj">
-      <Project>{09e79805-e450-4d79-96d0-f9e426c6652e}</Project>
+      <Project>{484152e2-ff05-4401-8c78-c7d6d6dd106f}</Project>
       <Name>System.Windows.Forms</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Xml\System.Xml.csproj">
-      <Project>{e8f114a4-6ee9-49ae-9129-c5d7579eb5e9}</Project>
+      <Project>{7eccbad4-f184-4260-b750-d5c802c948d8}</Project>
       <Name>System.Xml</Name>
     </ProjectReference>
   </ItemGroup>
