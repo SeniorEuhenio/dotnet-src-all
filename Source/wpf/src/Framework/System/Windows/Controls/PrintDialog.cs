@@ -168,7 +168,7 @@ namespace System.Windows.Controls
             }
         }
 
-        // the following two properties return non CLS-compliant type UInt32 (bug 1788246)
+        // the following two properties return non CLS-compliant type UInt32 (
         #pragma warning disable 3003
 
         /// <summary>

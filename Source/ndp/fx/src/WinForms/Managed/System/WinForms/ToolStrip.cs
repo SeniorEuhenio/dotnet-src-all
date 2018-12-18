@@ -3619,7 +3619,7 @@ namespace System.Windows.Forms {
                                 // them back onto the main toolstrip.
                                 for (int i = 0; i < DisplayedItems.Count; i++) {
                                    ToolStripItem item = DisplayedItems[i];
-                                   if (item != null)  { // CONSIDER ! item is ToolStripControlHost
+                                   if (item != null)  { // 
                                        Rectangle clippingRect = e.ClipRectangle;
                                        Rectangle bounds = item.Bounds;
 

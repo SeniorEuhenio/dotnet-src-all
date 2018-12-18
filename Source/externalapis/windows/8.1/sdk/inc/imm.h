@@ -715,7 +715,7 @@ BOOL WINAPI ImmDisableLegacyIME();
 #define IME_ESC_SET_EUDC_DICTIONARY     0x1004
 #define IME_ESC_MAX_KEY                 0x1005
 #define IME_ESC_IME_NAME                0x1006
-#define IME_ESC_[....]_HOTKEY             0x1007
+#define IME_ESC_SYNC_HOTKEY             0x1007
 #define IME_ESC_HANJA_MODE              0x1008
 #define IME_ESC_AUTOMATA                0x1009
 #define IME_ESC_PRIVATE_HOTKEY          0x100a

@@ -3,7 +3,7 @@
 //   Copyright (c) Microsoft Corporation.  All rights reserved.
 // 
 // ==--==
-// <OWNER>[....]</OWNER>
+// <OWNER>Microsoft</OWNER>
 // 
 
 //
@@ -276,23 +276,7 @@ namespace System.Security.Cryptography.Xml
 
         // This describes how the application wants to associate id references to elements
         public virtual XmlElement GetIdElement (XmlDocument document, string idValue) {
-            if (document == null)
-                return null;
-            XmlElement elem = null;
-
-            // Get the element with idValue
-            elem = document.GetElementById(idValue);
-            if (elem != null)
-                return elem;
-            elem = document.SelectSingleNode("//*[@Id=\"" + idValue + "\"]") as XmlElement;
-            if (elem != null)
-                return elem;
-            elem = document.SelectSingleNode("//*[@id=\"" + idValue + "\"]") as XmlElement;
-            if (elem != null)
-                return elem;
-            elem = document.SelectSingleNode("//*[@ID=\"" + idValue + "\"]") as XmlElement;
-
-            return elem;
+            return SignedXml.DefaultGetIdElement(document, idValue);
         }
 
         // default behaviour is to look for the IV in the CipherValue
@@ -435,10 +419,11 @@ namespace System.Security.Cryptography.Xml
                 if (kiX509Data != null) {
                     X509Certificate2Collection collection = Utils.BuildBagOfCerts(kiX509Data, CertUsageType.Decryption);
                     foreach (X509Certificate2 certificate in collection) {
-                        RSA privateKey = certificate.PrivateKey as RSA;
-                        if (privateKey != null) {
-                            fOAEP = (encryptedKey.EncryptionMethod != null && encryptedKey.EncryptionMethod.KeyAlgorithm == EncryptedXml.XmlEncRSAOAEPUrl);
-                            return EncryptedXml.DecryptKey(encryptedKey.CipherData.CipherValue, privateKey, fOAEP);
+                        using (RSA privateKey = certificate.GetRSAPrivateKey()) {
+                            if (privateKey != null) {
+                                fOAEP = (encryptedKey.EncryptionMethod != null && encryptedKey.EncryptionMethod.KeyAlgorithm == EncryptedXml.XmlEncRSAOAEPUrl);
+                                return EncryptedXml.DecryptKey(encryptedKey.CipherData.CipherValue, privateKey, fOAEP);
+                            }
                         }
                     }
                     break;
@@ -509,29 +494,31 @@ namespace System.Security.Cryptography.Xml
             if (certificate == null)
                 throw new ArgumentNullException("certificate");
 
-            if (X509Utils.OidToAlgId(certificate.PublicKey.Oid.Value) != CAPI.CALG_RSA_KEYX)
-                throw new NotSupportedException(SecurityResources.GetResourceString("NotSupported_KeyAlgorithm"));
-
-            // Create the EncryptedData object, using an AES-256 session key by default.
-            EncryptedData ed = new EncryptedData();
-            ed.Type = EncryptedXml.XmlEncElementUrl;
-            ed.EncryptionMethod = new EncryptionMethod(EncryptedXml.XmlEncAES256Url);
-
-            // Include the certificate in the EncryptedKey KeyInfo.
-            EncryptedKey ek = new EncryptedKey();
-            ek.EncryptionMethod = new EncryptionMethod(EncryptedXml.XmlEncRSA15Url);
-            ek.KeyInfo.AddClause(new KeyInfoX509Data(certificate));
-
-            // Create a random AES session key and encrypt it with the public key associated with the certificate.
-            RijndaelManaged rijn = new RijndaelManaged();
-            ek.CipherData.CipherValue = EncryptedXml.EncryptKey(rijn.Key, certificate.PublicKey.Key as RSA, false);
-
-            // Encrypt the input element with the random session key that we've created above.
-            KeyInfoEncryptedKey kek = new KeyInfoEncryptedKey(ek);
-            ed.KeyInfo.AddClause(kek);
-            ed.CipherData.CipherValue = EncryptData(inputElement, rijn, false);
-
-            return ed;
+            using (RSA rsaPublicKey = certificate.GetRSAPublicKey()) {
+                if (rsaPublicKey == null)
+                    throw new NotSupportedException(SecurityResources.GetResourceString("NotSupported_KeyAlgorithm"));
+    
+                // Create the EncryptedData object, using an AES-256 session key by default.
+                EncryptedData ed = new EncryptedData();
+                ed.Type = EncryptedXml.XmlEncElementUrl;
+                ed.EncryptionMethod = new EncryptionMethod(EncryptedXml.XmlEncAES256Url);
+    
+                // Include the certificate in the EncryptedKey KeyInfo.
+                EncryptedKey ek = new EncryptedKey();
+                ek.EncryptionMethod = new EncryptionMethod(EncryptedXml.XmlEncRSA15Url);
+                ek.KeyInfo.AddClause(new KeyInfoX509Data(certificate));
+    
+                // Create a random AES session key and encrypt it with the public key associated with the certificate.
+                RijndaelManaged rijn = new RijndaelManaged();
+                ek.CipherData.CipherValue = EncryptedXml.EncryptKey(rijn.Key, rsaPublicKey, false);
+    
+                // Encrypt the input element with the random session key that we've created above.
+                KeyInfoEncryptedKey kek = new KeyInfoEncryptedKey(ek);
+                ed.KeyInfo.AddClause(kek);
+                ed.CipherData.CipherValue = EncryptData(inputElement, rijn, false);
+    
+                return ed;
+            }
         }
 
         // Encrypts the given element with the key name specified. A corresponding key name mapping 

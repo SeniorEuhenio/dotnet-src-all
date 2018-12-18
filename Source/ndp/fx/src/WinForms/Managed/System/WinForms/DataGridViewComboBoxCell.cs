@@ -846,7 +846,7 @@ namespace System.Windows.Forms
             }
             else
             {
-                // SECREVIEW : Late-binding does not represent a security thread, see bug#411899 for more info..
+                // SECREVIEW : Late-binding does not represent a security thread, see 
                 dataGridViewCell = (DataGridViewComboBoxCell)System.Activator.CreateInstance(thisType);
             }
             base.CloneInternal(dataGridViewCell);
@@ -1129,8 +1129,8 @@ namespace System.Windows.Forms
             if (value == null || ((this.ValueType != null && !this.ValueType.IsAssignableFrom(value.GetType())) && value != System.DBNull.Value))
             {
                 // Do not raise the DataError event if the value is null and the row is the 'new row'.
-                // VS Whidbey bug 324054: In fact, unlike for other cell types, do not raise DataError event at all if value is null and therefore invalid.
-                // Using the DataGridViewComboBoxCell.DefaultNewRowValue property would be wrong.
+                // VS Whidbey 
+
                 if (value == null /* && ((this.DataGridView != null && rowIndex == this.DataGridView.NewRowIndex) || this.Items.Count == 0)*/)
                 {
                     // Debug.Assert(rowIndex != -1 || this.Items.Count == 0);

@@ -483,7 +483,7 @@ private:
 	DWORD 	m_dwPendingReads;
 	DWORD 	m_dwQuickReads;
 
-	// [....] vars
+	// Sync vars
 	HANDLE hWriteEvent;
 	HANDLE hSyncReadEvent;
 	BufState SendBufState;

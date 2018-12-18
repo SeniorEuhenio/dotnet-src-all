@@ -198,7 +198,7 @@
 #define QUEUE_REG_SUBPATH  "Software\\"DEFAULT_SUBPATH
 #define QUEUE_REG_OKTOREPORT_VALUE "OkToReportFromTheseQueues"
 #define WATSON_INSTALLED_REG_SUBPATH QUEUE_REG_SUBPATH"\\Installed"
-#define WATSON_INSTALLED_REG_VAL "DW0200" // keep in [....] with %MSI%\src\sdl\shared\watson.sreg
+#define WATSON_INSTALLED_REG_VAL "DW0200" // keep in sync with %MSI%\src\sdl\shared\watson.sreg
 
 // names for the Watson exes
 #define DW_EXEA            "dw20.exe"

@@ -4114,9 +4114,9 @@ example usage
 
                 if ((uiCuesState & UISTATE_KEYBOARD_CUES_MASK) == 0) {
 
-                        // VSWhidbey 362408 -- if we get in here that means this is the windows bug where the first top
-                        // level window doesn't get notified with WM_UPDATEUISTATE
-                        //
+                        // VSWhidbey 362408 -- if we get in here that means this is the windows 
+
+
                         
                         if (SystemInformation.MenuAccessKeysUnderlined) {
                             uiCuesState |= UISTATE_KEYBOARD_CUES_SHOW;
@@ -4157,9 +4157,9 @@ example usage
                 // See "How this all works" in ShowKeyboardCues
                 
                 if ((uiCuesState & UISTATE_FOCUS_CUES_MASK) == 0) {
-                    // VSWhidbey 362408 -- if we get in here that means this is the windows bug where the first top
-                    // level window doesn't get notified with WM_UPDATEUISTATE
-                    //
+                    // VSWhidbey 362408 -- if we get in here that means this is the windows 
+
+
                     if (SystemInformation.MenuAccessKeysUnderlined) {
                         uiCuesState |= UISTATE_FOCUS_CUES_SHOW;
                     }
@@ -4329,16 +4329,18 @@ example usage
                 }
                 //If we didn't find the thread, or if GetExitCodeThread failed, we don't know the thread's state:
                 //if we don't know, we shouldn't throw.
-                if ((returnValue && exitCode != NativeMethods.STILL_ACTIVE) || AppDomain.CurrentDomain.IsFinalizingForUnload()) {
+                if ((returnValue && exitCode != NativeMethods.STILL_ACTIVE) || 
+                    (!returnValue && Marshal.GetLastWin32Error() == NativeMethods.ERROR_INVALID_HANDLE) ||
+                    AppDomain.CurrentDomain.IsFinalizingForUnload()) {
                     if (waitHandle.WaitOne(1, false)) {
                         break;
                     }
                     throw new InvalidAsynchronousStateException(SR.GetString(SR.ThreadNoLongerValid));
                 }
 
-                //Dev10 Bug 600316, 905126: Because Control.Invoke() is not fully thread safe, so it is possible that
-                //a ThreadMethodEntry can be sent to a control after it is disposed. In this case, we need to check
-                //if there is any ThreadMethodEntry in the queue. If so, we need "complete" them.
+                //Dev10 
+
+
                 if (IsDisposed && threadCallbackList != null && threadCallbackList.Count > 0) {
                     lock (threadCallbackList) {
                         Exception ex = new System.ObjectDisposedException(GetType().Name);
@@ -5240,7 +5242,7 @@ example usage
             key.Close();
 
             // Calculate MiscStatus bits.  Note that this is a static version
-            // of GetMiscStatus in ActiveXImpl below.  Keep them in [....]!
+            // of GetMiscStatus in ActiveXImpl below.  Keep them in sync!
             //
             int miscStatus = NativeMethods.OLEMISC_ACTIVATEWHENVISIBLE |
                              NativeMethods.OLEMISC_INSIDEOUT |
@@ -6050,23 +6052,23 @@ example usage
             int width = Math.Min(this.Width, targetBounds.Width);
             int height = Math.Min(this.Height, targetBounds.Height);
 
-            Bitmap image = new Bitmap(width, height, bitmap.PixelFormat);
+            using (Bitmap image = new Bitmap(width, height, bitmap.PixelFormat)) {
+                using (Graphics g = Graphics.FromImage(image)) {
+                    IntPtr hDc = g.GetHdc();
+                    //send the actual wm_print message
+                    UnsafeNativeMethods.SendMessage(new HandleRef(this, this.Handle), NativeMethods.WM_PRINT, (IntPtr)hDc,
+                        (IntPtr)(NativeMethods.PRF_CHILDREN | NativeMethods.PRF_CLIENT | NativeMethods.PRF_ERASEBKGND | NativeMethods.PRF_NONCLIENT));
 
-            using (Graphics g = Graphics.FromImage(image)) {
-                IntPtr hDc = g.GetHdc();
-                //send the actual wm_print message
-                UnsafeNativeMethods.SendMessage(new HandleRef(this, this.Handle), NativeMethods.WM_PRINT, (IntPtr)hDc,
-                    (IntPtr)(NativeMethods.PRF_CHILDREN | NativeMethods.PRF_CLIENT | NativeMethods.PRF_ERASEBKGND | NativeMethods.PRF_NONCLIENT));
+                    //now BLT the result to the destination bitmap.
+                    using (Graphics destGraphics = Graphics.FromImage(bitmap)) {
+                        IntPtr desthDC = destGraphics.GetHdc();
+                        SafeNativeMethods.BitBlt(new HandleRef(destGraphics, desthDC), targetBounds.X, targetBounds.Y, width, height,
+                                                 new HandleRef(g, hDc), 0, 0, 0xcc0020);
+                        destGraphics.ReleaseHdcInternal(desthDC);
+                    }
 
-                //now BLT the result to the destination bitmap.
-                using (Graphics destGraphics = Graphics.FromImage(bitmap)) {
-                    IntPtr desthDC = destGraphics.GetHdc();
-                    SafeNativeMethods.BitBlt(new HandleRef(destGraphics, desthDC), targetBounds.X, targetBounds.Y, width, height,
-                                             new HandleRef(g, hDc), 0, 0, 0xcc0020);
-                    destGraphics.ReleaseHdcInternal(desthDC);
+                    g.ReleaseHdcInternal(hDc);
                 }
-
-                g.ReleaseHdcInternal(hDc);
             }
         }
 
@@ -9690,7 +9692,7 @@ example usage
                 // VSWhidbey 464817 - we need to be careful
                 // about which LayoutEventArgs are used in
                 // SuspendLayout, PerformLayout, ResumeLayout() sequences.
-                // See bug for more info.
+                // See 
                 SetState2(STATE2_CLEARLAYOUTARGS, false);
             }
             else {
@@ -10965,7 +10967,7 @@ example usage
             // VSWhidbey 464817 - we need to be careful
             // about which LayoutEventArgs are used in
             // SuspendLayout, PerformLayout, ResumeLayout() sequences.
-            // See bug for more info.
+            // See 
             if (!performedLayout) {
                 SetState2(STATE2_CLEARLAYOUTARGS, true);
             }
@@ -11703,7 +11705,7 @@ example usage
 
                     if (recreate) {
                         // We will recreate later, when the MdiChild's visibility
-                        // is set to true (see bug 124232)
+                        // is set to true (see 
                         Form f = this as Form;
                         if (f != null) {
                             if (!f.CanRecreateHandle()) {
@@ -13316,6 +13318,9 @@ example usage
                     // is destroyed in an event handler (VSW#261657).
                     hWnd = this.Handle;
                     dc = UnsafeNativeMethods.BeginPaint(new HandleRef(this, hWnd), ref ps);
+                    if (dc == IntPtr.Zero) {
+                        return;
+                    }
                     needDisposeDC = true;
                     clip = new Rectangle(ps.rcPaint_left, ps.rcPaint_top,
                                          ps.rcPaint_right - ps.rcPaint_left,
@@ -14338,7 +14343,7 @@ example usage
             /// A caching mechanism for key accessor
             /// We use an index here rather than control so that we don't have lifetime
             /// issues by holding on to extra references.
-            /// Note this is not Thread Safe - but [....] has to be run in a STA anyways.
+            /// Note this is not Thread Safe - but Microsoft has to be run in a STA anyways.
             private int lastAccessedIndex = -1;
 
 
@@ -19443,7 +19448,7 @@ example usage
             internal ExecutionContext executionContext;
 
             // Optionally store the synchronization context associated with the callee thread.
-            // This overrides the [....] context in the execution context of the caller thread.
+            // This overrides the sync context in the execution context of the caller thread.
             //
             internal SynchronizationContext syncContext = null;
 

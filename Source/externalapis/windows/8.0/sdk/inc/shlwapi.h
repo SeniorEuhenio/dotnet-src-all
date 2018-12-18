@@ -1952,7 +1952,7 @@ LWSTDAPI SHGetViewStatePropertyBag(_In_opt_ PCIDLIST_ABSOLUTE pidl, _In_opt_ PCW
 #define FDTF_SHORTTIME          0x00000001      // eg, "7:48 PM"
 #define FDTF_SHORTDATE          0x00000002      // eg, "3/29/98"
 #define FDTF_DEFAULT            (FDTF_SHORTDATE | FDTF_SHORTTIME) // eg, "3/29/98 7:48 PM"
-#define FDTF_LONGDATE           0x00000004      // eg, "Monday, [....] 29, 1998"
+#define FDTF_LONGDATE           0x00000004      // eg, "Monday, Microsoft 29, 1998"
 #define FDTF_LONGTIME           0x00000008      // eg. "7:48:33 PM"
 #define FDTF_RELATIVE           0x00000010      // uses "Yesterday", etc. if possible
 #define FDTF_LTRDATE            0x00000100      // Left To Right reading order
@@ -2327,7 +2327,7 @@ enum
     CTF_INHERITWOW64        = 0x00000100,   // new thread should inherit the wow64 disable state for the file system redirector
 #endif // _WIN32_IE_IE70
 #if (NTDDI_VERSION >= NTDDI_VISTA)
-    CTF_WAIT_NO_REENTRANCY  = 0x00000200,   // don't allow re-entrancy when waiting for the [....] proc, this won't work with marshalled objects or SendMessages() from the [....] proc
+    CTF_WAIT_NO_REENTRANCY  = 0x00000200,   // don't allow re-entrancy when waiting for the sync proc, this won't work with marshalled objects or SendMessages() from the sync proc
 #endif // (NTDDI_VERSION >= NTDDI_VISTA)
 #if (NTDDI_VERSION >= NTDDI_WIN7)
     CTF_KEYBOARD_LOCALE     = 0x00000400,   // carry the keyboard locale from creating to created thread

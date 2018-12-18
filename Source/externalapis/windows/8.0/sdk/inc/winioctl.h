@@ -239,7 +239,7 @@ DEFINE_DEVPROPKEY(DEVPKEY_Storage_System_Critical,    0x4d1ebee8, 0x803, 0x4774,
 //
 // The FILE_READ_ACCESS and FILE_WRITE_ACCESS constants are also defined in
 // ntioapi.h as FILE_READ_DATA and FILE_WRITE_DATA. The values for these
-// constants *MUST* always be in [....].
+// constants *MUST* always be in sync.
 //
 //
 // FILE_SPECIAL_ACCESS is checked by the NT I/O system the same as FILE_ANY_ACCESS.
@@ -1405,7 +1405,7 @@ typedef DWORD DEVICE_DATA_MANAGEMENT_SET_ACTION;
 //  DeviceDsmAction_Scrub specific flags
 //
 
-#define DEVICE_DSM_FLAG_SCRUB_SKIP_IN_[....]   0x10000000
+#define DEVICE_DSM_FLAG_SCRUB_SKIP_IN_SYNC   0x10000000
 
 //
 //  Structure used to describe the list of ranges to process
@@ -1621,7 +1621,7 @@ typedef struct _STORAGE_OFFLOAD_WRITE_OUTPUT {
 typedef struct _DEVICE_DATA_SET_SCRUB_OUTPUT {
 
     DWORDLONG BytesProcessed;                                   // Number of bytes that were actually processed
-    DWORDLONG BytesRepaired;                                    // Number of bytes that were out of [....] and fixed
+    DWORDLONG BytesRepaired;                                    // Number of bytes that were out of sync and fixed
     DWORDLONG BytesFailed;                                      // Number of bytes that could not be read or fixed
 
 } DEVICE_DATA_SET_SCRUB_OUTPUT, *PDEVICE_DATA_SET_SCRUB_OUTPUT;
@@ -2059,8 +2059,8 @@ typedef enum _DEVICEDUMP_COLLECTION_TYPE {
 #define DDUMP_FLAG_DATA_READ_FROM_DEVICE        0x0001
 
 //
-// Firmware issue IDs (similar to bug check reasons)
-//
+// Firmware issue IDs (similar to 
+
 #define FW_ISSUEID_NO_ISSUE     0x00000000
 #define FW_ISSUEID_UNKNOWN      0xFFFFFFFF
 
@@ -4748,12 +4748,12 @@ typedef enum _CHANGER_DEVICE_PROBLEM_TYPE {
 #define FSCTL_CSV_MGMT_LOCK                 CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 175, METHOD_BUFFERED, FILE_ANY_ACCESS)
 #define FSCTL_CSV_QUERY_DOWN_LEVEL_FILE_SYSTEM_CHARACTERISTICS CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 176, METHOD_BUFFERED, FILE_ANY_ACCESS)
 #define FSCTL_ADVANCE_FILE_ID               CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 177, METHOD_BUFFERED, FILE_ANY_ACCESS)
-#define FSCTL_CSV_[....]_TUNNEL_REQUEST       CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 178, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define FSCTL_CSV_SYNC_TUNNEL_REQUEST       CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 178, METHOD_BUFFERED, FILE_ANY_ACCESS)
 #define FSCTL_CSV_QUERY_VETO_FILE_DIRECT_IO CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 179, METHOD_BUFFERED, FILE_ANY_ACCESS)
 #define FSCTL_WRITE_USN_REASON              CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 180, METHOD_BUFFERED, FILE_ANY_ACCESS)
 #define FSCTL_CSV_CONTROL                   CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 181, METHOD_BUFFERED, FILE_ANY_ACCESS)
 #define FSCTL_GET_REFS_VOLUME_DATA          CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 182, METHOD_BUFFERED, FILE_ANY_ACCESS)
-#define FSCTL_CSV_H_BREAKING_[....]_TUNNEL_REQUEST CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 185, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define FSCTL_CSV_H_BREAKING_SYNC_TUNNEL_REQUEST CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 185, METHOD_BUFFERED, FILE_ANY_ACCESS)
 #endif /*_WIN32_WINNT >= 0x0602 */
 
 //

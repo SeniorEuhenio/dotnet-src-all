@@ -308,6 +308,14 @@ namespace System.Windows.Input
             // Use existing penthread if we have one otherwise grab an available one.
             PenThread penThread = _tablets.Length > 0 ? _tablets[0].PenThread :
                                                         PenThreadPool.GetPenThreadForPenContext(null);
+
+            // There was an error acquiring a PenThread, do no work here.
+            if (penThread == null)
+            {
+                Debug.Assert(false, "Error acquiring PenThread in UpdateTabletsImpl()");
+                return;
+            }
+
             TabletDeviceInfo [] tabletdevices = penThread.WorkerGetTabletsInfo();
 
             // First find out the index of the mouse device (usually the first at index 0)
@@ -456,6 +464,14 @@ namespace System.Windows.Input
             // Use existing penthread if we have one otherwise grab an available one.
             PenThread penThread = _tablets.Length > 0 ? _tablets[0].PenThread :
                                                          PenThreadPool.GetPenThreadForPenContext(null);
+
+            // There was an error acquiring a PenThread, return true to force a complete tablet refresh
+            if (penThread == null)
+            {
+                Debug.Assert(false, "Error acquiring PenThread in HandleTabletAdded()");
+                return true;
+            }
+
             TabletDeviceInfo tabletInfo = penThread.WorkerGetTabletInfo(wisptisIndex);
 
             // If we failed due to a COM exception on the pen thread then return

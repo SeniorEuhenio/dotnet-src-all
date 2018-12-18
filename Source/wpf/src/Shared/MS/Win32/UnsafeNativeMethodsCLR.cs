@@ -141,6 +141,56 @@ namespace MS.Win32
         [DllImport(ExternDll.User32, ExactSpelling = true, CharSet = System.Runtime.InteropServices.CharSet.Auto, SetLastError = true)]
         public static extern IntPtr GetWindow(HandleRef hWnd, int uCmd);
 
+        public enum MonitorOpts : int
+        {
+            MONITOR_DEFAULTTONULL = 0x00000000,
+            MONITOR_DEFAULTTOPRIMARY = 0x00000001,
+            MONITOR_DEFAULTTONEAREST = 0x00000002,
+        }
+
+        public enum MonitorDpiType
+        {
+            MDT_Effective_DPI = 0,
+            MDT_Angular_DPI = 1,
+            MDT_Raw_DPI = 2,
+        }
+
+        public enum ProcessDpiAwareness
+        {
+            Process_DPI_Unaware = 0,
+            Process_System_DPI_Aware = 1,
+            Process_Per_Monitor_DPI_Aware = 2
+        }
+
+        [SuppressUnmanagedCodeSecurity, SecurityCritical]
+        [DllImport(ExternDll.Shcore, ExactSpelling = true, CharSet = System.Runtime.InteropServices.CharSet.Auto, SetLastError = true)]
+        public static extern uint GetProcessDpiAwareness(HandleRef hProcess, out IntPtr awareness);
+
+        ///<SecurityNote>
+        /// Critical: This code escalates to unmanaged code permission
+        ///</SecurityNote>
+        [SuppressUnmanagedCodeSecurity, SecurityCritical]
+        [DllImport(ExternDll.Shcore, CharSet = System.Runtime.InteropServices.CharSet.Auto, SetLastError = true)]
+        public static extern uint GetDpiForMonitor(HandleRef hMonitor, MonitorDpiType dpiType, out uint dpiX, out uint dpiY);
+
+        [SuppressUnmanagedCodeSecurity, SecurityCritical]
+        [DllImport(ExternDll.User32, EntryPoint = "IsProcessDPIAware", CharSet = CharSet.Auto, SetLastError = true)]
+        internal static extern bool IsProcessDPIAware();
+
+        ///<SecurityNote>
+        /// Critical: This code escalates to unmanaged code permission
+        ///</SecurityNote>
+        [SuppressUnmanagedCodeSecurity, SecurityCritical]
+        [DllImport(ExternDll.Kernel32, CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern IntPtr OpenProcess(int dwDesiredAccess, bool fInherit, int dwProcessId);
+
+        ///<SecurityNote>
+        /// Critical: This code escalates to unmanaged code permission
+        ///</SecurityNote>
+        [SuppressUnmanagedCodeSecurity, SecurityCritical]
+        [DllImport(ExternDll.User32, EntryPoint = "EnableNonClientDpiScaling", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern bool EnableNonClientDpiScaling(HandleRef hWnd);
+
         ///<SecurityNote>
         ///     Critical: This code escalates to unmanaged code permission
         ///</SecurityNote>

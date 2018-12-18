@@ -98,7 +98,7 @@ inline void AtlAssertValidObject(
 #define ATLASSERT_VALID(x) __noop;
 #endif
 
-// COM [....] Classes
+// COM Sync Classes
 class CComCriticalSection
 {
 public:

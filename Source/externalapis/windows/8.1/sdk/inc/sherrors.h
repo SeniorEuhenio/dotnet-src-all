@@ -120,7 +120,7 @@
 
 // File Placeholder success and error codes
 #define E_FILE_PLACEHOLDER_NOT_INITIALIZED      _HRESULT_TYPEDEF_(0x80270110L) // The placeholder file or property store isn't initialized.
-#define E_FILE_PLACEHOLDER_VERSION_MISMATCH     _HRESULT_TYPEDEF_(0x80270111L) // The [....] engine detected that the local placeholder file's version doesn't match the latest version.
+#define E_FILE_PLACEHOLDER_VERSION_MISMATCH     _HRESULT_TYPEDEF_(0x80270111L) // The sync engine detected that the local placeholder file's version doesn't match the latest version.
 
 // Camera Roll error codes
 #define CAMERAROLL_E_NO_DOWNSAMPLING_REQUIRED   _HRESULT_TYPEDEF_(0x80270120L) // The provided image didn't require downsampling because it was small enough already

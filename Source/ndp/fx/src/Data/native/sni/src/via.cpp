@@ -1660,8 +1660,8 @@ DWORD  Via::ConnectionOpen( 	bool fSync, __in ProtElem *pProtElem)
 		// Keep the connect string lying around - it may contain additional
 		// port,nic combinations. If we can't connect to the first combo, try others
 		// before giving up. 
-		// Note: See MDAC bug 62905
-		// Get the server nic and port num
+		// Note: See MDAC 
+
 		WCHAR * tokContextSvrInfoPort = NULL;
 		wszPort = wcstok_s(wszTmp, L",", &tokContextSvrInfoPort);
 		if(!wszPort)
@@ -1755,7 +1755,7 @@ DWORD  Via::ConnectionOpen( 	bool fSync, __in ProtElem *pProtElem)
 
     vi_attribs.Ptag = pNic->m_pViaNic->GetPTagHandle();
 
-	// Create a VI. Dont associate the send queue with CQ in [....] case. 
+	// Create a VI. Dont associate the send queue with CQ in sync case. 
 	if( VIP_SUCCESS != (status = VipCreateVi(pNic->m_pViaNic->GetNicHandle(), &vi_attribs, fSync?NULL:pNic->m_pViaWorker->m_hCQ, pNic->m_pViaWorker->m_hCQ, &m_hVi)) )
 	{
 		m_hVi = NULL;

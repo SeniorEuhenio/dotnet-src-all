@@ -539,7 +539,7 @@ EXTERN_C const IID IID_IMLangString;
     IMLangString : public IUnknown
     {
     public:
-        virtual HRESULT STDMETHODCALLTYPE [....]( 
+        virtual HRESULT STDMETHODCALLTYPE Sync( 
             /* [in] */ BOOL fNoAccess) = 0;
         
         virtual HRESULT STDMETHODCALLTYPE GetLength( 
@@ -590,7 +590,7 @@ EXTERN_C const IID IID_IMLangString;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             IMLangString * This);
         
-        HRESULT ( STDMETHODCALLTYPE *[....] )( 
+        HRESULT ( STDMETHODCALLTYPE *Sync )( 
             IMLangString * This,
             /* [in] */ BOOL fNoAccess);
         
@@ -647,8 +647,8 @@ EXTERN_C const IID IID_IMLangString;
     ( (This)->lpVtbl -> Release(This) ) 
 
 
-#define IMLangString_[....](This,fNoAccess)	\
-    ( (This)->lpVtbl -> [....](This,fNoAccess) ) 
+#define IMLangString_Sync(This,fNoAccess)	\
+    ( (This)->lpVtbl -> Sync(This,fNoAccess) ) 
 
 #define IMLangString_GetLength(This,plLen)	\
     ( (This)->lpVtbl -> GetLength(This,plLen) ) 
@@ -782,7 +782,7 @@ EXTERN_C const IID IID_IMLangStringWStr;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             IMLangStringWStr * This);
         
-        HRESULT ( STDMETHODCALLTYPE *[....] )( 
+        HRESULT ( STDMETHODCALLTYPE *Sync )( 
             IMLangStringWStr * This,
             /* [in] */ BOOL fNoAccess);
         
@@ -923,8 +923,8 @@ EXTERN_C const IID IID_IMLangStringWStr;
     ( (This)->lpVtbl -> Release(This) ) 
 
 
-#define IMLangStringWStr_[....](This,fNoAccess)	\
-    ( (This)->lpVtbl -> [....](This,fNoAccess) ) 
+#define IMLangStringWStr_Sync(This,fNoAccess)	\
+    ( (This)->lpVtbl -> Sync(This,fNoAccess) ) 
 
 #define IMLangStringWStr_GetLength(This,plLen)	\
     ( (This)->lpVtbl -> GetLength(This,plLen) ) 
@@ -1093,7 +1093,7 @@ EXTERN_C const IID IID_IMLangStringAStr;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             IMLangStringAStr * This);
         
-        HRESULT ( STDMETHODCALLTYPE *[....] )( 
+        HRESULT ( STDMETHODCALLTYPE *Sync )( 
             IMLangStringAStr * This,
             /* [in] */ BOOL fNoAccess);
         
@@ -1244,8 +1244,8 @@ EXTERN_C const IID IID_IMLangStringAStr;
     ( (This)->lpVtbl -> Release(This) ) 
 
 
-#define IMLangStringAStr_[....](This,fNoAccess)	\
-    ( (This)->lpVtbl -> [....](This,fNoAccess) ) 
+#define IMLangStringAStr_Sync(This,fNoAccess)	\
+    ( (This)->lpVtbl -> Sync(This,fNoAccess) ) 
 
 #define IMLangStringAStr_GetLength(This,plLen)	\
     ( (This)->lpVtbl -> GetLength(This,plLen) ) 

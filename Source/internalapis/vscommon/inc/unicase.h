@@ -150,7 +150,7 @@ int __cdecl BCompareNoCasePrepared (const void * pvKey, const void * pvEl);
 
 #include "unipriv.h"
 
-// [....]: Performance optimization for LowerCase most common case
+// Microsoft: Performance optimization for LowerCase most common case
 WCHAR WINAPI LowerCaseComplete(WCHAR ch);
 
 // Deal with the most frequent cases first for performance

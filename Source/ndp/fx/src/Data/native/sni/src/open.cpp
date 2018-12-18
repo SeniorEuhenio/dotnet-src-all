@@ -346,11 +346,11 @@ DWORD Connect(  __in ConnectParameter *pConnectParams,
 				case SM_PROV:
 				{
 #ifdef SNIX
-					// TFS task 722353: RANU fails on XP if SPN is passed to ISC() because of a Windows bug
-					// where local loopback cannot be detected if ":" is part of the SPN and auth uses Kerberos instead of NTLM
-					// Kerberos token generated causes a failure in Security component's code.
-					//
-					// For XP only, revert to the DEV9/SNI Yukon behavior.
+					// TFS task 722353: RANU fails on XP if SPN is passed to ISC() because of a Windows 
+
+
+
+
 					if ((g_osviSNI.dwMajorVersion == 5) && (g_osviSNI.dwMinorVersion == 1))
 					{
 						pClientConsumerInfo->wszSPN[0]=L'\0';
@@ -754,17 +754,17 @@ DWORD SNIOpenSyncEx( __inout SNI_CLIENT_CONSUMER_INFO * pClientConsumerInfo,
 	}
 
 	//
-	// SQL BU DT bug 286397: SNAC requires a successful SSRP query
-	// for named instances even if no protocol was specifed 
-	// (e.g. ".\instanceName"), and the connection could succeed 
-	// through SM taken from the protocol list without any SSRP query.  
-	// This is a breaking change compared to MDAC 2.x.  
-	//
-	// To minimize the risk for Yukon Beta 2, this is only a partial 
-	// fix, which will skip the SSRP query only if the SM protocol is 
-	// first in the list.  Later on, it can be extended to cases when
-	// SM is further down the list.  
-	//
+	// SQL BU DT 
+
+
+
+
+
+
+
+
+
+
 
 	bool fSmDone = false;
 	

@@ -366,7 +366,7 @@ namespace MS.Internal.AutomationProxies
         {
             if (idProp == AutomationElement.NameProperty)
             {
-                // NOTE: It does not look like [....] support the AccessibleName for standard menus.
+                // NOTE: It does not look like Microsoft support the AccessibleName for standard menus.
                 // If MenuStrips are going to be supported by this proxy this code will need to be removed.
                 return LocalizedName;
             }
@@ -810,9 +810,9 @@ namespace MS.Internal.AutomationProxies
             {
                 case MenuType.System:
                     {
-                        // This is to take in count for a bug in GetMenuBarInfo().  It does not calculate the
-                        // rcBar correctly when the WS_EX_LAYOUTRTL extended style is set. GetMenuBarInfo()
-                        // assumes SYSMENU is always on the left of the title bar.
+                        // This is to take in count for a 
+
+
                         NativeMethods.MENUBARINFO mbi;
                         if (!GetMenuBarInfo(_hwnd, NativeMethods.OBJID_SYSMENU, 0, out mbi))
                         {
@@ -1307,9 +1307,9 @@ namespace MS.Internal.AutomationProxies
             {
                 get
                 {
-                    // It does not look like [....] support the AccessibleName for standard menus or there items.
+                    // It does not look like Microsoft support the AccessibleName for standard menus or there items.
                     // If MenuStrips are going to be supported by this proxy, will need to added code to check
-                    // if this is [....] menu item and use the AccessibleName if it is set.
+                    // if this is Microsoft menu item and use the AccessibleName if it is set.
 
                     if (_menuType == WindowsMenu.MenuType.System)
                     {

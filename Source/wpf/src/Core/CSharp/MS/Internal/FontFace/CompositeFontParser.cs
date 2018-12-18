@@ -4,7 +4,7 @@
 // 
 // Contents:  The XML Composite font parsing
 //
-// Created:   6-11-2003 Tarek Mahmoud Sayed ([....])
+// Created:   6-11-2003 Tarek Mahmoud Sayed (Microsoft)
 //
 //---------------------------------------------------------------------------
 

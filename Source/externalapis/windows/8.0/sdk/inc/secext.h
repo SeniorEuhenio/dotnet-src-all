@@ -64,7 +64,7 @@ typedef enum
     //
     // There exists the user
     //
-    //      CN=[....] Doe, OU=Software, OU=Engineering, O=Widget, C=US
+    //      CN=Microsoft Doe, OU=Software, OU=Engineering, O=Widget, C=US
     //
     // And this user's downlevel (pre-ADS) user name is
     //
@@ -73,13 +73,13 @@ typedef enum
     // unknown name type
     NameUnknown = 0,
 
-    // CN=[....] Doe, OU=Software, OU=Engineering, O=Widget, C=US
+    // CN=Microsoft Doe, OU=Software, OU=Engineering, O=Widget, C=US
     NameFullyQualifiedDN = 1,
 
     // Engineering\JohnDoe
     NameSamCompatible = 2,
 
-    // Probably "[....] Doe" but could be something else.  I.e. The
+    // Probably "Microsoft Doe" but could be something else.  I.e. The
     // display name is not necessarily the defining RDN.
     NameDisplay = 3,
 
@@ -88,7 +88,7 @@ typedef enum
     // eg: {4fa050f0-f561-11cf-bdd9-00aa003a77b6}
     NameUniqueId = 6,
 
-    // engineering.widget.com/software/[....] Doe
+    // engineering.widget.com/software/Microsoft Doe
     NameCanonical = 7,
 
     // someone@example.com

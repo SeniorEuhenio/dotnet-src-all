@@ -8,7 +8,7 @@
  **                                                                         **
  ** CorHdr.h - contains definitions for the Runtime structures,             **
 ** 
-** <OWNER>[....]</OWNER>
+** <OWNER>Microsoft</OWNER>
  **            needed to work with metadata.                                **
  **                                                                         **
  *****************************************************************************/
@@ -1601,7 +1601,7 @@ typedef CorTypeAttr CorRegTypeAttr;
 typedef void *HCORENUM;
 
 
-// Note that this must be kept in [....] with System.AttributeTargets.
+// Note that this must be kept in sync with System.AttributeTargets.
 typedef enum CorAttributeTargets
 {
     catAssembly      = 0x0001,
@@ -1824,7 +1824,7 @@ typedef enum CorAttributeTargets
 #define NONVERSIONABLE_TYPE_W                   L"System.Runtime.Versioning.NonVersionableAttribute"
 #define NONVERSIONABLE_TYPE                      "System.Runtime.Versioning.NonVersionableAttribute"
 
-// Keep in [....] with CompilationRelaxations.cs
+// Keep in sync with CompilationRelaxations.cs
 typedef enum CompilationRelaxationsEnum
 {
     CompilationRelaxations_NoStringInterning       = 0x0008,
@@ -1835,12 +1835,12 @@ typedef enum CompilationRelaxationsEnum
 #define COMPILATIONRELAXATIONS_TYPE             "System.Runtime.CompilerServices.CompilationRelaxationsAttribute"
 
 
-// Keep in [....] with RuntimeCompatibilityAttribute.cs
+// Keep in sync with RuntimeCompatibilityAttribute.cs
 #define RUNTIMECOMPATIBILITY_TYPE_W             L"System.Runtime.CompilerServices.RuntimeCompatibilityAttribute"
 #define RUNTIMECOMPATIBILITY_TYPE               "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute"
 
 
-// Keep in [....] with AssemblySettingAttributes.cs
+// Keep in sync with AssemblySettingAttributes.cs
 
 typedef enum NGenHintEnum
 {    

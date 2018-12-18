@@ -3923,7 +3923,7 @@ namespace System.Windows.Documents
             int offset;
             bool isCaretUnitBoundaryCacheValid;
 
-            // We MUST [....] to the current tree, otherwise we could addref
+            // We MUST sync to the current tree, otherwise we could addref
             // an orphaned node, resulting in a future unmatched release...
             // Ref counts on orphaned nodes are only considered at the time
             // of removal, not afterwards.
@@ -4305,7 +4305,7 @@ namespace System.Windows.Documents
         }
 
         // Ensure we have a valid _flags field.
-        // See bug 1249258.
+        // See 
         private void VerifyFlags()
         {
             ElementEdge edge = (ElementEdge)(_flags & (uint)Flags.EdgeMask);

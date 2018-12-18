@@ -2,9 +2,9 @@
 // <copyright file="SniManagedWrapper.cs" company="Microsoft">
 //     Copyright (c) Microsoft Corporation.  All rights reserved.
 // </copyright>
-// <owner current="true" primary="true">[....]</owner>
-// <owner current="true" primary="false">[....]</owner>
-// <owner current="true" primary="false">[....]</owner>
+// <owner current="true" primary="true">Microsoft</owner>
+// <owner current="true" primary="false">Microsoft</owner>
+// <owner current="true" primary="false">Microsoft</owner>
 //------------------------------------------------------------------------------
 
 #using   <mscorlib.dll>
@@ -343,7 +343,7 @@ DWORD SNIOpenWrapper( __in SNI_CONSUMER_INFO * pConsumerInfo,
     pConnWrapper->m_pConn = pConn;
 
     BOOL fSupportsSyncOverAsync;
-    dwError = SNIGetInfo(pConn, SNI_QUERY_CONN_SUPPORTS_[....]_OVER_ASYNC, &fSupportsSyncOverAsync);
+    dwError = SNIGetInfo(pConn, SNI_QUERY_CONN_SUPPORTS_SYNC_OVER_ASYNC, &fSupportsSyncOverAsync);
     assert(dwError == ERROR_SUCCESS); // SNIGetInfo cannot fail with this QType
 
     // convert BOOL to bool
@@ -384,7 +384,7 @@ DWORD SNIOpenSyncExWrapper( __inout SNI_CLIENT_CONSUMER_INFO * pClientConsumerIn
     pConnWrapper->m_pConn = pConn;
 
     BOOL fSupportsSyncOverAsync;
-    dwError = SNIGetInfo(pConn, SNI_QUERY_CONN_SUPPORTS_[....]_OVER_ASYNC, &fSupportsSyncOverAsync);
+    dwError = SNIGetInfo(pConn, SNI_QUERY_CONN_SUPPORTS_SYNC_OVER_ASYNC, &fSupportsSyncOverAsync);
     assert(dwError == ERROR_SUCCESS); // SNIGetInfo cannot fail with this QType
 
     // convert BOOL to bool
@@ -1158,7 +1158,7 @@ internal:
         [ResourceExposure(ResourceScope::None)]
         static System::UInt32 SNIWritePacket (SafeHandle^  pConn,
                                              SafeHandle^  packet,
-                                             bool [....])
+                                             bool sync)
         {
             System::UInt32 ret;
 
@@ -1177,7 +1177,7 @@ internal:
                 SNI_ConnWrapper*  local_pConn =    static_cast<SNI_ConnWrapper*>(pConn->DangerousGetHandle().ToPointer ());
                 SNI_Packet*  local_packet =  static_cast<SNI_Packet*>(packet->DangerousGetHandle().ToPointer ());
 
-                if ([....]) {
+                if (sync) {
                     // Need to call SyncOverAsync via PInvoke (instead of a pointer) such that the CLR notifies our hoster (e.g. SQLCLR) that we are doing a managed\native transition
                     return ::SNIWriteSyncOverAsync(local_pConn, local_packet);
                 }
@@ -1221,9 +1221,9 @@ internal:
 
                 if (ret == ERROR_SUCCESS) 
                 {
-                    // added a provider, need to requery for [....] over async support
+                    // added a provider, need to requery for sync over async support
                     BOOL fSupportsSyncOverAsync;
-                    ret = SNIGetInfo(local_pConn->m_pConn, SNI_QUERY_CONN_SUPPORTS_[....]_OVER_ASYNC, &fSupportsSyncOverAsync);
+                    ret = SNIGetInfo(local_pConn->m_pConn, SNI_QUERY_CONN_SUPPORTS_SYNC_OVER_ASYNC, &fSupportsSyncOverAsync);
                     Debug::Assert(ret == ERROR_SUCCESS, "SNIGetInfo cannot fail with this QType");
 
                     // convert BOOL to bool
@@ -1534,7 +1534,7 @@ ref class  NativeOledbWrapper
             hr = unknown->QueryInterface(IID_ITransactionLocal, reinterpret_cast<void**>(&transaction));
             if (NULL != transaction)
             {
-                hr = transaction->Commit(FALSE, XACTTC_[....]_PHASETWO, 0);
+                hr = transaction->Commit(FALSE, XACTTC_SYNC_PHASETWO, 0);
                 transaction->Release();
             }
         }

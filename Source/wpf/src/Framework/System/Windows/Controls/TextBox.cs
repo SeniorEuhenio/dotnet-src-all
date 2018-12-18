@@ -1221,7 +1221,7 @@ namespace System.Windows.Controls
                     // may be different, either because the source normalizes the value
                     // or because of conversion and formatting).  Usually this raises
                     // a change notification for Text, which brings the Text property and
-                    // the text container into [....].  But this doesn't happen in one
+                    // the text container into sync.  But this doesn't happen in one
                     // case:  when the normalized value is the same as the original
                     // value for Text.  The property engine thinks that Text hasn't
                     // changed, and doesn't raise the notification.  It's true that
@@ -1243,7 +1243,7 @@ namespace System.Windows.Controls
             if (resetText)
             {
                 // The text container holds a new value which round-trips to the
-                // old value of Text.  We need to bring the text container into [....].
+                // old value of Text.  We need to bring the text container into sync.
                 try
                 {
                     _newTextValue = newTextValue;
@@ -1620,7 +1620,7 @@ namespace System.Windows.Controls
                 // - the newText as "1" (after the conversion)
                 // - the _newTextValue as "01" which is what the user typed in
                 // - the CaretIndex here as 2 which corresponds to the _newTextValue not the oldText
-                // See Dev11 bug 301456 for details on the scenario.
+                // See Dev11 
                 oldTextForCaretIndexComputation = (string)_newTextValue;
             }
             else if (hasExpression)
@@ -1878,7 +1878,7 @@ namespace System.Windows.Controls
             }
             else
             {
-                lineHeight = fontFamily.GetLineSpacingForDisplayMode(fontSize);
+                lineHeight = fontFamily.GetLineSpacingForDisplayMode(fontSize, GetDpi().DpiScaleY);
             }
 
             return lineHeight;

@@ -234,7 +234,7 @@ namespace System.Drawing {
             
             Size comp = (Size)obj;
             // Note value types can't have derived classes, so we don't need to 
-            // check the types of the objects here.  -- [....], 2/21/2001
+            // check the types of the objects here.  -- Microsoft, 2/21/2001
             return (comp.width == this.width) && 
                    (comp.height == this.height);
         }

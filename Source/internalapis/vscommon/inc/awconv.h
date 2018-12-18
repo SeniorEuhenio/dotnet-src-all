@@ -28,7 +28,7 @@ extern "C"  void * __cdecl _alloca(size_t);
 #define cchWideForAnsiSize(cbAnsi)   (cbAnsi)
 #define cbAnsiForWideSize(cbWide)    (cbWide)
 
-// Win64Fix ([....]): strlen returns size_t which is 64-bit long.
+// Win64Fix (Microsoft): strlen returns size_t which is 64-bit long.
 // In this particular case I think int is sufficient and I won't need to fix ann the calls to the StrLenA
 inline int cbWideForAnsiStr  (_In_z_ LPCSTR  sz) { return ((int)strlen(sz) + 1) * sizeof(WCHAR); }
 inline int cchWideForAnsiStr (_In_z_ LPCSTR  sz) { return ((int)strlen(sz) + 1); }

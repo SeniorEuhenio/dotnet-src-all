@@ -8,7 +8,7 @@
 //              provides matrix multiply code.
 // 
 // History:  
-//  01/06/2004 : [....] - Created, most copied from wcp\core\system\windows\media\milutilities.cs
+//  01/06/2004 : Microsoft - Created, most copied from wcp\core\system\windows\media\milutilities.cs
 //
 //---------------------------------------------------------------------------
 

@@ -464,7 +464,7 @@ namespace System.Windows.Threading
         ///     An IAsyncResult object that represents the result of the
         ///     BeginInvoke operation.
         /// </returns>
-        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking Bug: 29647
+        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking 
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public DispatcherOperation BeginInvoke(DispatcherPriority priority, Delegate method, object arg) // NOTE: should be Priority
         {
@@ -494,7 +494,7 @@ namespace System.Windows.Threading
         ///     An IAsyncResult object that represents the result of the
         ///     BeginInvoke operation.
         /// </returns>
-        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking Bug: 29647
+        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking 
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public DispatcherOperation BeginInvoke(DispatcherPriority priority, Delegate method, object arg, params object[] args)
         {
@@ -1917,6 +1917,25 @@ namespace System.Windows.Threading
             _window.Value.AddHook(_hook);
         }
 
+        // creates a "sentinel" dispatcher.  It doesn't do anything, and should never
+        // be called except for CheckAccess and VerifyAccess (which fail).
+        // See DispatcherObject.MakeSentinel() for more.
+        // [The 'isSentinel' parameter is ignored - it only serves to distinguish
+        // this ctor from others.]
+        internal Dispatcher(bool isSentinel)
+        {
+            Debug.Assert(isSentinel, "this ctor is only for creating a 'sentinel' dispatcher");
+
+            // set thread so that CheckAccess and VerifyAccess fail
+            _dispatcherThread = null;
+
+            // set other members so that incoming calls (which shouldn't happen)
+            // do as little as possible
+            _startingShutdown = true;
+            _hasShutdownStarted = true;
+            _hasShutdownFinished = true;
+        }
+
         ///<SecurityNote>
         /// Critical - it calls critical methods (ShutdownImpl). it can initiate a shutdown process, disabled
         /// in partial trust.
@@ -1948,13 +1967,13 @@ namespace System.Windows.Threading
                 // or InvokeShutdown were called.  So if there were not enough
                 // permissions, we would have thrown then.
                 //
-                ExecutionContext shutdownExecutionContext = ExecutionContext.Capture();
-                _shutdownExecutionContext = new SecurityCriticalDataClass<ExecutionContext>(shutdownExecutionContext);
+                CulturePreservingExecutionContext shutdownExecutionContext = CulturePreservingExecutionContext.Capture();
+                _shutdownExecutionContext = new SecurityCriticalDataClass<CulturePreservingExecutionContext>(shutdownExecutionContext);
 
                 // Tell Win32 to exit the message loop for this thread.
-                // NOTE: I removed this code because of bug 1062099.
-                //
-                // UnsafeNativeMethods.PostQuitMessage(0);
+                // NOTE: I removed this code because of 
+
+
 
                 if(_frameDepth > 0)
                 {
@@ -1983,7 +2002,7 @@ namespace System.Windows.Threading
                 {
                     // Continue using the execution context that was active when the shutdown
                     // was initiated.
-                    ExecutionContext.Run(_shutdownExecutionContext.Value, new ContextCallback(ShutdownImplInSecurityContext), null);
+                    CulturePreservingExecutionContext.Run(_shutdownExecutionContext.Value, new ContextCallback(ShutdownImplInSecurityContext), null);
                 }
                 else
                 {
@@ -2080,11 +2099,11 @@ namespace System.Windows.Threading
         }
 
         // Returns whether or not the priority was set.
-        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking Bug: 29647
-        /// <SecurityNote>
-        ///     Critical: accesses _hooks
-        ///     TreatAsSafe: does not expose _hooks
-        /// </SecurityNote>
+        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking 
+
+
+
+
         [SecurityCritical, SecurityTreatAsSafe]
         internal bool SetPriority(DispatcherOperation operation, DispatcherPriority priority) // NOTE: should be Priority
         {
@@ -2125,11 +2144,11 @@ namespace System.Windows.Threading
         }
 
         // Returns whether or not the operation was removed.
-        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking Bug: 29647
-        /// <SecurityNote>
-        ///     Critical: accesses _hooks
-        ///     TreatAsSafe: does not expose _hooks
-        /// </SecurityNote>
+        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking 
+
+
+
+
         [SecurityCritical, SecurityTreatAsSafe]
         internal bool Abort(DispatcherOperation operation)
         {
@@ -2165,11 +2184,11 @@ namespace System.Windows.Threading
             return notify;
         }
 
-        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking Bug: 29647
-        /// <SecurityNote>
-        ///    Critical: This code can be used to process input and calls into DispatcherOperation.Invoke which
-        ///    is critical
-        /// </SecurityNote>
+        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking 
+
+
+
+
         [SecurityCritical]
         private void ProcessQueue()
         {
@@ -3043,7 +3062,7 @@ namespace System.Windows.Threading
         internal bool _exitAllFrames;       // used from DispatcherFrame
         private bool _startingShutdown;
         internal bool _hasShutdownStarted;  // used from DispatcherFrame
-        private SecurityCriticalDataClass<ExecutionContext> _shutdownExecutionContext;
+        private SecurityCriticalDataClass<CulturePreservingExecutionContext> _shutdownExecutionContext;
 
         internal int _disableProcessingCount; // read by DispatcherSynchronizationContext, decremented by DispatcherProcessingDisabled
 

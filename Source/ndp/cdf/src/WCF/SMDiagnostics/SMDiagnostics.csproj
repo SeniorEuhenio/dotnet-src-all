@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{d79516c9-1e27-407c-a2a3-554e4b7f8152}</ProjectGuid>
+    <ProjectGuid>{1070e2f7-add6-4359-92dc-19ade9c40d83}</ProjectGuid>
     <OutputPath>.</OutputPath>
     <OutputType>Library</OutputType>
     <AssemblyName>SMDiagnostics</AssemblyName>
@@ -20,27 +20,27 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\clr\src\bcl\mscorlib.csproj">
-      <Project>{67c368de-3511-4106-8749-000d91efd3fc}</Project>
+      <Project>{20f34c38-8c60-44e7-b703-0e341d274957}</Project>
       <Name>mscorlib</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\System.csproj">
-      <Project>{54e500cb-cdce-4405-9ac7-200d8982ccd8}</Project>
+      <Project>{85716da4-9fb2-4f44-9c4d-b7431fdf1b20}</Project>
       <Name>System</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\Configuration\System.Configuration.csproj">
-      <Project>{d055238a-9098-47e9-8d76-70acbfa31ac3}</Project>
+      <Project>{a4d7a44f-817d-4fad-ba6a-076580aadfbe}</Project>
       <Name>System.Configuration</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\System.ServiceModel.Internals\System.ServiceModel.Internals.csproj">
-      <Project>{9d91f452-0441-451a-8036-fc665dcd0595}</Project>
+      <Project>{01dc86fb-e3cd-4b78-b584-7dba90eb3a6e}</Project>
       <Name>System.ServiceModel.Internals</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\NetFx20\System.Transactions\System.Transactions.csproj">
-      <Project>{24807d62-c423-48dd-931b-a618672cce83}</Project>
+      <Project>{d2a61b41-ea67-483d-ac54-45f74dcb0dde}</Project>
       <Name>System.Transactions</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\Xml\System.Xml.csproj">
-      <Project>{7eccbad4-f184-4260-b750-d5c802c948d8}</Project>
+      <Project>{6f992f82-1c90-4388-ab60-15c653aeeca5}</Project>
       <Name>System.Xml</Name>
     </ProjectReference>
   </ItemGroup>

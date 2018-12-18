@@ -239,7 +239,7 @@ namespace System.Drawing {
             if (!(obj is Point)) return false;
             Point comp = (Point)obj;
             // Note value types can't have derived classes, so we don't need 
-            // to check the types of the objects here.  -- [....], 2/21/2001
+            // to check the types of the objects here.  -- Microsoft, 2/21/2001
             return comp.X == this.X && comp.Y == this.Y;
         }
 

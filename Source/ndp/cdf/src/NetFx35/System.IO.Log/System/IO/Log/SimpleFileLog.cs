@@ -174,15 +174,15 @@ namespace System.IO.Log
             ILog log = (ILog)(this.smuggledLog.Smuggle());
             try
             {
-                // Due to WinSE 184096 bug, we always do force flush as a work around. Ignoring fForceNow value... 
-                // If force flush is not done, the user will be able to read stale records after calling TruncatePrefix and 
-                // the base lsn will not be updated to reflect the new lsn in TruncatePrefix call.
-                // This is a temporary work around fix and if txflog issue is fixed at a later date, we need to have a QFE
-                // to use the user passed in fForceNow flag value to support buffering of log records.
-                // Related Bugs:
-                //          WinSE: 184096
-                //          Windows OS: 1729140
-                //          MB: 57586 52216
+                // Due to WinSE 184096 
+
+
+
+
+
+
+
+
 
                 log.AppendRecord(data,
                                  data.Length,

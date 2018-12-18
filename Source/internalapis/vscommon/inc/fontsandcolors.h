@@ -1,6 +1,6 @@
 //------------------------------------------------------------------------------
 // fontsandcolors.h
-// Author: Josh Stevens [[....]]
+// Author: Josh Stevens [Microsoft]
 //
 // Fonts & Colors helper macros.  See common\idl\vs\vsshell.idl for related
 // interfaces and enums.

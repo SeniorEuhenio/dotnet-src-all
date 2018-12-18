@@ -123,7 +123,7 @@ namespace System.Windows.Controls
 
             // the generator must attach its collection change handler before
             // the control itself, so that the generator is up-to-date by the
-            // time the control tries to use it (bug 892806 et al.)
+            // time the control tries to use it (
             _itemContainerGenerator = new ItemContainerGenerator(this);
 
             _itemContainerGenerator.ChangeAlternationCount();
@@ -1324,19 +1324,19 @@ namespace System.Windows.Controls
         {
             DependencyObject container;
 
-            // use the item directly, if possible (bug 870672)
+            // use the item directly, if possible (
             if (IsItemItsOwnContainerOverride(item))
                 container = item as DependencyObject;
             else
                 container = GetContainerForItemOverride();
 
             // the container might have a parent from a previous
-            // generation (bug 873118).  If so, clean it up before using it again.
-            //
-            // Note: This assumes the container is about to be added to a new parent,
-            // according to the ItemsControl/Generator/Container pattern.
-            // If someone calls the generator and doesn't add the container to
-            // a visual parent, unexpected things might happen.
+            // generation (
+
+
+
+
+
             Visual visual = container as Visual;
             if (visual != null)
             {
@@ -1395,7 +1395,7 @@ namespace System.Windows.Controls
             if (container == item && TraceData.IsEnabled)
             {
                 // issue a message if there's an ItemTemplate(Selector) for "direct" items
-                // The ItemTemplate isn't used, which may confuse the user (bug 991101).
+                // The ItemTemplate isn't used, which may confuse the user (
                 if (ItemTemplate != null || ItemTemplateSelector != null)
                 {
                     TraceData.Trace(TraceEventType.Error, TraceData.ItemTemplateForDirectItem, AvTrace.TypeName(item));
@@ -1414,13 +1414,13 @@ namespace System.Windows.Controls
         /// </summary>
         void IGeneratorHost.ClearContainerForItem(DependencyObject container, object item)
         {
-            // This method no longer does most of the work it used to (bug 1445288).
-            // It is called when a container is removed from the tree;  such a
-            // container will be GC'd soon, so there's no point in changing
-            // its properties.
-            //
-            // We still call the override method, to give subclasses a chance
-            // to clean up anything they may have done during Prepare (bug 1561206).
+            // This method no longer does most of the work it used to (
+
+
+
+
+
+
 
             GroupItem groupItem = container as GroupItem;
             if (groupItem == null)
@@ -1981,9 +1981,9 @@ namespace System.Windows.Controls
                 if (startingElement == null || !ItemsHost.IsAncestorOf(startingElement))
                 {
                     //
-                    // Bug 991220 makes it so that we have to start from the ScrollHost.
-                    // If we try to start from the ItemsHost it will always skip the first item.
-                    //
+                    // 
+
+
                     startingElement = ScrollHost;
                 }
                 else
@@ -3410,7 +3410,7 @@ namespace System.Windows.Controls
         {
             FrameworkObject foContainer = new FrameworkObject(container);
 
-            // don't overwrite a locally-defined style (bug 1018408)
+            // don't overwrite a locally-defined style (
             if (!foContainer.IsStyleSetFromGenerator &&
                 container.ReadLocalValue(FrameworkElement.StyleProperty) != DependencyProperty.UnsetValue)
             {
@@ -3554,7 +3554,7 @@ namespace System.Windows.Controls
                 {
                     resolvePendingContainers = true;
                 }
-                else if (!ItemsControl.EqualsEx(info.Item,
+                else if (info.IsRemoved || !ItemsControl.EqualsEx(info.Item,
                             container.ReadLocalValue(ItemContainerGenerator.ItemForItemContainerProperty)))
                 {
                     info.Container = null;
@@ -3744,6 +3744,17 @@ namespace System.Windows.Controls
             internal static readonly DependencyObject UnresolvedContainer = new DependencyObject();
             internal static readonly DependencyObject KeyContainer = new DependencyObject();
             internal static readonly DependencyObject RemovedContainer = new DependencyObject();
+
+            static ItemInfo()
+            {
+                // mark the special DOs as sentinels.  This helps catch bugs involving
+                // using them accidentally for anything besides equality comparison.
+                // [Removed from 4.6.2 at request of .Net Shiproom]
+                //SentinelContainer.MakeSentinel();
+                //UnresolvedContainer.MakeSentinel();
+                //KeyContainer.MakeSentinel();
+                //RemovedContainer.MakeSentinel();
+            }
 
             public ItemInfo(object item, DependencyObject container=null, int index=-1)
             {

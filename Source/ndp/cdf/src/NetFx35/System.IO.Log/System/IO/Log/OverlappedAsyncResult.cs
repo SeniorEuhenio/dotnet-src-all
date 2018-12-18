@@ -155,9 +155,9 @@ namespace System.IO.Log
         {
             if (this.nativeOverlapped != null)
             {
-                // If we reach this condition, we have a bug in a derived AsyncResult class.
-                // It attempted to initiate a new async I/O operation before the previous
-                // one completed. This is a fatal condition, so we cannot continue execution.
+                // If we reach this condition, we have a 
+
+
                 DiagnosticUtility.FailFast("Must allow previous I/O to complete before packing");
             }
 

@@ -1622,7 +1622,7 @@ typedef struct _NETLOGON_INFO_4 {
 
 #define NETLOGON_REPLICATION_NEEDED       0x01  // Database is out of date
 #define NETLOGON_REPLICATION_IN_PROGRESS  0x02  // Replication is happening now
-#define NETLOGON_FULL_[....]_REPLICATION    0x04  // full [....] replication required/progress
+#define NETLOGON_FULL_SYNC_REPLICATION    0x04  // full sync replication required/progress
 #define NETLOGON_REDO_NEEDED              0x08  // Redo of previous replication needed
 #define NETLOGON_HAS_IP                   0x10  // The trusted domain DC has an IP address
 #define NETLOGON_HAS_TIMESERV             0x20  // The trusted domain DC runs the Windows Time Service

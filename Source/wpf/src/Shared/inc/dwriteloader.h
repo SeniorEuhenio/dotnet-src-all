@@ -4,12 +4,12 @@
 
 namespace WPFUtils
 {
-    #if _MANAGED
+    #if defined(__cplusplus_cli)
     /// <SecurityNote>
     /// Critical - Receives a native pointer as parameter.
     ///            Loads a dll from an input path.
     /// </SecurityNote>
     [System::Security::SecurityCritical]
     #endif
-    HMODULE LoadDWriteLibraryAndGetProcAddress(const wchar_t *pwszWpftxtPath, void **pfncptrDWriteCreateFactory);
+    HMODULE LoadDWriteLibraryAndGetProcAddress(void **pfncptrDWriteCreateFactory);
 }

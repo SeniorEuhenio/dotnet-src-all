@@ -10,6 +10,7 @@
 
 
 using System;
+using System.Reflection;
 using System.Threading;
 using System.Windows.Threading;
 
@@ -89,10 +90,65 @@ namespace MS.Internal
         /// </returns>
         internal bool WithReadLock(Action criticalAction)
         {
-            return ExecuteWithinLock(
-                lockAcquire: _rwLock.EnterReadLock,
-                lockRelease: _rwLock.ExitReadLock,
-                criticalAction: criticalAction);
+            object oResult = null;
+            return ExecuteWithinLockInternal(
+                _rwLock.EnterReadLock, 
+                _rwLock.ExitReadLock, 
+                ref oResult, 
+                criticalAction, null);
+        }
+
+        internal bool WithReadLock<T>(Action<T> criticalAction, T arg)
+        {
+            object oResult = null;
+
+            return ExecuteWithinLockInternal(
+                _rwLock.EnterReadLock, 
+                _rwLock.ExitReadLock, 
+                ref oResult, 
+                criticalAction, arg);
+        }
+
+        internal bool WithReadLock<T, TResult>(Func<T, TResult> criticalAction, T arg, out TResult result)
+        {
+            object oResult = null;
+            bool success = false; 
+
+            try
+            {
+                success = ExecuteWithinLockInternal(
+                    _rwLock.EnterReadLock,
+                    _rwLock.ExitReadLock,
+                    ref oResult,
+                    criticalAction, arg);
+            }
+            finally
+            {
+                result = success ? (TResult)oResult : default(TResult);
+            }
+
+            return success;
+        }
+
+        internal bool WithReadLock<T1, T2, TResult>(Func<T1, T2, TResult> criticalAction, T1 arg1, T2 arg2, out TResult result)
+        {
+            object oResult = null;
+            bool success = false;
+
+            try
+            {
+                success = ExecuteWithinLockInternal(
+                    _rwLock.EnterReadLock,
+                    _rwLock.ExitReadLock,
+                    ref oResult,
+                    criticalAction, arg1, arg2);
+            }
+            finally
+            {
+                result = success ? (TResult)oResult : default(TResult);
+            }
+
+            return success;
         }
 
         /// <summary>
@@ -108,10 +164,65 @@ namespace MS.Internal
         /// </returns>
         internal bool WithWriteLock(Action criticalAction)
         {
-            return ExecuteWithinLock(
-                lockAcquire: _rwLock.EnterWriteLock,
-                lockRelease: _rwLock.ExitWriteLock,
-                criticalAction: criticalAction);
+            object oResult = null;
+            return ExecuteWithinLockInternal(
+                _rwLock.EnterWriteLock,
+                _rwLock.ExitWriteLock,
+                ref oResult,
+                criticalAction, null);
+        }
+
+        internal bool WithWriteLock<T>(Action<T> criticalAction, T arg)
+        {
+            object oResult = null; 
+
+            return ExecuteWithinLockInternal(
+                        _rwLock.EnterWriteLock, 
+                        _rwLock.ExitWriteLock, 
+                        ref oResult, 
+                        criticalAction, arg);
+        }
+
+        internal bool WithWriteLock<T, TResult>(Func<T, TResult> criticalAction, T arg, out TResult result)
+        {
+            bool success = false;
+            object oResult = null;
+
+            try
+            {
+                success = ExecuteWithinLockInternal(
+                    _rwLock.EnterWriteLock,
+                    _rwLock.ExitWriteLock,
+                    ref oResult,
+                    criticalAction, arg);
+            }
+            finally
+            {
+                result = success ? (TResult)oResult : default(TResult);
+            }
+
+            return success;
+        }
+
+        internal bool WithWriteLock<T1, T2, TResult>(Func<T1, T2, TResult> criticalAction, T1 arg1, T2 arg2, out TResult result)
+        {
+            bool success = false;
+            object oResult = null;
+
+            try
+            {
+                success = ExecuteWithinLockInternal(
+                    _rwLock.EnterWriteLock,
+                    _rwLock.ExitWriteLock,
+                    ref oResult,
+                    criticalAction, arg1, arg2);
+            }
+            finally
+            {
+                result = success ? (TResult)oResult : default(TResult);
+            }
+
+            return success;
         }
 
         #endregion Internal Methods
@@ -120,17 +231,16 @@ namespace MS.Internal
 
         /// <summary>
         /// Calls <paramref name="criticalAction"/> after acquiring a 
-        /// lock by executing the Action specified by <paramref name="lockAcquire"/>
+        /// lock by executing the Delegate specified by <paramref name="lockAcquire"/>
         /// </summary>
         /// <param name="lockAcquire">Action that acquires a lock</param>
         /// <param name="lockRelease">Action that releases a lock</param>
-        /// <param name="criticalAction">
-        /// Critical action that is performed if lock acquisition is successful
+        /// <param name="result">
+        /// If criticalAction Delegate returns a value after execution, it is stored and returend to the caller through this out parameter
         /// </param>
-        /// <returns>
-        /// true if successful is acquiring a lock followed by an attempt to 
-        /// execute <paramref name="criticalAction"/>, otherwise false
-        /// </returns>
+        /// <param name="criticalAction">Critical action that is performed if lock acquisition is successful</param>
+        /// <param name="args">Arguments passed on to criticalAction</param>
+        /// <returns>True on successful lock acquisition and attempted exeuction of criticalAction, False otherwise</returns>
         /// <remarks>
         /// <paramref name="criticalAction"/> is only attempted upon the successful 
         /// acquisition of the lock. 
@@ -149,8 +259,13 @@ namespace MS.Internal
         /// Dispatcher processing is re-enabled after the lock is released. This is done to 
         /// prevent potential reentrancy problems.  
         /// </remarks>
-        private bool ExecuteWithinLock(Action lockAcquire, Action lockRelease, Action criticalAction)
+        private bool ExecuteWithinLockInternal(Action lockAcquire, Action lockRelease, ref object result, Delegate criticalAction, params object[] args)
         {
+            if (criticalAction == null)
+            {
+                throw new ArgumentNullException(nameof(criticalAction));
+            }
+
             bool lockAcquired = false;
             DispatcherProcessingDisabled? dispatcherProcessingDisabled = null;
 
@@ -177,8 +292,12 @@ namespace MS.Internal
                 {
                     if (lockAcquired)
                     {
-                        criticalAction?.Invoke();
+                        result = criticalAction.DynamicInvoke(args);
                     }
+                }
+                catch (TargetInvocationException ex) when (ex.InnerException != null)
+                {
+                    throw ex.InnerException;
                 }
                 finally
                 {

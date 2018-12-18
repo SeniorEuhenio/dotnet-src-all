@@ -217,10 +217,9 @@ namespace System.Windows.Controls
             Thickness borders = this.BorderThickness;
             if (this.UseLayoutRounding && !FrameworkAppContextSwitches.DoNotApplyLayoutRoundingToMarginsAndBorderThickness)
             {
-                double dpiScaleX = FrameworkElement.DpiScaleX;
-                double dpiScaleY = FrameworkElement.DpiScaleY;
-                borders = new Thickness(UIElement.RoundLayoutValue(borders.Left, dpiScaleX), UIElement.RoundLayoutValue(borders.Top, dpiScaleY),
-                   UIElement.RoundLayoutValue(borders.Right, dpiScaleX), UIElement.RoundLayoutValue(borders.Bottom, dpiScaleY));
+                DpiScale dpi = GetDpi();
+                borders = new Thickness(UIElement.RoundLayoutValue(borders.Left, dpi.DpiScaleX), UIElement.RoundLayoutValue(borders.Top, dpi.DpiScaleY),
+                   UIElement.RoundLayoutValue(borders.Right, dpi.DpiScaleX), UIElement.RoundLayoutValue(borders.Bottom, dpi.DpiScaleY));
             }
             // Compute the chrome size added by the various elements
             Size border = HelperCollapseThickness(borders);
@@ -265,10 +264,9 @@ namespace System.Windows.Controls
             Thickness borders = BorderThickness;
             if (this.UseLayoutRounding && !FrameworkAppContextSwitches.DoNotApplyLayoutRoundingToMarginsAndBorderThickness)
             {
-                double dpiScaleX = FrameworkElement.DpiScaleX;
-                double dpiScaleY = FrameworkElement.DpiScaleY;
-                borders = new Thickness(UIElement.RoundLayoutValue(borders.Left, dpiScaleX), UIElement.RoundLayoutValue(borders.Top, dpiScaleY),
-                   UIElement.RoundLayoutValue(borders.Right, dpiScaleX), UIElement.RoundLayoutValue(borders.Bottom, dpiScaleY));
+                DpiScale dpi = GetDpi();
+                borders = new Thickness(UIElement.RoundLayoutValue(borders.Left, dpi.DpiScaleX), UIElement.RoundLayoutValue(borders.Top, dpi.DpiScaleY),
+                   UIElement.RoundLayoutValue(borders.Right, dpi.DpiScaleX), UIElement.RoundLayoutValue(borders.Bottom, dpi.DpiScaleY));
             }
             Rect boundRect = new Rect(finalSize);
             Rect innerRect = HelperDeflateRect(boundRect, borders);
@@ -370,6 +368,7 @@ namespace System.Windows.Controls
         protected override void OnRender(DrawingContext dc)
         {           
             bool useLayoutRounding = this.UseLayoutRounding;
+            DpiScale dpi = GetDpi();
 
             if (_useComplexRenderCodePath)
             {
@@ -414,7 +413,7 @@ namespace System.Windows.Controls
 
                         if (useLayoutRounding)
                         {
-                            pen.Thickness = UIElement.RoundLayoutValue(border.Left, FrameworkElement.DpiScaleX);
+                            pen.Thickness = UIElement.RoundLayoutValue(border.Left, dpi.DpiScaleX);
                         }
                         else
                         {
@@ -478,7 +477,7 @@ namespace System.Windows.Controls
 
                                 if (useLayoutRounding)
                                 {
-                                    pen.Thickness = UIElement.RoundLayoutValue(border.Right, FrameworkElement.DpiScaleX);
+                                    pen.Thickness = UIElement.RoundLayoutValue(border.Right, dpi.DpiScaleX);
                                 }
                                 else
                                 {
@@ -510,7 +509,7 @@ namespace System.Windows.Controls
                                 pen.Brush = borderBrush;
                                 if (useLayoutRounding)
                                 {
-                                    pen.Thickness = UIElement.RoundLayoutValue(border.Top, FrameworkElement.DpiScaleY);
+                                    pen.Thickness = UIElement.RoundLayoutValue(border.Top, dpi.DpiScaleY);
                                 }
                                 else
                                 {
@@ -541,7 +540,7 @@ namespace System.Windows.Controls
                                 pen.Brush = borderBrush;
                                 if (useLayoutRounding)
                                 {
-                                    pen.Thickness = UIElement.RoundLayoutValue(border.Bottom, FrameworkElement.DpiScaleY);
+                                    pen.Thickness = UIElement.RoundLayoutValue(border.Bottom, dpi.DpiScaleY);
                                 }
                                 else
                                 {
@@ -573,18 +572,18 @@ namespace System.Windows.Controls
 
                     if (useLayoutRounding)
                     {
-                        ptTL = new Point(UIElement.RoundLayoutValue(border.Left, FrameworkElement.DpiScaleX),
-                                         UIElement.RoundLayoutValue(border.Top, FrameworkElement.DpiScaleY));
+                        ptTL = new Point(UIElement.RoundLayoutValue(border.Left, dpi.DpiScaleX),
+                                         UIElement.RoundLayoutValue(border.Top, dpi.DpiScaleY));
                         
                         if(FrameworkAppContextSwitches.DoNotApplyLayoutRoundingToMarginsAndBorderThickness)
                         {
-                            ptBR = new Point(UIElement.RoundLayoutValue(RenderSize.Width - border.Right, FrameworkElement.DpiScaleX),
-                                         UIElement.RoundLayoutValue(RenderSize.Height - border.Bottom, FrameworkElement.DpiScaleY));
+                            ptBR = new Point(UIElement.RoundLayoutValue(RenderSize.Width - border.Right, dpi.DpiScaleX),
+                                         UIElement.RoundLayoutValue(RenderSize.Height - border.Bottom, dpi.DpiScaleY));
                         }
                         else
                         {
-                            ptBR = new Point(RenderSize.Width - UIElement.RoundLayoutValue(border.Right, FrameworkElement.DpiScaleX),
-                                         RenderSize.Height - UIElement.RoundLayoutValue(border.Bottom, FrameworkElement.DpiScaleY));
+                            ptBR = new Point(RenderSize.Width - UIElement.RoundLayoutValue(border.Right, dpi.DpiScaleX),
+                                         RenderSize.Height - UIElement.RoundLayoutValue(border.Bottom, dpi.DpiScaleY));
                         }                        
                     }
                     else

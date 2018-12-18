@@ -9,8 +9,8 @@
 //              double-based classes and structs in our code.
 // 
 // History:  
-//  04/28/2003 : [....] - Created
-//  05/20/2003 : [....] - Moved it to Shared, so Base, Core and Framework can all share.
+//  04/28/2003 : Microsoft - Created
+//  05/20/2003 : Microsoft - Moved it to Shared, so Base, Core and Framework can all share.
 //
 //---------------------------------------------------------------------------
 

@@ -32,7 +32,7 @@ DWORD Sm_Shiloh::LoadDll(__out NLFunctionTable * pFuncs)
 
 	DWORD dwError;
 
-	// Function Names for Wrapper Netlib Dlls - keep in [....] with enum in .hpp
+	// Function Names for Wrapper Netlib Dlls - keep in sync with enum in .hpp
 	CHAR * rgFnName[CLNT_NETFUNCS] =
 	{
 	    "ConnectionObjectSize",

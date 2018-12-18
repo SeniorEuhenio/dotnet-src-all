@@ -1217,17 +1217,42 @@ namespace System.Windows.Documents
 
                     int extraCharsAllowed = Math.Max(0, this.MaxLength - currentLength);
 
+                    // Is there room to insert text?
+                    if (extraCharsAllowed == 0)
+                    {
+                        return string.Empty;
+                    }
+
                     // Does textData length exceed allowed char length?
                     if (textData.Length > extraCharsAllowed)
                     {
-                        int splitPosition = textData.Length - extraCharsAllowed;
-
+                        int splitPosition = extraCharsAllowed;
                         if (IsBadSplitPosition(textData, splitPosition))
                         {
-                            extraCharsAllowed--;
+                            splitPosition--;
                         }
-                        textData = textData.Substring(0, extraCharsAllowed);
+                        textData = textData.Substring(0, splitPosition);
                     }
+
+                    // Is there room for low surrogate?
+                    if (textData.Length == extraCharsAllowed && Char.IsHighSurrogate(textData, extraCharsAllowed - 1))
+                    {
+                        textData = textData.Substring(0, extraCharsAllowed-1);
+                    }
+                    // Does the starting low surrogate have a matching high surrogate in the previously inserted content?
+                    if (!string.IsNullOrEmpty(textData) && Char.IsLowSurrogate(textData, 0))
+                    {
+                        string textAdjacent = textContainer.TextSelection.AnchorPosition.GetTextInRun(LogicalDirection.Backward);
+                        if (string.IsNullOrEmpty(textAdjacent) || !Char.IsHighSurrogate(textAdjacent, textAdjacent.Length - 1))
+                        {
+                            return string.Empty;
+                        }
+                    }
+                }
+
+                if (string.IsNullOrEmpty(textData))
+                {
+                    return textData;
                 }
 
                 if (this.CharacterCasing == CharacterCasing.Upper)

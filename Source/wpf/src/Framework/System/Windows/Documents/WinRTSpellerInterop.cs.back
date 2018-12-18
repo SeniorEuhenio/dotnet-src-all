@@ -31,7 +31,9 @@ namespace System.Windows.Documents
     using System.Windows.Controls;
     using System.Windows.Input;
 
-    internal class WinRTSpellerInterop: SpellerInteropBase
+    using System.Windows.Documents.MsSpellCheckLib;
+
+    internal partial class WinRTSpellerInterop: SpellerInteropBase
     {
         #region Constructors
 
@@ -43,10 +45,10 @@ namespace System.Windows.Documents
         /// </exception>
         /// <SecurityNote>
         /// Critical:
-        ///     Asserts permissions, instantiates COM objects
+        ///     Asserts permissions
         /// Safe:
         ///     Takes no input, does not give the caller access to any 
-        ///     critical (COM) resources directly.
+        ///     Critical resources directly.
         /// </SecurityNote>
         [SecuritySafeCritical]
         internal WinRTSpellerInterop()
@@ -61,7 +63,7 @@ namespace System.Windows.Documents
 
             try
             {
-                _spellCheckerFactory = new SpellCheckerFactory();
+                SpellCheckerFactory.Create(shouldSuppressCOMExceptions: false);
             }
             catch (Exception ex)
                 // Sometimes, InvalidCastException is thrown when SpellCheckerFactory fails to instantiate correctly
@@ -75,14 +77,13 @@ namespace System.Windows.Documents
                 CodeAccessPermission.RevertAssert();
             }
 
-            _spellCheckers = new Dictionary<CultureInfo, Tuple<WordsSegmenter, ISpellChecker>>();
+            _spellCheckers = new Dictionary<CultureInfo, Tuple<WordsSegmenter, SpellChecker>>();
             _customDictionaryFiles = new Dictionary<CultureInfo, List<string>>();
 
             _defaultCulture = InputLanguageManager.Current?.CurrentInputLanguage ?? Thread.CurrentThread.CurrentCulture;
             _culture = null;
 
             _customDictionaryFilesLock = new Semaphore(1, 1);
-            _spellCheckerFactoryLock = new ReaderWriterLockSlimWrapper(LockRecursionPolicy.NoRecursion);
 
             try
             {
@@ -125,15 +126,10 @@ namespace System.Windows.Documents
         /// <summary>
         /// Internal interop resource cleanup
         /// </summary>
-        /// <SecurityNote>
-        /// Critical:
-        ///     Calls into Marshal.ReleaseComObject
-        /// Safe:
-        ///     Called by transparent callers, and does not expose
-        ///     critical resources (COM objects) to the callers.
-        /// </SecurityNote>
-        /// <param name="disposing"></param>
-        [SecuritySafeCritical]
+        /// <param name="disposing">
+        ///     False when called from the Finalizer
+        ///     True when called explicitly from Dispose()
+        /// </param>
         protected override void Dispose(bool disposing)
         {
             if (_isDisposed)
@@ -144,12 +140,12 @@ namespace System.Windows.Documents
 
             if (_spellCheckers != null)
             {
-                foreach(Tuple<WordsSegmenter, ISpellChecker> item in _spellCheckers.Values)
+                foreach(Tuple<WordsSegmenter, SpellChecker> item in _spellCheckers.Values)
                 {
-                    ISpellChecker spellChecker = item?.Item2;
+                    SpellChecker spellChecker = item?.Item2;
                     if (spellChecker != null)
                     {
-                        Marshal.ReleaseComObject(spellChecker);
+                        spellChecker.Dispose();
                     }
                 }
 
@@ -157,17 +153,6 @@ namespace System.Windows.Documents
             }
 
             ClearDictionaries(isDisposeOrFinalize:true);
-
-            if (_spellCheckerFactory != null)
-            {
-                // After this point, _spellCheckerFactory cannot be used elsewhere.
-                _spellCheckerFactoryLock.WithWriteLock(ReleaseSpellCheckerFactory);
-            }
-
-            // Locks may not be initialized if Dispose() is called from the 
-            // constructor. Only call _spellCheckerFactoryLock.Dispose() 
-            // if the lock has been initialized.
-            _spellCheckerFactoryLock?.Dispose();
 
             _isDisposed = true;
         }
@@ -229,9 +214,8 @@ namespace System.Windows.Documents
         /// <returns></returns>
         internal override bool CanSpellCheck(CultureInfo culture)
         {
-            return EnsureWordBreakerAndSpellCheckerForCulture(culture);
+            return !_isDisposed && EnsureWordBreakerAndSpellCheckerForCulture(culture);
         }
-
 
 
         #region Dictionary Methods
@@ -243,11 +227,14 @@ namespace System.Windows.Documents
         /// <SecurityNote>
         /// Critical - 
         ///     Demands FileIOPermission
-        ///     Calls into COM API
+        /// Safe - 
+        ///     Does not expose any Critical resources to the caller.
         /// </SecurityNote>
-        [SecurityCritical]
+        [SecuritySafeCritical]
         internal override void UnloadDictionary(object token)
         {
+            if (_isDisposed) return;
+
             var data = (Tuple<CultureInfo, String>)token;
             CultureInfo culture = data.Item1;
             string filePath = data.Item2;
@@ -264,11 +251,7 @@ namespace System.Windows.Documents
                 _customDictionaryFilesLock.Release();
             }
 
-            _spellCheckerFactoryLock.WithReadLock(()=> 
-            {
-                IUserDictionariesRegistrar registrar = (IUserDictionariesRegistrar)_spellCheckerFactory;
-                registrar.UnregisterUserDictionary(filePath, culture.IetfLanguageTag);
-            });
+            SpellCheckerFactory.UnregisterUserDictionary(filePath, culture.IetfLanguageTag);
 
             File.Delete(filePath);
         }
@@ -278,14 +261,9 @@ namespace System.Windows.Documents
         /// </summary>
         /// <param name="lexiconFilePath"></param>
         /// <returns></returns>
-        /// <SecurityNote>
-        /// Critical
-        ///     Calls into LoadDictionaryImpl which is Critical
-        /// </SecurityNote>
-        [SecurityCritical]
         internal override object LoadDictionary(string lexiconFilePath)
         {
-            return LoadDictionaryImpl(lexiconFilePath);
+            return _isDisposed ? null : LoadDictionaryImpl(lexiconFilePath);
         }
 
         /// <summary>
@@ -297,12 +275,20 @@ namespace System.Windows.Documents
         /// <returns></returns>
         /// <SecurityNote>
         /// Critical - 
-        ///     Calls into LoadDictionaryImp which is Critical
         ///     Asserts FileIOPermission
+        /// Safe - 
+        ///     Does not expose any Critical resources to the caller. 
+        ///     The return value from LoadDictionaryImpl is Safe (it is 
+        ///     a managed Tuple[T1, T2]
         /// </SecurityNote>
-        [SecurityCritical]
+        [SecuritySafeCritical]
         internal override object LoadDictionary(Uri item, string trustedFolder)
         {
+            if (_isDisposed)
+            {
+                return null;
+            }
+
             // Assert neccessary security to load trusted files.
             new FileIOPermission(FileIOPermissionAccess.Read, trustedFolder).Assert();
             try
@@ -318,14 +304,12 @@ namespace System.Windows.Documents
         /// <summary>
         /// Releases all currently loaded custom dictionaries
         /// </summary>
-        /// <SecurityNote>
-        /// Critical -
-        ///     Calls ClearDictionaries which is Critical
-        /// </SecurityNote>
-        [SecurityCritical]
         internal override void ReleaseAllLexicons()
         {
-            ClearDictionaries();
+            if (!_isDisposed)
+            {
+                ClearDictionaries();
+            }
         }
 
         #endregion
@@ -336,9 +320,6 @@ namespace System.Windows.Documents
         #region Private Methods
 
         /// <summary>
-        /// <SecurityNote>
-        /// Critical - Calls WordsSegmenter.Create which is Critical
-        /// </SecurityNote>
         /// </summary>
         /// <param name="culture"></param>
         /// <param name="throwOnError"></param>
@@ -346,9 +327,9 @@ namespace System.Windows.Documents
         [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private bool EnsureWordBreakerAndSpellCheckerForCulture(CultureInfo culture, bool throwOnError = false)
         {
-            if (culture == null)
+            if (_isDisposed || (culture == null))
             {
-                return false; 
+                return false;
             }
 
             if(!_spellCheckers.ContainsKey(culture))
@@ -357,7 +338,11 @@ namespace System.Windows.Documents
                 
                 try
                 {
-                    wordBreaker = WordsSegmenter.Create(culture.Name);
+                    // Generally, we want to use the neutral language segmenter. This will ensure that the 
+                    // WordsSegmenter instance will not inadvertently de-compound words into stems. For e.g., 
+                    // the dedicated segmenter for German will break down words like Hausnummer into {Haus, nummer}, 
+                    // whereas the nuetral segmenter will not do so. 
+                    wordBreaker = WordsSegmenter.Create(culture.Name, shouldPreferNeutralSegmenter:true);
                 }
                 catch when (!throwOnError)
                 {
@@ -375,29 +360,26 @@ namespace System.Windows.Documents
                     return false; 
                 }
 
-                ISpellChecker spellChecker = null;
+                SpellChecker spellChecker = null;
 
-                _spellCheckerFactoryLock.WithReadLock(() =>
+                try
                 {
-                    try
-                    {
-                        spellChecker = _spellCheckerFactory.CreateSpellChecker(culture.Name);
-                    }
-                    catch (Exception ex)
-                    {
-                        spellChecker = null;
+                    spellChecker = new SpellChecker(culture.Name);
+                }
+                catch (Exception ex)
+                {
+                    spellChecker = null;
 
-                        // ArgumentException: 
-                        // Either the language name is malformed (unlikely given we use culture.Name)
-                        //   or this language is not supported. It might be supported if the appropriate 
-                        //   input language is added by the user, but it is not available at this time. 
+                    // ArgumentException: 
+                    // Either the language name is malformed (unlikely given we use culture.Name)
+                    //   or this language is not supported. It might be supported if the appropriate 
+                    //   input language is added by the user, but it is not available at this time. 
 
-                        if (throwOnError && ex is ArgumentException)
-                        {
-                            throw new NotSupportedException(string.Empty, ex);
-                        }
+                    if (throwOnError && ex is ArgumentException)
+                    {
+                        throw new NotSupportedException(string.Empty, ex);
                     }
-                });
+                }
 
                 if (spellChecker == null)
                 {
@@ -405,7 +387,7 @@ namespace System.Windows.Documents
                 }
                 else
                 {
-                    _spellCheckers[culture] = new Tuple<WordsSegmenter, ISpellChecker>(wordBreaker, spellChecker);
+                    _spellCheckers[culture] = new Tuple<WordsSegmenter, SpellChecker>(wordBreaker, spellChecker);
                 }
             }
 
@@ -436,6 +418,11 @@ namespace System.Windows.Documents
         internal override int EnumTextSegments(char[] text, int count, 
             EnumSentencesCallback sentenceCallback, EnumTextSegmentsCallback segmentCallback, object data)
         {
+            if (_isDisposed)
+            {
+                return 0;
+            }
+
             var wordBreaker = CurrentWordBreaker ?? DefaultCultureWordBreaker;
             var spellChecker = CurrentSpellChecker;
 
@@ -492,12 +479,17 @@ namespace System.Windows.Documents
         /// <SecurityNote>
         /// Critical - 
         ///     Demands and Asserts permissions
-        ///     Calls into WinRTSpellerInterop.GetTempFileName which is Critical
-        ///     Calls into IUserDictionariesRegistrar COM API's
+        /// Safe - 
+        ///     Does not expose any Critical resources to the caller. 
         /// </SecurityNote>
-        [SecurityCritical]
+        [SecuritySafeCritical]
         private Tuple<CultureInfo, String> LoadDictionaryImpl(string lexiconFilePath)
         {
+            if (_isDisposed)
+            {
+                return new Tuple<CultureInfo, string>(null, null);
+            }
+
             try
             {
                 new FileIOPermission(FileIOPermissionAccess.Read, lexiconFilePath).Demand();
@@ -563,11 +555,7 @@ namespace System.Windows.Documents
                     _customDictionaryFilesLock.Release();
                 }
 
-                _spellCheckerFactoryLock.WithReadLock(() =>
-                {
-                    IUserDictionariesRegistrar registrar = (IUserDictionariesRegistrar)_spellCheckerFactory;
-                    registrar.RegisterUserDictionary(lexiconPrivateCopyPath, culture.IetfLanguageTag);
-                });
+                SpellCheckerFactory.RegisterUserDictionary(lexiconPrivateCopyPath, culture.IetfLanguageTag);
 
                 return new Tuple<CultureInfo, string>(culture, lexiconPrivateCopyPath);
             }
@@ -600,14 +588,15 @@ namespace System.Windows.Documents
         /// </remarks>
         /// <SecurityNote>
         /// Critical -
-        ///     Calls into IUserDictionariesRegistrar COM API's
         ///     Demands FileIOPermission
+        /// Safe - 
+        ///     Does not expose any Critical resources to the caller
         /// </SecurityNote>
         [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        [SecurityCritical]
+        [SecuritySafeCritical]
         private void ClearDictionaries(bool isDisposeOrFinalize = false)
         {
-            if ((_customDictionaryFilesLock == null) || (_spellCheckerFactoryLock == null))
+            if (_isDisposed || (_customDictionaryFilesLock == null))
             {
                 // Locks are not initialized => Dispose called from within the constructor. 
                 // Likely this platform is not supported - do not process further. 
@@ -617,36 +606,30 @@ namespace System.Windows.Documents
             _customDictionaryFilesLock.WaitOne();
             try
             {
-                _spellCheckerFactoryLock.WithReadLock(() =>
+                if (_customDictionaryFiles != null)
                 {
-
-                    if ((_spellCheckerFactory != null) && (_customDictionaryFiles != null))
+                    foreach (KeyValuePair<CultureInfo, List<string>> items in _customDictionaryFiles)
                     {
-                        IUserDictionariesRegistrar registrar = (IUserDictionariesRegistrar)_spellCheckerFactory;
-
-                        foreach (KeyValuePair<CultureInfo, List<string>> items in _customDictionaryFiles)
+                        CultureInfo culture = items.Key;
+                        foreach (string filePath in items.Value)
                         {
-                            CultureInfo culture = items.Key;
-                            foreach (string filePath in items.Value)
+                            try
                             {
-                                try
-                                {
-                                    new FileIOPermission(FileIOPermissionAccess.AllAccess, filePath).Demand();
+                                new FileIOPermission(FileIOPermissionAccess.AllAccess, filePath).Demand();
 
-                                    registrar.UnregisterUserDictionary(filePath, culture.IetfLanguageTag);
-                                    File.Delete(filePath);
-                                }
-                                catch
-                                {
-                                    // Do nothing - Continue to make a best effort 
-                                    // attempt at unregistering custom dictionaries
-                                }
+                                SpellCheckerFactory.UnregisterUserDictionary(filePath, culture.IetfLanguageTag);
+                                File.Delete(filePath);
+                            }
+                            catch
+                            {
+                                // Do nothing - Continue to make a best effort 
+                                // attempt at unregistering custom dictionaries
                             }
                         }
-
-                        _customDictionaryFiles.Clear();
                     }
-                });
+
+                    _customDictionaryFiles.Clear();
+                }
             }
             finally
             {
@@ -717,13 +700,17 @@ namespace System.Windows.Documents
         /// </summary>
         /// <param name="extension"></param>
         /// <returns></returns>
+        /// <SecurityNote>
+        ///     Critical - Raises permission demands & calls into filesystem functions.
+        ///     Safe - Does not expose any Critical resources to the caller.
+        /// </SecurityNote>
         /// <remarks>
         ///     We try to create a temp file under %temp% by calling Path.GetRandomFileName(), 
         ///     changing its extension to <paramref name="extension"/>, and attempt to create a 0 byte file 
         ///     with this full path. This has the potential for collisions, so we retry this 10 times, 
         ///     after which we fail.
         /// </remarks>
-        [SecurityCritical]
+        [SecuritySafeCritical]
         private static string GetTempFileName(string extension)
         {
             const int maxTries = 10; 
@@ -821,26 +808,6 @@ namespace System.Windows.Documents
             ClearDictionaries();   
         }
 
-        /// <summary>
-        /// Releases the ISpellCheckerFactory object and sets the reference to null
-        /// </summary>
-        /// <SecurityNote>
-        /// Critical - 
-        ///     Calls into Marshal.ReleaseComObject
-        /// </SecurityNote>
-        /// <remarks>
-        /// This is only called from within Dispose(bool) and passed as a 
-        /// parameter to ReaderWriterLockSlimWrapper.WithWriteLock(Action action). 
-        /// We cannot simply pass an anonymous delegate to WithWriteLock because 
-        /// anon. delegates cannot be [SecurityCritical] 
-        /// </remarks>
-        [SecurityCritical]
-        private void ReleaseSpellCheckerFactory()
-        {
-            Marshal.ReleaseComObject(_spellCheckerFactory);
-            _spellCheckerFactory = null;
-        }
-
         #endregion 
 
         #region Private Properties
@@ -890,7 +857,7 @@ namespace System.Windows.Documents
             }
         }
 
-        private ISpellChecker CurrentSpellChecker
+        private SpellChecker CurrentSpellChecker
         {
             get
             {
@@ -913,10 +880,8 @@ namespace System.Windows.Documents
         private bool _isDisposed = false;
         private SpellerMode _mode = SpellerMode.None;
 
-        private SpellCheckerFactory _spellCheckerFactory;
-
         // Cache of word-breakers and spellcheckers
-        private Dictionary<CultureInfo, Tuple<WordsSegmenter, ISpellChecker>> _spellCheckers;
+        private Dictionary<CultureInfo, Tuple<WordsSegmenter, SpellChecker>> _spellCheckers;
 
         private CultureInfo _defaultCulture;
         private CultureInfo _culture;
@@ -928,18 +893,7 @@ namespace System.Windows.Documents
         ///     See remarks in ClearDictionaries method
         /// </remarks>
         private Semaphore _customDictionaryFilesLock;
-
-        /// <summary>
-        /// Ensures that we do not call Marshal.ReleaseComObject(_spellCheckerFactory)
-        /// while it is still in use. This will avoid the potential activation of
-        /// ----OnRCWCleanup MDA. 
-        /// 
-        /// ----OnRCWCleanup MDA can be activated if, for e.g., an unhandled exception 
-        /// sets up a ---- between a normal operation in the UI thread (for e.g., LoadDictionary), 
-        /// and the finalizer being called from another thread. 
-        /// </summary>
-        private ReaderWriterLockSlimWrapper _spellCheckerFactoryLock;
-        
+      
         #endregion Private Fields
 
         #region Private Types
@@ -980,7 +934,7 @@ namespace System.Windows.Documents
         {
             #region Constructor
 
-            public SpellerSegment(WordSegment segment, ISpellChecker spellChecker)
+            public SpellerSegment(WordSegment segment, SpellChecker spellChecker)
             {
                 _segment = segment;
                 _spellChecker = spellChecker;
@@ -1014,55 +968,13 @@ namespace System.Windows.Documents
                     return;
                 }
 
-                try
+                foreach (var spellingError in spellingErrors)
                 {
-                    ISpellingError error;
-                    while(true)
+                    result.AddRange(spellingError.Suggestions);
+                    if (spellingError.CorrectiveAction != SpellChecker.CorrectiveAction.None)
                     {
-                        error = spellingErrors.Next();
-                        if (error == null) break;
-
-                        // Once _clean has been set to false, it will not be updated again. 
-                        if (_isClean.Value)
-                        {
-                            _isClean = (error.CorrectiveAction == CORRECTIVE_ACTION.CORRECTIVE_ACTION_NONE);
-                        }
-
-                        try
-                        {
-                            if ((error.CorrectiveAction == CORRECTIVE_ACTION.CORRECTIVE_ACTION_GET_SUGGESTIONS) || 
-                                (error.CorrectiveAction == CORRECTIVE_ACTION.CORRECTIVE_ACTION_REPLACE))
-                            {
-                                var suggestions = _spellChecker.Suggest(_segment.Text);
-                                if (suggestions == null) break;
-
-                                try
-                                {
-                                    uint fetched = 0;
-                                    string suggestion = string.Empty;
-
-                                    do
-                                    {
-                                        suggestions.RemoteNext(1, out suggestion, out fetched);
-                                        if (fetched > 0) result.Add(suggestion);
-                                    }
-                                    while (fetched > 0);
-                                }
-                                finally
-                                {
-                                    Marshal.ReleaseComObject(suggestions);
-                                }
-                            } 
-                        }
-                        finally
-                        {
-                            Marshal.ReleaseComObject(error);
-                        }
-                    } 
-                }
-                finally
-                {
-                    Marshal.ReleaseComObject(spellingErrors);
+                        _isClean = false;
+                    }
                 }
 
                 _suggestions = result.AsReadOnly();
@@ -1135,7 +1047,7 @@ namespace System.Windows.Documents
 
             private WordSegment _segment;
 
-            ISpellChecker _spellChecker;
+            SpellChecker _spellChecker;
             private IReadOnlyList<string> _suggestions;
             private bool? _isClean = null; 
 
@@ -1147,7 +1059,7 @@ namespace System.Windows.Documents
         [DebuggerDisplay("Sentence = {_sentence}")]
         private class SpellerSentence: ISpellerSentence
         {
-            public SpellerSentence(string sentence, WordsSegmenter wordBreaker, ISpellChecker spellChecker)
+            public SpellerSentence(string sentence, WordsSegmenter wordBreaker, SpellChecker spellChecker)
             {
                 _sentence = sentence;
                 _wordBreaker = wordBreaker;
@@ -1197,7 +1109,7 @@ namespace System.Windows.Documents
 
             private string _sentence;
             private WordsSegmenter _wordBreaker;
-            private ISpellChecker _spellChecker;
+            private SpellChecker  _spellChecker;
             private IReadOnlyList<SpellerSegment> _segments;
 
         }
@@ -1205,326 +1117,6 @@ namespace System.Windows.Documents
         #endregion Private Types
 
         #region Private Interfaces
-
-        /// <summary>
-        /// RCW for spellcheck.idl found in Windows SDK
-        /// This is generated code with minor manual edits. 
-        /// i.  Generate TLB
-        ///      MIDL /TLB MsSpellCheckLib.tlb SpellCheck.IDL //SpellCheck.IDL found in Windows SDK
-        /// ii. Generate RCW in a DLL
-        ///      TLBIMP MsSpellCheckLib.tlb // Generates MsSpellCheckLib.dll
-        /// iii.Decompile the DLL and copy out the RCW by hand.
-        ///      ILDASM MsSpellCheckLib.dll
-        /// </summary>
-        #region MsSpellCheckLib RCW
-
-        #region WORDLIST_TYPE
-
-        // Types of user custom wordlists
-        // Custom wordlists are language-specific
-        private enum WORDLIST_TYPE : int
-        {
-            WORDLIST_TYPE_IGNORE = 0, // Ignore wordlist - words that should be considered correctly spelled in a single spell checking session
-            WORDLIST_TYPE_ADD = 1, // Added words wordlist - words that should be considered correctly spelled - permanent and applies to all clients
-            WORDLIST_TYPE_EXCLUDE = 2, // Excluded words wordlist - words that should be considered misspelled - permanent and applies to all clients
-            WORDLIST_TYPE_AUTOCORRECT = 3, // Autocorrect wordlit - pairs of words with a word that should be automatically substituted by the other word in the pair - permanent and applies to all clients
-        }
-
-        #endregion // WORDLIST_TYPE
-
-        #region CORRECTIVE_ACTION
-
-        // Action that a client should take on a specific spelling error(obtained from ISpellingError::get_CorrectiveAction)
-        private enum CORRECTIVE_ACTION : int
-        {
-            CORRECTIVE_ACTION_NONE = 0, // None - there's no error
-            CORRECTIVE_ACTION_GET_SUGGESTIONS = 1, // GetSuggestions - the client should show a list of suggestions (obtained through ISpellChecker::Suggest) to the user
-            CORRECTIVE_ACTION_REPLACE = 2, // Replace - the client should autocorrect the word to the word obtained from ISpellingError::get_Replacement
-            CORRECTIVE_ACTION_DELETE = 3, // Delete - the client should delete this word
-        }
-
-        #endregion // CORRECTIVE_ACTION
-
-        #region ISpellingError
-
-        // This interface represents a spelling error - you can get information like the range that comprises the error, or the suggestions for that misspelled word
-        // Should be implemented by any spell check provider (someone who provides a spell checking engine), and used by clients of spell checking
-        // It is obtained through IEnumSpellingError::Next
-        [ComImport]
-        [Guid("B7C82D61-FBE8-4B47-9B27-6C0D2E0DE0A3")]
-        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        private interface ISpellingError
-        {
-            uint StartIndex
-            {
-                [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-                get;
-            }
-
-            uint Length
-            {
-                [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-                get;
-            }
-
-            CORRECTIVE_ACTION CorrectiveAction
-            {
-                [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-                get;
-            }
-
-            string Replacement
-            {
-                [return: MarshalAs(UnmanagedType.LPWStr)]
-                [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-                get;
-            }
-        }
-
-        #endregion //ISpellingError
-
-        #region IEnumSpellingError
-
-        [ComImport]
-        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        [Guid("803E3BD4-2828-4410-8290-418D1D73C762")]
-        private interface IEnumSpellingError
-        {
-            [return: MarshalAs(UnmanagedType.Interface)]
-            [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-            ISpellingError Next();
-        }
-
-        #endregion // IEnumSpellingError
-
-        #region IEnumString
-
-        [ComImport]
-        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        [Guid("00000101-0000-0000-C000-000000000046")]
-        private interface IEnumString
-        {
-            [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-            void RemoteNext([In] uint celt, [MarshalAs(UnmanagedType.LPWStr)] out string rgelt, out uint pceltFetched);
-
-            [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-            void Skip([In] uint celt);
-
-            [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-            void Reset();
-
-            [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-            void Clone([MarshalAs(UnmanagedType.Interface)] out IEnumString ppenum);
-        }
-
-        #endregion // IEnumString
-
-        #region IOptionDescription
-
-        [ComImport]
-        [Guid("432E5F85-35CF-4606-A801-6F70277E1D7A")]
-        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        private interface IOptionDescription
-        {
-            string Id
-            {
-                [return: MarshalAs(UnmanagedType.LPWStr)]
-                [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-                get;
-            }
-
-            string Heading
-            {
-                [return: MarshalAs(UnmanagedType.LPWStr)]
-                [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-                get;
-            }
-
-            string Description
-            {
-                [return: MarshalAs(UnmanagedType.LPWStr)]
-                [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-                get;
-            }
-
-            IEnumString Labels
-            {
-                [return: MarshalAs(UnmanagedType.Interface)]
-                [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-                get;
-            }
-        }
-
-        #endregion // IOptionDescription
-
-        #region ISpellCheckerChangedEventHandler
-
-        [ComImport]
-        [Guid("0B83A5B0-792F-4EAB-9799-ACF52C5ED08A")]
-        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        private interface ISpellCheckerChangedEventHandler
-        {
-            [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-            void Invoke([In, MarshalAs(UnmanagedType.Interface)] ISpellChecker sender);
-        }
-
-        #endregion // #region ISpellCheckerChangedEventHandler
-
-        #region ISpellChecker
-
-        [ComImport]
-        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        [Guid("B6FD0B71-E2BC-4653-8D05-F197E412770B")]
-        private interface ISpellChecker
-        {
-            string languageTag
-            {
-                [return: MarshalAs(UnmanagedType.LPWStr)]
-                [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-                get;
-            }
-
-            [return: MarshalAs(UnmanagedType.Interface)]
-            [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-            IEnumSpellingError Check([In, MarshalAs(UnmanagedType.LPWStr)] string text);
-
-            [return: MarshalAs(UnmanagedType.Interface)]
-            [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-            IEnumString Suggest([In, MarshalAs(UnmanagedType.LPWStr)] string word);
-
-            [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-            void Add([In, MarshalAs(UnmanagedType.LPWStr)] string word);
-
-            [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-            void Ignore([In, MarshalAs(UnmanagedType.LPWStr)] string word);
-
-            [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-            void AutoCorrect([In, MarshalAs(UnmanagedType.LPWStr)] string from, [In, MarshalAs(UnmanagedType.LPWStr)] string to);
-
-            [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-            byte GetOptionValue([In, MarshalAs(UnmanagedType.LPWStr)] string optionId);
-
-            IEnumString OptionIds
-            {
-                [return: MarshalAs(UnmanagedType.Interface)]
-                [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-                get;
-            }
-
-            string Id
-            {
-                [return: MarshalAs(UnmanagedType.LPWStr)]
-                [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-                get;
-            }
-
-            string LocalizedName
-            {
-                [return: MarshalAs(UnmanagedType.LPWStr)]
-                [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-                get;
-            }
-
-            [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-            uint add_SpellCheckerChanged([In, MarshalAs(UnmanagedType.Interface)] ISpellCheckerChangedEventHandler handler);
-
-            [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-            void remove_SpellCheckerChanged([In] uint eventCookie);
-
-            [return: MarshalAs(UnmanagedType.Interface)]
-            [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-            IOptionDescription GetOptionDescription([In, MarshalAs(UnmanagedType.LPWStr)] string optionId);
-
-            [return: MarshalAs(UnmanagedType.Interface)]
-            [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-            IEnumSpellingError ComprehensiveCheck([In, MarshalAs(UnmanagedType.LPWStr)] string text);
-        }
-
-        #endregion // ISpellChecker
-
-        #region ISpellCheckerFactory
-
-        [ComImport]
-        [Guid("8E018A9D-2415-4677-BF08-794EA61F94BB")]
-        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        private interface ISpellCheckerFactory
-        {
-            IEnumString SupportedLanguages
-            {
-                [return: MarshalAs(UnmanagedType.Interface)]
-                [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-                get;
-            }
-
-            [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-            int IsSupported([In, MarshalAs(UnmanagedType.LPWStr)] string languageTag);
-
-            [return: MarshalAs(UnmanagedType.Interface)]
-            [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-            ISpellChecker CreateSpellChecker([In, MarshalAs(UnmanagedType.LPWStr)] string languageTag);
-        }
-
-        #endregion // ISpellCheckerFactory
-
-        #region IUserDictionariesRegistrar
-
-        [ComImport]
-        [Guid("AA176B85-0E12-4844-8E1A-EEF1DA77F586")]
-        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        private interface IUserDictionariesRegistrar
-        {
-            [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-            void RegisterUserDictionary([In, MarshalAs(UnmanagedType.LPWStr)] string dictionaryPath, [In, MarshalAs(UnmanagedType.LPWStr)] string languageTag);
-
-            [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-            void UnregisterUserDictionary([In, MarshalAs(UnmanagedType.LPWStr)] string dictionaryPath, [In, MarshalAs(UnmanagedType.LPWStr)] string languageTag);
-        }
-
-        #endregion // IUserDictionariesRegistrar
-
-        #region SpellCheckerFactoryCoClass
-
-        [ComImport]
-        [Guid("7AB36653-1796-484B-BDFA-E74F1DB7C1DC")]
-        [TypeLibType(TypeLibTypeFlags.FCanCreate)]
-        [ClassInterface(ClassInterfaceType.None)]
-        private class SpellCheckerFactoryCoClass : ISpellCheckerFactory, SpellCheckerFactory, IUserDictionariesRegistrar
-        {
-            [return: MarshalAs(UnmanagedType.Interface)]
-            [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-            public virtual extern ISpellChecker CreateSpellChecker([In, MarshalAs(UnmanagedType.LPWStr)] string languageTag);
-
-            [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-            public virtual extern int IsSupported([In, MarshalAs(UnmanagedType.LPWStr)] string languageTag);
-
-            [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-            public virtual extern void RegisterUserDictionary([In, MarshalAs(UnmanagedType.LPWStr)] string dictionaryPath, [In, MarshalAs(UnmanagedType.LPWStr)] string languageTag);
-
-            [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-            public virtual extern void UnregisterUserDictionary([In, MarshalAs(UnmanagedType.LPWStr)] string dictionaryPath, [In, MarshalAs(UnmanagedType.LPWStr)] string languageTag);
-
-            public virtual extern IEnumString SupportedLanguages
-            {
-                [return: MarshalAs(UnmanagedType.Interface)]
-                [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-                get;
-            }
-        }
-
-        #endregion // SpellCheckerFactoryCoClass
-
-        #region SpellCheckerFactory
-
-        [ComImport]
-        [CoClass(typeof(SpellCheckerFactoryCoClass))]
-        [Guid("8E018A9D-2415-4677-BF08-794EA61F94BB")]
-        private interface SpellCheckerFactory : ISpellCheckerFactory
-        {
-        }
-
-        #endregion // SpellCheckerFactory
-        
-        #endregion MsSpellCheckLib RCW
 
         #endregion Private Interfaces
     }

@@ -9771,7 +9771,7 @@ typedef struct _CERT_SYSTEM_STORE_RELOCATE_PARA {
     CERT_AUTO_UPDATE_ROOT_DIR_URL_VALUE_NAME
 
 // REG_DWORD, seconds between syncs. 0 implies use default.
-#define CERT_AUTH_ROOT_AUTO_UPDATE_[....]_DELTA_TIME_VALUE_NAME   L"SyncDeltaTime"
+#define CERT_AUTH_ROOT_AUTO_UPDATE_SYNC_DELTA_TIME_VALUE_NAME   L"SyncDeltaTime"
 
 // REG_DWORD, misc flags
 #define CERT_AUTH_ROOT_AUTO_UPDATE_FLAGS_VALUE_NAME             L"Flags"
@@ -9788,7 +9788,7 @@ typedef struct _CERT_SYSTEM_STORE_RELOCATE_PARA {
 #define CERT_AUTO_UPDATE_DISABLE_RANDOM_QUERY_STRING_FLAG               0x4
 
 // REG_BINARY, updated with FILETIME of last wire retrieval of authroot cab/ctl
-#define CERT_AUTH_ROOT_AUTO_UPDATE_LAST_[....]_TIME_VALUE_NAME    L"LastSyncTime"
+#define CERT_AUTH_ROOT_AUTO_UPDATE_LAST_SYNC_TIME_VALUE_NAME    L"LastSyncTime"
 
 // REG_BINARY, updated with last retrieved and verified authroot ctl
 #define CERT_AUTH_ROOT_AUTO_UPDATE_ENCODED_CTL_VALUE_NAME       L"EncodedCtl"
@@ -9820,12 +9820,12 @@ typedef struct _CERT_SYSTEM_STORE_RELOCATE_PARA {
 
 
 // REG_DWORD, seconds between syncs. 0 implies use default.
-#define CERT_DISALLOWED_CERT_AUTO_UPDATE_[....]_DELTA_TIME_VALUE_NAME \
+#define CERT_DISALLOWED_CERT_AUTO_UPDATE_SYNC_DELTA_TIME_VALUE_NAME \
     L"DisallowedCertSyncDeltaTime"
 
 // REG_BINARY, updated with FILETIME of last wire retrieval of disallowed cert
 // CTL
-#define CERT_DISALLOWED_CERT_AUTO_UPDATE_LAST_[....]_TIME_VALUE_NAME  \
+#define CERT_DISALLOWED_CERT_AUTO_UPDATE_LAST_SYNC_TIME_VALUE_NAME  \
     L"DisallowedCertLastSyncTime"
 
 // REG_BINARY, updated with last retrieved and verified disallowed cert ctl
@@ -18402,7 +18402,7 @@ typedef HANDLE HCERTCHAINENGINE;
 //                                      the end cert as well as the other
 //                                      certs in the chain
 //
-//          CERT_CHAIN_THREAD_STORE_[....] - use separate thread for store syncs
+//          CERT_CHAIN_THREAD_STORE_SYNC - use separate thread for store syncs
 //                                         and related cache updates
 //
 //          CERT_CHAIN_CACHE_ONLY_URL_RETRIEVAL - don't hit the wire to get
@@ -18413,7 +18413,7 @@ typedef HANDLE HCERTCHAINENGINE;
 //
 
 #define CERT_CHAIN_CACHE_END_CERT                           0x00000001
-#define CERT_CHAIN_THREAD_STORE_[....]                        0x00000002
+#define CERT_CHAIN_THREAD_STORE_SYNC                        0x00000002
 #define CERT_CHAIN_CACHE_ONLY_URL_RETRIEVAL                 0x00000004
 #define CERT_CHAIN_USE_LOCAL_MACHINE_STORE                  0x00000008
 #define CERT_CHAIN_ENABLE_CACHE_AUTO_UPDATE                 0x00000010

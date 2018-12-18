@@ -30,6 +30,7 @@ namespace System.Windows
                 SetUseSetWindowPosForTopmostWindowsFromAppSettings(appSettings);
                 SetVSP45CompatFromAppSettings(appSettings);
                 SetScrollingTraceFromAppSettings(appSettings);
+                SetShouldThrowOnCopyOrCutFailuresFromAppSettings(appSettings);
             }
         }
 
@@ -211,15 +212,15 @@ namespace System.Windows
 
         #endregion AllowTwoWayBindingToPropertyWithNonPublicSetter
 
-        // DevDiv #681144:  There is a bug in the Windows desktop window manager which can cause
-        // incorrect z-order for windows when several conditions are all met:
-        // (a) windows are parented/owned across different threads or processes
-        // (b) a parent/owner window is also owner of a topmost window (which needn't be visible)
-        // (c) the child window on a different thread/process tries to show an owned topmost window
-        //     (like a popup or tooltip) using ShowWindow().
-        // To avoid this window manager bug, this option causes SetWindowPos() to be used instead of
-        // ShowWindow() for topmost windows, avoiding condition (c).  Ideally the window manager bug
-        // will be fixed, but the risk of making a change there is considered too great at this time.
+        // DevDiv #681144:  There is a 
+
+
+
+
+
+
+
+
         #region UseSetWindowPosForTopmostWindows
 
         private static bool _useSetWindowPosForTopmostWindows = false; // use old behavior by default
@@ -373,6 +374,77 @@ namespace System.Windows
         }
 
         #endregion ScrollingTrace
+
+        #region ShouldThrowOnCopyOrCutFailure
+
+        private static bool _shouldThrowOnCopyOrCutFailure = false;
+
+        /// <summary>
+        /// When True, a failed Copy or Cut operation in a TextBoxBase instance will result in 
+        /// a <see cref="System.Runtime.InteropServices.ExternalException"/>. 
+        /// When False (default), a failed Copy or Cut operation will be silently ignored. 
+        /// </summary>
+        /// <remarks>
+        /// When a clipboard operation fails,for e.g., with HRESULT 0x800401D0 (CLIPBRD_E_CANT_OPEN), 
+        /// a corresponding <see cref="System.Runtime.InteropServices.COMException"/> (which is a type of 
+        /// ExternalException) is thrown. 
+        /// 
+        /// The Win32 OpenClipboard API acts globally, and the corresponding 
+        /// CloseClipboard call should be made by well written applications as soon as they have
+        /// completed their clipboard operations. When an application calls OpenClipboard and then fails 
+        /// to call CloseClipboard, it results in all other applications running the same session 
+        /// being unable to access clipboard functions. 
+        /// 
+        /// In WPF, such a denial of access to clipboard is 
+        /// normally ignored silently. Applications can opt into receiving an ExternalException upon
+        /// failure by setting this flag. Opting to receive exceptions requires that 
+        /// the application would take control of handling <see cref="System.Windows.Input.ApplicationCommands.Cut"/>
+        /// and <see cref="System.Windows.Input.ApplicationCommands.Copy"/> RoutedUICommands through a 
+        /// <see cref="System.Windows.Input.CommandBinding"/>, and apply that binding to all TextBoxBase
+        /// controls (<see cref="System.Windows.Controls.TextBox"/> and <see cref="System.Windows.Controls.RichTextBox"/>) 
+        /// in the application. The application should ensure that it handles ExternalExeptions arising from Copy/Cut 
+        /// operations in the CommandBinding's Executed handler. 
+        /// </remarks>
+        public static bool ShouldThrowOnCopyOrCutFailure
+        {
+            get
+            {
+                return _shouldThrowOnCopyOrCutFailure;
+            }
+
+            set
+            {
+                if (_isSealed)
+                {
+                    throw new InvalidOperationException(
+                        SR.Get(SRID.CompatibilityPreferencesSealed, 
+                        nameof(ShouldThrowOnCopyOrCutFailure), 
+                        nameof(FrameworkCompatibilityPreferences)));
+                }
+
+                _shouldThrowOnCopyOrCutFailure = value;
+            }
+        }
+
+        internal static bool GetShouldThrowOnCopyOrCutFailure()
+        {
+            Seal();
+            return ShouldThrowOnCopyOrCutFailure;
+        }
+
+        static void SetShouldThrowOnCopyOrCutFailuresFromAppSettings(NameValueCollection appSettings)
+        {
+            // user can use config file to enable this behavior change
+            string s = appSettings[nameof(ShouldThrowOnCopyOrCutFailure)];
+
+            bool shouldThrowOnCopyOrCutFailure;
+            if (Boolean.TryParse(s, out shouldThrowOnCopyOrCutFailure))
+            {
+                ShouldThrowOnCopyOrCutFailure = shouldThrowOnCopyOrCutFailure;
+            }
+        }
+
+        #endregion ShouldThrowOnCopyOrCutFailure
 
         private static void Seal()
         {

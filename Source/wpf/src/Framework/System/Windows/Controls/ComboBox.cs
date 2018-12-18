@@ -498,8 +498,9 @@ namespace System.Windows.Controls
         private static object CoerceIsSelectionBoxHighlighted(object o, object value)
         {
             ComboBox comboBox = (ComboBox)o;
+            ComboBoxItem highlightedElement;
             return (!comboBox.IsDropDownOpen && comboBox.IsKeyboardFocusWithin) ||
-                   (comboBox.HighlightedInfo != null && comboBox.HighlightedElement.Content == comboBox._clonedElement);
+                   ((highlightedElement = comboBox.HighlightedElement) != null && highlightedElement.Content == comboBox._clonedElement);
         }
 
         #endregion

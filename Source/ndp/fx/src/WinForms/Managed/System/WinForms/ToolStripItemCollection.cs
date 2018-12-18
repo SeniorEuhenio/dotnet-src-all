@@ -33,7 +33,7 @@ namespace System.Windows.Forms {
         /// A caching mechanism for key accessor
         /// We use an index here rather than control so that we don't have lifetime
         /// issues by holding on to extra references.
-        /// Note this is not Thread Safe - but [....] has to be run in a STA anyways.
+        /// Note this is not Thread Safe - but Microsoft has to be run in a STA anyways.
         private int lastAccessedIndex = -1;
 
 

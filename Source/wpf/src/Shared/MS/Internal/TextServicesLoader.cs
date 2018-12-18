@@ -9,7 +9,7 @@
 //              Services Framework.
 //
 // History:  
-//  07/16/2003 : [....] - ported from dotnet tree.
+//  07/16/2003 : Microsoft - ported from dotnet tree.
 //
 //---------------------------------------------------------------------------
 
@@ -116,7 +116,7 @@ namespace MS.Internal
                 // Cicero will throw an exception if it doesn't think it should have been
                 // loaded (no TIPs to run), you can check that in msctf.dll's NoTipsInstalled
                 // which lives in nt\windows\advcore\ctf\lib\immxutil.cpp.  If that's the
-                // problem, ServicesInstalled is out of [....] with Cicero's thinking.
+                // problem, ServicesInstalled is out of sync with Cicero's thinking.
                 if (UnsafeNativeMethods.TF_CreateThreadMgr(out threadManager) == NativeMethods.S_OK)
                 {
                     return threadManager;

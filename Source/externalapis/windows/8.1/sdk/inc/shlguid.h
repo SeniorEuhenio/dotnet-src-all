@@ -376,7 +376,7 @@ DEFINE_GUID(FMTID_Displaced, 0x9b174b33, 0x40ff, 0x11d2, 0xa2, 0x7e, 0x0, 0xc0, 
 // {328D8B21-7729-4bfc-954C-902B329D56B0}
 #define PSGUID_BRIEFCASE    {0x328d8b21, 0x7729, 0x4bfc, 0x95, 0x4c, 0x90, 0x2b, 0x32, 0x9d, 0x56, 0xb0}
 DEFINE_GUID(FMTID_Briefcase, 0x328d8b21, 0x7729, 0x4bfc, 0x95, 0x4c, 0x90, 0x2b, 0x32, 0x9d, 0x56, 0xb0);
-#define PID_[....]_COPY_IN    2
+#define PID_SYNC_COPY_IN    2
 
 
 // {9B174B34-40FF-11d2-A27E-00C04FC30871}
@@ -809,7 +809,7 @@ DEFINE_GUID(FOLDERTYPEID_StorageProviderVideos,    0x51294DA1, 0xD7B1, 0x485b, 0
 
 
 //
-// [....] Manager object IDs.  These are GUIDs used in calls to the GetObject()
+// Sync Manager object IDs.  These are GUIDs used in calls to the GetObject()
 // method on ISyncMgrHandler and ISyncMgrSyncItem, defined in SyncMgr.idl.
 //
 

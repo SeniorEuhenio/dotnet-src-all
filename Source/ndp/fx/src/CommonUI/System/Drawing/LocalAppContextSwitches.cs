@@ -12,10 +12,19 @@ namespace System.Drawing {
 
     internal static class LocalAppContextSwitches {
         private static int dontSupportPngFramesInIcons;
+        private static int optimizePrintPreview;
+
         public static bool DontSupportPngFramesInIcons {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get {
                 return LocalAppContext.GetCachedSwitchValue(@"Switch.System.Drawing.DontSupportPngFramesInIcons", ref LocalAppContextSwitches.dontSupportPngFramesInIcons);
+            }
+        }
+
+        public static bool OptimizePrintPreview {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get {
+                return LocalAppContext.GetCachedSwitchValue(@"Switch.System.Drawing.Printing.OptimizePrintPreview", ref LocalAppContextSwitches.optimizePrintPreview);
             }
         }
     }

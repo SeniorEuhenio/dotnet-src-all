@@ -380,7 +380,7 @@ LONG _cdecl ErrorReportingFilter(struct _EXCEPTION_POINTERS* exceptionInfo)
               s_szFormalAppName, _TRUNCATE);
 
     // name of app
-    // TEMP ([....]): We will remove the deprecation for _wpgmptr, see VSW#438137
+    // TEMP (Microsoft): We will remove the deprecation for _wpgmptr, see VSW#438137
 #pragma warning(push)
 #pragma warning(disable:4996)   
     wcsncpy_s(WatsonSharedMem->wzModuleFileName, DW_MAX_PATH, _wpgmptr, _TRUNCATE);

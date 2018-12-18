@@ -85,7 +85,7 @@ namespace System.Windows.Controls
             get { return _status; }
         }
 
-        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking Bug: 29647
+        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking 
         private void SetStatus(GeneratorStatus value)
         {
             if (value != _status)
@@ -441,7 +441,7 @@ namespace System.Windows.Controls
 
         internal void RemoveAllInternal(bool saveRecycleQueue)
         {
-            // Take _itemMap offline, to protect against reentrancy (bug 1285179)
+            // Take _itemMap offline, to protect against reentrancy (
             ItemBlock itemMap = _itemMap;
             _itemMap = null;
 
@@ -869,7 +869,7 @@ namespace System.Windows.Controls
             if (!IsGrouping || returnLocalIndex)
             {
                 // when the UI is not grouping, each item counts as 1, even
-                // groups (bug 1761421)
+                // groups (
                 return end;
             }
 
@@ -951,7 +951,7 @@ namespace System.Windows.Controls
                 index -= block.ItemCount;
             }
 
-            return null;  // *not* throw new IndexOutOfRangeException(); - bug 890195
+            return null;  // *not* throw new IndexOutOfRangeException(); - 
         }
 
 
@@ -1354,17 +1354,17 @@ namespace System.Windows.Controls
             //------------------------------------------------------
 
 /* This method was requested for virtualization.  It's not being used right now
-(bug 1079525) but it probably will be when UI virtualization comes back.
-            /// <summary>
-            /// returns false if a call to GenerateNext is known to return null (indicating
-            /// that the generator is done).  Does not generate anything or change the
-            /// generator's state;  cheaper than GenerateNext.  Returning true does not
-            /// necessarily mean GenerateNext will produce anything.
-            /// </summary>
-            public bool IsActive
-            {
-                get { return !_done; }
-            }
+(
+
+
+
+
+
+
+
+
+
+
 */
 
             //------------------------------------------------------
@@ -2309,32 +2309,32 @@ namespace System.Windows.Controls
             //          possibly re-enters the tree at some point, usually with a
             //          different item.
             //
-            // As Dev10 bug 452669 and some "subtle issues" that arose in the
-            // container recycling work illustrate, it's important that the container
-            // and its subtree sever their connection to the data item.  Otherwise
-            // you can get aliasing - a dead container reacting to the same item as a live
-            // container.  Even without aliasing, it's a perf waste for a dead container
-            // to continue reacting to its former data item.
-            //
-            // On the other hand, it's a perf waste to spend too much effort cleaning
-            // up the container and its subtree, since they will often just get GC'd
-            // in the near future.
-            //
-            // WPF initially did a full cleanup of the container, removing all properties
-            // that were set in PrepareContainerForItem.  This avoided aliasing, but
-            // was deemed too expensive, especially for scrolling.  For Windows OS Bug
-            // 1445288, all this cleanup work was removed.  This sped up scrolling, but
-            // introduced the problems cited in Dev10 452669 and the recycling "subtle
-            // issues".  A compromise is needed.
-            //
-            // The compromise is tell the container to attach to a sentinel item
-            // BindingExpressionBase.DisconnectedItem.  We allow this to propagate into the
-            // conainer's subtree through properties like DataContext and
-            // ContentControl.Content that are normally set by PrepareItemForContainer.
-            // A Binding that sees the sentinel as the data item will disconnect its
-            // event listeners from the former data item, but will not change its
-            // own value or invalidate its target property.  This avoids the cost
-            // of re-measuring most of the subtree.
+            // As Dev10 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             container.ClearValue(ItemForItemContainerProperty);
 

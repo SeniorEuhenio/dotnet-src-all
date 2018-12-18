@@ -265,7 +265,7 @@ typedef INTERNET_PORT * LPINTERNET_PORT;
 //
 
 #define WININET_API_FLAG_ASYNC          0x00000001  // force async operation
-#define WININET_API_FLAG_[....]           0x00000004  // force [....] operation
+#define WININET_API_FLAG_SYNC           0x00000004  // force sync operation
 #define WININET_API_FLAG_USE_CONTEXT    0x00000008  // use value supplied in dwContext (even if 0)
 
 //
@@ -987,7 +987,7 @@ BOOLAPI InternetReadFileExW(
 //
 
 #define IRF_ASYNC       WININET_API_FLAG_ASYNC
-#define IRF_[....]        WININET_API_FLAG_[....]
+#define IRF_SYNC        WININET_API_FLAG_SYNC
 #define IRF_USE_CONTEXT WININET_API_FLAG_USE_CONTEXT
 #define IRF_NO_WAIT     0x00000008
 
@@ -2207,7 +2207,7 @@ BOOLAPI GopherGetAttributeW(
 #define HTTP_QUERY_FROM                         31
 #define HTTP_QUERY_IF_MODIFIED_SINCE            32
 #define HTTP_QUERY_LOCATION                     33
-#define HTTP_QUERY_[....]_URI                     34
+#define HTTP_QUERY_ORIG_URI                     34
 #define HTTP_QUERY_REFERER                      35
 #define HTTP_QUERY_RETRY_AFTER                  36
 #define HTTP_QUERY_SERVER                       37
@@ -2527,7 +2527,7 @@ BOOLAPI HttpSendRequestExW(
 //
 
 #define HSR_ASYNC       WININET_API_FLAG_ASYNC          // force async
-#define HSR_[....]        WININET_API_FLAG_[....]           // force [....]
+#define HSR_SYNC        WININET_API_FLAG_SYNC           // force sync
 #define HSR_USE_CONTEXT WININET_API_FLAG_USE_CONTEXT    // use dwContext value
 #define HSR_INITIATE    0x00000008                      // iterative operation (completed by HttpEndRequest)
 #define HSR_DOWNLOAD    0x00000010                      // download to file

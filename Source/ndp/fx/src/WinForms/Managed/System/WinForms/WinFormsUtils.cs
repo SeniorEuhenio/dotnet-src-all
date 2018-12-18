@@ -135,7 +135,7 @@ namespace System.Windows.Forms {
         /// FOCUS debugging code.  This is really handy if you stick it in Application.Idle event.
         /// It will watch when the focus has changed and will print out the new guy who's gotten focus.
         /// If it is an unmanaged window, it will report the window text.  You'll need to #define DEBUG_FOCUS 
-        /// or use something like /define:DEBUG_FOCUS in the CSC_FLAGS and either [....] the 
+        /// or use something like /define:DEBUG_FOCUS in the CSC_FLAGS and either sync the 
         /// Application.Idle event or stick this in Application.FDoIdle.
         ///
         /// This can be used in conjunction with the ControlKeyboardRouting trace switch to debug keyboard

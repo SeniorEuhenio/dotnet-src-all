@@ -32,24 +32,24 @@ extern "C"
     /// <param name="lpData">data was sent by the application, to get application specific context. ADAL doesn't process this data, only sends to the application back.</param>
     typedef void (CALLBACK* LPADAL_COMPLETION_ROUTINE)(HADALREQUEST hRequest, LPVOID lpData);
 
-	typedef enum ADAL_LOGLEVEL
-	{
-		ADAL_LOGLEVEL_ERROR     = 0,
-		ADAL_LOGLEVEL_WARN      = 1,
-		ADAL_LOGLEVEL_INFO      = 2,
-		ADAL_LOGLEVEL_VERBOSE   = 3,
-	} ADAL_LOGLEVEL;
+    typedef enum ADAL_LOGLEVEL
+    {
+        ADAL_LOGLEVEL_ERROR     = 0,
+        ADAL_LOGLEVEL_WARN      = 1,
+        ADAL_LOGLEVEL_INFO      = 2,
+        ADAL_LOGLEVEL_VERBOSE   = 3,
+    } ADAL_LOGLEVEL;
 
-	/// <summary>
+    /// <summary>
     /// The callback function which is called for logging
     /// Users need to set log option for this and pass their callback
     /// </summary>
     /// <param name="message">Log message</param>
-	/// <param name="additionalInformation">Additional info</param>
-	/// <param name="logLevel">ADAL_LOGLEVEL enum</param>
-   	/// <param name="errorCode">ADAL or System error code</param>
-	/// <param name="lpData">Application supplied data passed to callback.</param>
-	typedef void (CALLBACK* LPADAL_LOG_ROUTINE)( LPCWSTR message, LPCWSTR additionalInformation, ADAL_LOGLEVEL logLevel, DWORD errorCode, LPVOID lpData );
+    /// <param name="additionalInformation">Additional info</param>
+    /// <param name="logLevel">ADAL_LOGLEVEL enum</param>
+    /// <param name="errorCode">ADAL or System error code</param>
+    /// <param name="lpData">Application supplied data passed to callback.</param>
+    typedef void (CALLBACK* LPADAL_LOG_ROUTINE)( LPCWSTR message, LPCWSTR additionalInformation, ADAL_LOGLEVEL logLevel, DWORD errorCode, LPVOID lpData );
 
     /// <summary>
     /// Creates a new instance of HADALCONTEXT for interactive flow.
@@ -78,7 +78,8 @@ extern "C"
     /// <summary>
     /// Deserialize an HADALCONTEXT instance that was previously serialized using SerializeAuthenticationContext.
     /// </summary>
-	/// <returns>
+    /// <param name="serializedContext">string to put serialized context into</param>
+    /// <returns>
     /// If the function succeeds, the return value is an HADALCONTEXT.
     /// The caller must free, this context using ADALReleaseAuthenticationContext, when it is done with context.
     /// If the function fails, the return value is NULL, GetLastError can be used to get an ADAL or a system error code.
@@ -103,6 +104,10 @@ extern "C"
     /// If the there is a problem with length of this buffer, you could convert this buffer from Unicode to ASCII/ANSI or UTF-8 char set.
     /// And you will get a buffer, which will bet twice shorter, without loosing information.
     /// </summary>
+    /// <param name="hContext">ParamDescription</param>
+    /// <param name="option">option</param>
+    /// <param name="serializedContext">serializedContext</param>
+    /// <param name="contextLength">contextLength</param>
     /// <returns>
     /// If the function succeeds, the return value is ERROR_SUCCESS.
     /// If the function returns ERROR_INSUFFICIENT_BUFFER, then tokenLength contains new length (number of chars without ending '\0').
@@ -113,6 +118,7 @@ extern "C"
     /// <summary>
     /// Returns true, if context was modified since previous serialization.
     /// </summary>
+    /// <param name="hContext">Instance of the authentication context.</param>    
     /// <returns>
     /// If the function returns TRUE, then the context was changed since previous serialization, and you need to save this context.
     /// If the function returns FALSE, then the context wasn't changed, since previous serialization or passed invalid handle as the input.
@@ -127,6 +133,7 @@ extern "C"
     /// Releases the authentication context. The memory for the context will be actually freed only when all request are deleted. Each request has a ref-count logic on context.
     /// You must delete all requests.
     /// </summary>
+    /// <param name="hContext">Instance of the authentication context.</param>    
     /// <returns>
     /// If the function succeeds, the return value is TRUE.
     /// If the function fails, the return value is FALSE. To get extended error info call GetLastError()
@@ -137,16 +144,18 @@ extern "C"
     /// Gets an access token request from the issuer.
     /// If the token issuer needs user credentials, then status of request will be  ERROR_ADAL_NEED_UI, it informs the caller that application need user interface to continue.
     /// </summary>
-    /// <param name="hContext">instance of the authentication context handle</param>
-    /// <param name="resource">resource identifier, used to request a token</param>
+    /// <param name="hContext">Instance of the authentication context.</param>    
+    /// <param name="resource">Resource identifier, used to request a token</param>
     /// <param name="correlationId">Optional. Could be NULL. This is used for tracing purposes. It allows you to find request in the traces of the server.</param>
     /// <returns>
     /// If the function succeeds, the return value is HADALREQUEST. The caller must free this handle by ADALDeleteRequest.
     /// If the function fails, the return value is NULL.
-    /// If the status of the request is ERROR_ADAL_NEED_CREDENTIAL, then application need to ask for user credential. Application could follow web browser flow, or non-interactive flow by providing user name/password or using integrated window auth, or using saml assertion.
-    /// UI flow: User needs to specify a web browser control for displaying content or ask ADAL library to create UI for the application for displaying content.
+    /// If the status of the request is ERROR_ADAL_NEED_CREDENTIAL, then application need to ask for user credential. Application could follow web browser flow, WAM UI flow, or non-interactive flow by providing user name/password or using integrated window auth, or using saml assertion.
+    /// UI flow: if ADALIsWamUsed returns TRUE, the application must use WAM UI flow, otherwize use web browser flow
+    /// Web Browser flow: User needs to specify a web browser control for displaying content or ask ADAL library to create UI for the application for displaying content.
     /// To specify the web browser control the application needs to call ADALUIUseWebBrowser or ADALUICreateHostWindow to ask ADAL library create the window, for rendering content.
-	/// If authority is invalid, it will return error.
+    /// WAM UI flow: Use ADALUIUseWAM for UI flow
+    /// If authority is invalid, it will return error.
     /// </returns>
     /// <example>
     /// The interaction is:
@@ -174,9 +183,17 @@ extern "C"
     ///     case ERROR_ADAL_NEED_CREDENTIAL:
     ///         ... If user's environment supports browser control, they can ask for browser interaction.
     ///
-    ///         ADALUIUseWebBrowser ( hRequest, webBrowser, &amp;callBackFunctionForUIComplete, lpCallbackData );
-    ///         or
-    ///         hWnd = ADALUICreateHostWindow ( hRequest, &amp;callBackFunctionForUIComplete, lpCallbackData, hWndParent, lpRect, szWindowName,  dwStyle, dwExStyle, hMenuOrID );
+    ///         if (!ADALIsWAMUsed())
+    ///         {
+    ///             ADALUIUseWebBrowser ( hRequest, webBrowser, &amp;callBackFunctionForUIComplete, lpCallbackData );
+    ///             or
+    ///             hWnd = ADALUICreateHostWindow ( hRequest, &amp;callBackFunctionForUIComplete, lpCallbackData, hWndParent, lpRect, szWindowName,  dwStyle, dwExStyle, hMenuOrID );
+    ///         }
+    ///         else
+    ///         {
+    ///             //Must be called on UI thread
+    ///             ADALUIUseWAM( HADALREQUEST hRequest, HWND hWnd, LPADAL_COMPLETION_ROUTINE lpUICompleteCallback, LPVOID lpCallbackData );
+    ///         }
     ///
     ///         ... make a message loop or return (let parent message loop work)
     ///         ... User must provide callback function(LPADAL_COMPLETION_ROUTINE) so that UI can call after it is complete. User can provide callback data(LPVOID) as well. Library passes back the callback data without any changes.
@@ -212,8 +229,8 @@ extern "C"
     /// ... You can release context here or later...
     /// ADALReleaseAuthenticationContext(hContext);
     ///
-	/// static void CALLBACK callBackFunctionForUIComplete(HADALREQUEST hRequest, LPVOID lpData)
-	/// {
+    /// static void CALLBACK callBackFunctionForUIComplete(HADALREQUEST hRequest, LPVOID lpData)
+    /// {
     ///         ... Any user's data
     ///         MyContext* ctx=(MyContext*)lpData;
     ///         ... User can check the status here
@@ -249,11 +266,17 @@ extern "C"
     /// Returns authentication context associated with request.
     /// Your are not able and you do not need to release this handle.
     /// </summary>
+    /// <param name="hRequest">Instance of the HADALREQUEST created by ADALAcquireToken.</param>
+    /// <returns>
+    /// Returns authentication context associated with request.
+    /// Your are not able and you do not need to release this handle.
+    /// </returns>
     ADAL_API HADALCONTEXT WINAPI ADALGetContext( HADALREQUEST hRequest );
 
     /// <summary>
     /// Frees the resources used by the HADALREQUEST instance, as well as referenced authentication context, if it is last request in the context.
     /// </summary>
+    /// <param name="hRequest">Instance of the HADALREQUEST created by ADALAcquireToken.</param>
     /// <returns>
     /// If the function succeeds, the return value is TRUE.
     /// If the function fails, the return value is FALSE. To get extended error info call GetLastError()
@@ -263,6 +286,7 @@ extern "C"
     /// <summary>
     /// Returns request status, see ADALAcquireToken for details.
     /// </summary>
+    /// <param name="hRequest">Instance of the HADALREQUEST created by ADALAcquireToken.</param>
     /// <returns>
     /// The return value is the status of the request.
     /// The function fails, only if you are sending invalid handle, otherwise you need treat the returning value as a request status.
@@ -280,6 +304,9 @@ extern "C"
     ///         ADALUIUseWebBrowser ( hRequest, webBrowser, callback, callbackData );
     ///         or
     ///         hWnd = ADALUICreateHostWindow ( hRequest, lpUICompleteCallback, lpCallbackData, hWndParent, lpRect, szWindowName,  dwStyle, dwExStyle, hMenuOrID );
+    ///         or 
+    ///         //Must be called in UI thread
+    ///         ADALUIUseWAM( HADALREQUEST hRequest, HWND hWnd, LPADAL_COMPLETION_ROUTINE lpUICompleteCallback, LPVOID lpCallbackData );
     ///         ... make a message loop or return (let parent message loop work) ...
     ///         ... or
     ///         ADALUseUsernamePassword( hRequest, username, password );
@@ -330,7 +357,7 @@ extern "C"
     /// <summary>
     /// Reads the access token from token request. There is no server interaction, just reads data from memory.
     /// </summary>
-    /// <param name="hRequest">instance of the authentication request</param>
+    /// <param name="hRequest">Instance of the HADALREQUEST created by ADALAcquireToken.</param>
     /// <param name="accessToken">the buffer into which the access token is copied into after it is received from the token issuer</param>
     /// <param name="tokenLength">this in_out parameter contains the size of the buffer and is updated by the method to indicate the size of the token</param>
     /// <returns>
@@ -411,7 +438,7 @@ extern "C"
     /// Get's the number of days until the users password expires, if the server sent this data.
     /// </summary>
     /// <param name="hRequest">Instance of the authentication request.</param>
-    /// <param name="passwordExpiresOn">The number of days until the users password will no longer be valid.</param>
+    /// <param name="passwordExpiryDays">The number of days until the users password will no longer be valid.</param>
     /// <returns>
     /// If the function succeeds, the return value TRUE.
     /// If the function fails or no password expiry data is available, the return value is FALSE.
@@ -421,7 +448,7 @@ extern "C"
     /// <summary>
     /// Gets the Url at which the user can change their password, if the server sent this information.
     /// </summary>
-    /// <param name="hContext">Instance of the authentication request.</param>
+    /// <param name="hRequest">Instance of the authentication request.</param>
     /// <param name="passwordChangeUrl">The buffer into which the url is copied into after it is received from the token issuer</param>
     /// <param name="passwordChangeUrlLength">This in_out parameter contains the size of the buffer and is updated by the method to indicate the size of the url</param>
     /// <returns>
@@ -467,11 +494,27 @@ extern "C"
     /// <summary>
     /// This methods returns the error message received from the server.
     /// </summary>
+    /// <param name="hRequest">Instance of the HADALREQUEST created by ADALAcquireToken.</param>
+    /// <param name="errorDescription">the buffer into which the error description is copied</param>
+    /// <param name="errorLength">this in_out parameter contains the size of the buffer and is updated by the method to indicate the size of the error description</param>
+    /// <returns>
+    /// If the function succeeds, the return value is ERROR_SUCCESS.
+    /// If the function returns ERROR_INSUFFICIENT_BUFFER, then tokenLength contains new length (number of chars without ending '\0').
+    /// If the function fails, the return value is an ADAL or a system error code.
+    /// </returns>
     ADAL_API DWORD WINAPI ADALGetErrorDescription( HADALREQUEST hRequest, LPWSTR errorDescription, LPDWORD errorLength );
 
     /// <summary>
     /// This methods returns the a string error code received from the server.
     /// </summary>
+    /// <param name="hRequest">Instance of the HADALREQUEST created by ADALAcquireToken.</param>
+    /// <param name="error">the buffer into which the error code is copied</param>
+    /// <param name="errorLength">this in_out parameter contains the size of the buffer and is updated by the method to indicate the size of the error code</param>
+    /// <returns>
+    /// If the function succeeds, the return value is ERROR_SUCCESS.
+    /// If the function returns ERROR_INSUFFICIENT_BUFFER, then tokenLength contains new length (number of chars without ending '\0').
+    /// If the function fails, the return value is an ADAL or a system error code.
+    /// </returns>
     ADAL_API DWORD WINAPI ADALGetErrorCode( HADALREQUEST hRequest, LPWSTR error, LPDWORD errorLength );
 
     /// <summary>
@@ -485,7 +528,7 @@ extern "C"
     /// If the function succeeds, the return value is ERROR_SUCCESS.
     /// If the function returns ERROR_INSUFFICIENT_BUFFER, then tokenLength contains new length (number of chars without ending '\0').
     /// If the function fails, the return value is an ADAL or a system error code.
-	/// If you set the resource to Null and receive error that refresh token does not exist, it means you don't have broad refresh token where you can use for multiple resources
+    /// If you set the resource to Null and receive error that refresh token does not exist, it means you don't have broad refresh token where you can use for multiple resources
     /// </returns>
     ADAL_API DWORD WINAPI ADALGetRefreshToken( HADALCONTEXT hContext, LPCWSTR resource, LPWSTR refreshToken, LPDWORD tokenLength);
 
@@ -498,13 +541,14 @@ extern "C"
     /// <returns>
     /// If the function succeeds, the return value is TRUE.
     /// If the function fails, the return value is FALSE. To get extended error info call GetLastError()
-	/// </returns>
+    /// </returns>
     ADAL_API BOOL WINAPI ADALSetRefreshToken( HADALCONTEXT hContext, LPCWSTR resource, LPCWSTR refreshToken );
 
     /// <summary>
     /// Set a web browser control as a primary method for displaying content.
     /// If the host window need to be closed earlier, then you need to call this function with
     ///     ADALUIUseWebBrowser(hContext, NULL, NULL, NULL);
+    /// ADALUIUseWebBrowser is not supported if ADALIsWAMUsed returns TRUE. Use ADALUIUseWAM in that case.
     ///
     /// Consider to use ADALUICreateHostServiceProvider/ADALUICreateHostUIHandler (see definition for this function for help)
     ///     ADALUICreateHostServiceProvider returns IServiceProvider, which should be used for protection against various threats.
@@ -517,23 +561,51 @@ extern "C"
     /// <returns>
     /// If the function succeeds, the return value is TRUE.
     /// If the function fails, the return value is FALSE. To get extended error info call GetLastError()
-	/// </returns>
+    /// </returns>
     ADAL_API BOOL WINAPI ADALUIUseWebBrowser( HADALREQUEST hRequest, LPUNKNOWN lpWebBrowser, LPADAL_COMPLETION_ROUTINE lpUICompleteCallback, LPVOID lpCallbackData );
+
+    /// <summary>
+    /// Uses Web Account Manager for UI flow.
+    /// This is supported starting Windows10 TH2
+    /// Use ADALIsWAMUsed to see if ADALUIUseWAM is supported. If ADALIsWAMUsed returns TRUE, then ADALUIUseWAM is supported
+    /// The API must be called on UI thread
+    /// </summary>
+    /// <param name="hRequest">HADALREQUEST handle created by the ADALAcquireToken function</param>
+    /// <param name="hWnd">Window handle required by Web Account Manager API for the application window.</param>
+    /// <param name="lpUICompleteCallback">Callback function, which says that UI is complete and we don't need any UI.</param>
+    /// <param name="lpCallbackData">Data which will comeback with callback.</param>
+    /// <returns>
+    /// If the function succeeds, the return value is TRUE.
+    /// If the function fails, the return value is FALSE. To get extended error info call GetLastError()
+    /// </returns>
+    ADAL_API BOOL WINAPI ADALUIUseWAM( HADALREQUEST hRequest, HWND hWnd, LPADAL_COMPLETION_ROUTINE lpUICompleteCallback, LPVOID lpCallbackData );
 
     /// <summary>
     /// Sets username and password to use with non-interactive flow
     /// </summary>
     /// <param name="hRequest">HADALREQUEST handle created by the ADALAcquireToken function</param>
-    /// <param name="username">Username format is [....].doe@contoso.com </param>
+    /// <param name="username">Username format is Microsoft.doe@contoso.com </param>
     /// <param name="password">Password</param>
     /// <returns>
     /// If the function succeeds, the return value is TRUE.
     /// If the function fails, the return value is FALSE. To get extended error info call GetLastError()
-	/// </returns>
+    /// </returns>
     ADAL_API BOOL WINAPI ADALUseUsernamePassword( HADALREQUEST hRequest, LPCWSTR username, LPCWSTR password );
 
+
+    /// <summary>
+    /// Sets request to use Windows Integrated Auth (WIA)
+    /// </summary>
+    /// <param name="hRequest">HADALREQUEST handle created by the ADALAcquireToken function</param>
+    /// <returns>
+    /// If the function succeeds, the return value is TRUE.
+    /// If the function fails, the return value is FALSE. To get extended error info call GetLastError()
+    /// </returns>
     ADAL_API BOOL WINAPI ADALUseWindowsAuthentication( HADALREQUEST hRequest );
 
+    /// <summary>
+    /// Enum for SAML Assertion to use V1 or V2. See ADALUseSAMLAssertion().
+    /// </summary>
     typedef enum ADAL_SAML_ASSERTION
     {
         // Samlv1 assertion
@@ -552,19 +624,36 @@ extern "C"
     /// <returns>
     /// If the function succeeds, the return value is TRUE.
     /// If the function fails, the return value is FALSE. To get extended error info call GetLastError()
-	/// </returns>
+    /// </returns>
     ADAL_API BOOL WINAPI ADALUseSAMLAssertion( HADALREQUEST hRequest, LPCWSTR assertion, ADAL_SAML_ASSERTION assertionType);
 
     /// <summary>
     /// Set client id when creating the context and set client secret with ADALSetClientSecret call and then call this method.
+    /// ADALUseClientCredential is not supported if ADALIsWAMUsed returns TRUE.
     /// </summary>
-    /// <param name="hRequest"></param>
+    /// <param name="hRequest">HADALREQUEST handle created by the ADALAcquireToken function</param>
     /// <returns>
     /// TRUE If the function succeeds, otherwise FALSE.
     /// To get extended error info call GetLastError()
-	/// </returns>
+    /// </returns>
     ADAL_API BOOL WINAPI ADALUseClientCredential( HADALREQUEST hRequest );
 
+    /// <summary>
+    /// Uses the Client credential and User Token to get a "on-behalf of" token from AAD.
+    /// The Client credential can be set by using ADALSetClientSecretUsingCertficateThumbprint().
+    /// ADALUseClientCredentialWithUserToken is not supported if ADALIsWAMUsed returns TRUE.
+    /// </summary>
+    /// <param name="hRequest">HADALREQUEST handle created by the ADALAcquireToken function</param>
+    /// <param name="userToken">The user token to use in the request</param>
+    /// <returns>
+    /// TRUE If the function succeeds, otherwise FALSE.
+    /// To get extended error info call GetLastError()
+    /// </returns>
+    ADAL_API BOOL WINAPI ADALUseClientCredentialWithUserToken(HADALREQUEST hRequest, LPCWSTR userToken);
+
+    /// <summary>
+    /// Struct for Web Host Requirements
+    /// </summary>
     struct ADAL_WEB_HOST_REQUIREMENTS
     {
         // size to inform user about version of the structure.
@@ -577,17 +666,25 @@ extern "C"
         DWORD           DLControlFlags;
     };
 
+    /// <summary>
+    /// Pointer to struct for Web Host Requirements. See ADALUIGetHostRequirements().
+    /// </summary>
     typedef struct ADAL_WEB_HOST_REQUIREMENTS* LPADAL_WEB_HOST_REQUIREMENTS;
 
     /// <summary>
     /// Get required flags for web browser host. This minimum set of required flags.
     /// </summary>
-	/// <returns>
+    /// <param name="hContext">Instance of the authentication context.</param>    
+    /// <param name="hostRequirements">Pointer to ADAL_WEB_HOST_REQUIREMENTS struct to hold returned data</param>
+    /// <returns>
     /// If the function succeeds, the return value is TRUE.
     /// If the function fails, the return value is FALSE. To get extended error info call GetLastError()
-	/// </returns>
+    /// </returns>
     ADAL_API BOOL WINAPI ADALUIGetHostRequirements( HADALCONTEXT hContext, LPADAL_WEB_HOST_REQUIREMENTS hostRequirements );
 
+    /// <summary>
+    /// Struct for extended Web Host Requirements
+    /// </summary>
     struct ADAL_WEB_HOST_REQUIREMENTS_EX
     {
         // Size to inform user about version of the structure.
@@ -596,6 +693,10 @@ extern "C"
         // IServiceProvider Interface
         LPUNKNOWN   lpServiceProvider;
     };
+
+    /// <summary>
+    /// Pointer to struct for extended Web Host Requirements. 
+    /// </summary>
     typedef struct ADAL_WEB_HOST_REQUIREMENTS_EX* LPADAL_WEB_HOST_REQUIREMENTS_EX;
 
     /// <summary>
@@ -610,6 +711,7 @@ extern "C"
     /// Used for "COM aggregation" see details in below arguments description.
     /// In most of cases it could be NULL, but there could be case when user of the library already have implementation of these interfaces.
     /// In this case, developer needs to apply "COM Aggregation" approach to extend his/her implementation by ADAL's implementation.
+    /// </param>
     /// <returns>
     /// If the function fails, the return value is NULL. To get extended error info call GetLastError()
     ///
@@ -620,7 +722,7 @@ extern "C"
     /// If host application provides own implementation of IServiceProvider, consider to user "COM aggregation"
     /// to extend your implementation by ADAL's implementation. For this purpose you need to provide outerObject.
     /// ADAL's build-in web browser host (ADALUICreateHostWindow) uses this interface automatically.
-	/// </returns>
+    /// </returns>
     ADAL_API LPUNKNOWN WINAPI ADALUICreateHostServiceProvider( HADALCONTEXT hContext, LPUNKNOWN outerObject /*= NULL*/ );
 
     /// <summary>
@@ -654,7 +756,7 @@ extern "C"
     ///
     /// ADAL's build-in web browser host (ADALUICreateHostWindow) uses this interface, and we publish this interface for users convenience.
     ///
-	/// </returns>
+    /// </returns>
     /// <remarks>
     /// It is not mandatory for using this interface for the host application, as application could have its own logic to handle this things.
     /// Also application could aggregate this object, if it has its own implementation of this interface.
@@ -671,9 +773,9 @@ extern "C"
     /// By default, ADAL creates a top-level window.
     /// So, you able to create any window with any style and subclass this window as well.
     /// This window could be a control on your window.
+    /// ADALUICreateHostWindow is not supported if ADALIsWAMUsed returns TRUE. Use ADALUIUseWAM in that case.
     /// </summary>
     /// <param name="hRequest">HADALREQUEST handle created by the ADALAcquireToken function</param>
-    /// <param name="lpWebBrowser">Pointer to the web browser control, which implements IWebBrowser2 interfaces.</param>
     /// <param name="lpUICompleteCallback">Callback function, which says that UI is complete and we don't need any UI.</param>
     /// <param name="lpCallbackData">Data which will comeback with callback.</param>
     /// <param name="hWndParent">Optional. Parent window. See CreateWindowEx MSDN documentation.</param>
@@ -690,110 +792,119 @@ extern "C"
 
     /// <summary>
     /// Returns a web browser assigned with context. Useful with ADALUICreateHostWindow.
+    /// ADALUIGetWebBrowser is not supported if ADALIsWAMUsed returns TRUE.
     /// </summary>
+    /// <param name="hRequest">Instance of the HADALREQUEST created by ADALAcquireToken.</param>
+    /// <param name="ppWebBrowser">Pointer to the web browser control, which implements IWebBrowser2 interfaces.</param>
     /// <returns>
     /// If the function succeeds, the return value is TRUE.
     /// If the function fails, the return value is FALSE. To get extended error info call GetLastError()
     /// </returns>
     ADAL_API BOOL WINAPI ADALUIGetWebBrowser( HADALREQUEST hRequest, LPUNKNOWN* ppWebBrowser );
 
-	/// <summary>
-	/// Set additional query params and related endpoint to use in request
-	/// This string will be appended to the end of the original request
-	/// Example: "&amp;Attribute1=Value1&amp;Attribute2=Value2"
-   	/// If you are sending encoded params, you should set the encodedParams to true.
-	/// If you are sending attribute and value pairs and need encoding, you should set the encodedParams to false
-	/// </summary>
-	/// <param name="hContext">Instance of the authentication context handle.</param>
-	/// <param name="additionalQueryParams">additional query params</param>
-	/// <param name="encodedParameters">Set to true to indicate that additional params are encoded. Set to false if query params are not encoded</param>
-	/// <returns>
-	/// If the function succeeds, the return value is TRUE.
-	/// If the function fails, the return value is FALSE, GetLastError could be used to get an ADAL or a system error code.
-	/// </returns>
-	ADAL_API BOOL WINAPI ADALSetAdditionalQueryParams( HADALCONTEXT hContext, LPCWSTR additionalQueryParams, BOOL encodedParams );
+    /// <summary>
+    /// Set additional query params and related endpoint to use in request
+    /// This string will be appended to the end of the original request
+    /// Example: "&amp;Attribute1=Value1&amp;Attribute2=Value2"
+    /// If you are sending encoded params, you should set the encodedParams to true.
+    /// If you are sending attribute and value pairs and need encoding, you should set the encodedParams to false
+    /// </summary>
+    /// <param name="hContext">Instance of the authentication context handle.</param>
+    /// <param name="additionalQueryParams">additional query params</param>
+    /// <param name="encodedParams">Set to true to indicate that additional params are encoded. Set to false if query params are not encoded</param>
+    /// <returns>
+    /// If the function succeeds, the return value is TRUE.
+    /// If the function fails, the return value is FALSE, GetLastError could be used to get an ADAL or a system error code.
+    /// </returns>
+    ADAL_API BOOL WINAPI ADALSetAdditionalQueryParams( HADALCONTEXT hContext, LPCWSTR additionalQueryParams, BOOL encodedParams );
 
-	/// <summary>
+    /// <summary>
     /// This appends these headers to existing headers for all requests
-	/// Add CRLF ending for each header entry even for a single header line
-	/// </summary>
-	/// <param name="hContext">Instance of the HADALCONTEXT created by the ADALCreateAuthenticationContext function</param>
-	/// <param name="headers">Example: HeaderAtrribute1:HeaderValue1\r\nHeaderAtrribute2:HeaderValue2\r\n </param>
-	/// <returns>
+    /// Add CRLF ending for each header entry even for a single header line
+    /// </summary>
+    /// <param name="hContext">Instance of the HADALCONTEXT created by the ADALCreateAuthenticationContext function</param>
+    /// <param name="headers">Example: HeaderAtrribute1:HeaderValue1\r\nHeaderAtrribute2:HeaderValue2\r\n </param>
+    /// <returns>
     /// If the function succeeds, the return value is TRUE.
     /// If the function fails, the return value is FALSE. To get extended error info call GetLastError()
-	/// </returns>
-	ADAL_API BOOL WINAPI ADALSetAdditionalHttpHeaders( HADALCONTEXT hContext, LPCWSTR headers );
+    /// </returns>
+    ADAL_API BOOL WINAPI ADALSetAdditionalHttpHeaders( HADALCONTEXT hContext, LPCWSTR headers );
 
+    /// <summary>
+    /// Struct for log options
+    /// </summary>
     struct ADAL_LOG_OPTIONS
     {
-		// Size to inform user about the version of the structure. Set cbSize to sizeof( ADAL_LOG_OPTIONS)
+        // Size to inform user about the version of the structure. Set cbSize to sizeof( ADAL_LOG_OPTIONS)
         DWORD				cbSize;
 
         // Set TRUE to enable Trace log, which can viewed from output window after setting the level with ATL/MFC Trace tool. Set FALSE to disable.
         BOOL				enableTraceLog;
 
         // Set TRUE to enable event logger that writes to the event view.
-		// If set to FALSE, it removes event logger
+        // If set to FALSE, it removes event logger
         BOOL				enableEventLog;
 
         // Root name to register event source for reporting to the event view. You need to create registry entries for message file at HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\EventLog\Application\eventLogRegistryRootName
         LPCWSTR				eventLogRegistryRootName;
 
-		// If provided, it enables callBack logger. Logger will also call this function for logging beside other enabled loggers
-		// If it is null, callback loggers will be removed
-		LPADAL_LOG_ROUTINE	lpLogCallback;
+        // If provided, it enables callBack logger. Logger will also call this function for logging beside other enabled loggers
+        // If it is null, callback loggers will be removed
+        LPADAL_LOG_ROUTINE	lpLogCallback;
 
-		// Optional context, which will be pass back to callback function
-		LPVOID				lpData;
+        // Optional context, which will be pass back to callback function
+        LPVOID				lpData;
 
-		// Set logging level for all loggers.
-		// Level Error will report only errors
-		// Level Warning will report errors and warning messages
-		// Level Info will report info and above
-		// Level Verbose will report all of the messages
-		ADAL_LOGLEVEL			level;
-	};
+        // Set logging level for all loggers.
+        // Level Error will report only errors
+        // Level Warning will report errors and warning messages
+        // Level Info will report info and above
+        // Level Verbose will report all of the messages
+        ADAL_LOGLEVEL			level;
+    };
 
-	typedef struct ADAL_LOG_OPTIONS* LPADAL_LOG_OPTIONS;
+    /// <summary>
+    /// pointer to struct for log options. See ADALSetLogOptions().
+    /// </summary>
+    typedef struct ADAL_LOG_OPTIONS* LPADAL_LOG_OPTIONS;
 
-	/// <summary>
+    /// <summary>
     /// Set log options to enable/disable trace logger, enable/disable event logger, and attach callback for custom logging
     /// If you provide callback function, it will call your method for logging in addition to other enabled loggers
-	/// In order to use the event logger, you need to register message file and supported types in the registry:
-	///  Registry Info
-	/// EventMessageFile	REG_EXPAND_SZ	[PathToDll]\adal.dll
-	/// TypesSupported		REG_DWORD		mask EVENTLOG_ERROR_TYPE | EVENTLOG_WARNING_TYPE | EVENTLOG_INFORMATION_TYPE
-	///
-	/// Example registry file:
-	///	Windows Registry Editor Version 5.00
-	///
-	/// [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\EventLog\Application\YourRegistryRootName]
-	/// "TypesSupported"=dword:00000007
-	/// "EventMessageFile"="[PathToDll]\adal.dll"
+    /// In order to use the event logger, you need to register message file and supported types in the registry:
+    ///  Registry Info
+    /// EventMessageFile	REG_EXPAND_SZ	[PathToDll]\adal.dll
+    /// TypesSupported		REG_DWORD		mask EVENTLOG_ERROR_TYPE | EVENTLOG_WARNING_TYPE | EVENTLOG_INFORMATION_TYPE
+    ///
+    /// Example registry file:
+    ///	Windows Registry Editor Version 5.00
+    ///
+    /// [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\EventLog\Application\YourRegistryRootName]
+    /// "TypesSupported"=dword:00000007
+    /// "EventMessageFile"="[PathToDll]\adal.dll"
     ///
     /// Event log message files are cached in the event view. If you register wrong file, you need to create with different rootname or restart event
     /// viewer to use new message file. If you don't see the error descriptions in the event view, message file registration is not correct.
     /// System error codes are mapped to a custom Adal error code and message is displayed in the details section for Event Log.
-	/// </summary>
+    /// </summary>
     /// <param name="logOptions">Log Options struct</param>
-	/// <returns>
+    /// <returns>
     /// If the function succeeds, the return value is TRUE.
     /// If the function fails, the return value is FALSE. To get extended error info call GetLastError()
-	/// </returns>
-	ADAL_API BOOL WINAPI ADALSetLogOptions( LPADAL_LOG_OPTIONS logOptions );
+    /// </returns>
+    ADAL_API BOOL WINAPI ADALSetLogOptions( LPADAL_LOG_OPTIONS logOptions );
 
-	/// <summary>
+    /// <summary>
     /// Customize behavior of silent logon process.
-	/// </summary>
-	/// <param name="hContext">Authorization context</param>
-	/// <param name="timeOutMiliSeconds">if equals to 0, then we disable silent logon process.
+    /// </summary>
+    /// <param name="hContext">Authorization context</param>
+    /// <param name="timeOutMiliSeconds">if equals to 0, then we disable silent logon process.
     /// Non zero value indicates number of milliseconds could be spend on total detection process.
     /// This value used to control redirect time spend on redirection between endpoints.</param>
-	/// <returns>
+    /// <returns>
     /// If the function succeeds, the return value is TRUE.
     /// If the function fails, the return value is FALSE. To get extended error info call GetLastError()
-	/// </returns>
+    /// </returns>
     ADAL_API BOOL WINAPI ADALSetSilentLogonOptions( HADALCONTEXT hContext, DWORD timeOutMiliSeconds );
 
     /// <summary>
@@ -817,18 +928,22 @@ extern "C"
         ADAL_ENDPOINT_WS_USERNAME_PASSWORD = 4,
     } ADAL_ENDPOINT;
 
-	/// <summary>
+    /// <summary>
     /// This is an optional API used to override endpoints, which used by ADAL.
-	/// </summary>
-	/// <param name="hContext">Authorization context</param>
-	/// <param name="endPoint">Endpoint used, which needs to be overridden.</param>
-	/// <param name="endPointUrl">Url of an endpoint</param>
-	/// <returns>
+    /// </summary>
+    /// <param name="hContext">Authorization context</param>
+    /// <param name="endPoint">Endpoint used, which needs to be overridden.</param>
+    /// <param name="endPointUrl">Url of an endpoint</param>
+    /// <returns>
     /// If the function succeeds, the return value is TRUE.
     /// If the function fails, the return value is FALSE. To get extended error info call GetLastError()
-	/// </returns>
+    /// </returns>
     ADAL_API BOOL WINAPI ADALUseEndpoint( HADALCONTEXT hContext, ADAL_ENDPOINT endPoint, LPCWSTR endPointUrl );
 
+
+    /// <summary>
+    /// Struct for ADAL options
+    /// </summary>
     typedef enum ADAL_OPTION
     {
         // Validation checks if this end-point is an AAD endpoint.
@@ -852,10 +967,22 @@ extern "C"
 
         // if ADAL_OPTION_FORCE_PROMPT == ADAL_DISALLOW(default), ADAL will use stored cookies and cache for the token.
         // if ADAL_OPTION_FORCE_PROMPT == ADAL_ALLOW, then new requests will not use cache, but they will update cache. Interactive flow will prompt the user for credentials again.
-        ADAL_OPTION_FORCE_PROMPT = 8
+        ADAL_OPTION_FORCE_PROMPT = 8,
+
+        // Note: This option skipped to 32 because aoClientAssertion took the 16 spot over in the AuthOptions in AuthenticationContext.Enums.h.
+        // if ADAL_OPTION_INTERNET_OPTION_END_BROWSER_SESSION == ADAL_ALLOW (default), the INTERNET_OPTION_END_BROWSER_SESSION option will be set in WebUIController::Start()
+        // if ADAL_OPTION_INTERNET_OPTION_END_BROWSER_SESSION == ADAL_DISALLOW, the INTERNET_OPTION_END_BROWSER_SESSION will not be set in WebUIController::Start() allowing session to carry over
+        ADAL_OPTION_INTERNET_OPTION_END_BROWSER_SESSION = 32,
+
+        // if ADAL_OPTION_USE_WAM == ADAL_ALLOW(default), ADAL will use Web Account Manager (starting Windows 10 TH2) to obtain tokens.
+        // if ADAL_OPTION_USE_WAM == ADAL_DISALLOW, ADAL will not use Web Account Manager (even on Windows 10 TH2 and beyond) and will communicate with AAD directly.
+        ADAL_OPTION_USE_WAM = 64
 
     } ADAL_OPTION;
 
+    /// <summary>
+    /// Struct for ADAL option values
+    /// </summary>
     typedef enum ADAL_OPTION_VALUE
     {
         // disallows the option
@@ -868,9 +995,33 @@ extern "C"
         ADAL_DEFAULT = 2
     } ADAL_OPTION_VALUE;
 
+    /// <summary>
+    /// Sets the ADAL options for the given context.
+    /// </summary>
+    /// <param name="hContext">Authorization context</param>
+    /// <param name="option">Option(s) to set</param>
+    /// <param name="value">Value to set to option(s)</param>
+    /// <returns>
+    /// If the function succeeds, the return value is TRUE.
+    /// If the function fails, the return value is FALSE. To get extended error info call GetLastError()
+    /// </returns>
     ADAL_API BOOL WINAPI ADALSetOption( HADALCONTEXT hContext, ADAL_OPTION option, ADAL_OPTION_VALUE value);
+
+    /// <summary>
+    /// Gets the ADAL options for the given context.
+    /// </summary>
+    /// <param name="hContext">Authorization context</param>
+    /// <param name="option">Option to get</param>
+    /// <param name="value">Pointer to value struct to receive option(s)</param>
+    /// <returns>
+    /// If the function succeeds, the return value is TRUE.
+    /// If the function fails, the return value is FALSE. To get extended error info call GetLastError()
+    /// </returns>
     ADAL_API BOOL WINAPI ADALGetOption( HADALCONTEXT hContext, ADAL_OPTION option, ADAL_OPTION_VALUE* value);
 
+    /// <summary>
+    /// Enum for ADAL account type
+    /// </summary>
     typedef enum ADAL_ACCOUNT_TYPE
     {
         // Default. Asks ADAL to discover, what mode it uses.
@@ -885,11 +1036,127 @@ extern "C"
         ADAL_ACCOUNT_TYPE_FEDERATED = 2
     } ADAL_ACCOUNT_TYPE;
 
+    /// <summary>
+    /// Sets the ADAL account type for the given context.
+    /// </summary>
+    /// <param name="hContext">Authorization context</param>
+    /// <param name="accountType">Account type to set</param>
+    /// <returns>
+    /// If the function succeeds, the return value is TRUE.
+    /// If the function fails, the return value is FALSE. To get extended error info call GetLastError()
+    /// </returns>
     ADAL_API BOOL WINAPI ADALSetAccountType( HADALCONTEXT hContext, ADAL_ACCOUNT_TYPE accountType);
+
+    /// <summary>
+    /// Gets the ADAL account type for the given context.
+    /// </summary>
+    /// <param name="hContext">Authorization context</param>
+    /// <param name="accountType">Pointer to account type to hold the returned account type</param>
+    /// <returns>
+    /// If the function succeeds, the return value is TRUE.
+    /// If the function fails, the return value is FALSE. To get extended error info call GetLastError()
+    /// </returns>
     ADAL_API BOOL WINAPI ADALGetAccountType( HADALCONTEXT hContext, ADAL_ACCOUNT_TYPE* accountType);
 
+    /// <summary>
+    /// Sets the client secret for the given context
+    /// </summary>
+    /// <param name="hContext">Authorization context</param>
+    /// <param name="clientSecret">Client Secret</param>
+    /// <returns>
+    /// If the function succeeds, the return value is TRUE.
+    /// If the function fails, the return value is FALSE. To get extended error info call GetLastError()
+    /// </returns>
     ADAL_API BOOL WINAPI ADALSetClientSecret( HADALCONTEXT hContext, LPCWSTR clientSecret );
+
+    /// <summary>
+    /// Enum indicating the flags for the Certificate Store
+    /// </summary>
+    typedef enum ADAL_CERT_STORE_TYPE
+    {
+        ADAL_CERT_STORE_TYPE_USER = CERT_SYSTEM_STORE_CURRENT_USER,
+        ADAL_CERT_STORE_TYPE_MACHINE = CERT_SYSTEM_STORE_LOCAL_MACHINE
+    } ADAL_CERT_STORE_TYPE;
+
+    /// <summary>
+    /// Sets the Client Secret to a self signed JWS token prepared with the Certificate loaded based on the thumbprint
+    /// </summary>
+    /// <param name="hContext"> The handle to the ADAL Context </param>
+    /// <param name="certThumbprint">The thumbprint of the certificate</param>
+    /// <param name="certStoreFlags">The location where to find the certificate</param>
+    /// <returns>
+    /// TRUE If the function succeeds, otherwise FALSE.
+    /// To get extended error info call GetLastError()
+    /// </returns>
+    ADAL_API BOOL WINAPI ADALSetClientAssertionUsingCertificateThumbprint(HADALCONTEXT hContext, LPCWSTR certThumbprint, ADAL_CERT_STORE_TYPE certStoreFlags);
+
+    /// <summary>
+    /// Gets the Client Secret 
+    /// </summary>
+    /// <param name="hContext">
+    /// The handle to the ADAL Context
+    /// </param>
+    /// <param name="clientSecret">
+    /// The buffer into which the client secret is copied in to
+    /// </param>
+    /// <param name="clientSecretLength">
+    /// This in_out parameter contains the size of the clientSecret buffer and is updated by the method to indicate the size of the client secret
+    /// </param>
+    /// <returns>
+    /// TRUE If the function succeeds, otherwise FALSE.
+    /// To get extended error info call GetLastError()
+    /// </returns>
     ADAL_API BOOL WINAPI ADALGetClientSecret( HADALCONTEXT hContext, LPWSTR clientSecret, LPDWORD clientSecretLength );
+
+    /// <summary>
+    /// Gets the Formal Authority (issuer) from the authority in the passed in context.
+    /// </summary>
+    /// <param name="hContext">
+    /// The handle to the ADAL Context
+    /// </param>
+    /// <param name="formalAuthorityUrl">
+    /// The issuer url as found from the .well-known/openid-configuration endpoint of the authority in the authentication context.
+    /// </param>
+    /// <param name="formalAuthorityUrlLength">
+    /// The length of the string passed in to the formalAuthorityUrl parameter
+    /// </param>
+    /// <returns>
+    /// TRUE If the function succeeds and the formal authority in the formalAuthority parameter,
+    ///  otherwise FALSE and an empty string in the formalAuthority parameter.
+    /// To get extended error info call GetLastError()
+    /// </returns>
+    ADAL_API DWORD WINAPI ADALGetFormalAuthority( HADALCONTEXT hContext, LPWSTR formalAuthorityUrl, LPDWORD formalAuthorityUrlLength );
+
+    /// <summary>
+    /// Tells the calling application if Web Accounts Manager(WAM) will be used to obtain the tokens.
+    /// WAM functionality exists starting Windows 10 TH2 (Threshold 2)
+    /// </summary>
+    /// <param name="hContext">
+    /// The handle to the ADAL Context. The application can call ADALSetOption with ADAL_OPTION_USE_WAM to overide the default behavior/
+    /// The ADAL_OPTION_USE_WAM flag is taken into consideration by the ADALIsWAMUsed API
+    /// </param>
+    /// <returns>
+    /// TRUE if Web Accounts Manager(WAM) is supported and will be used, otherwise FALSE
+    /// </returns>
+    ADAL_API BOOL WINAPI ADALIsWAMUsed( HADALCONTEXT hContext );
+
+    /// <summary>
+    /// Sets the Client Secret to a self signed JWS token prepared with the certificate context that is passed in to the API.
+    /// </summary>
+    /// <param name="hContext">
+    /// The handle to the ADAL Context
+    /// </param>
+    /// <param name="certThumbprint">
+    /// The thumbprint of the certificate
+    /// </param>
+    /// <param name="pcCertContext">
+    /// PCCERT_CONTEXT pointer to the certificate context.
+    /// </param>
+    /// <returns>
+    /// TRUE If the function succeeds, otherwise FALSE.
+    /// To get extended error info call GetLastError()
+    /// </returns>
+    ADAL_API BOOL WINAPI ADALSetClientAssertionUsingCertificateContext(HADALCONTEXT hContext, LPCWSTR certThumbprint, const CERT_CONTEXT* pcCertContext);
 
 #ifdef __cplusplus
 }

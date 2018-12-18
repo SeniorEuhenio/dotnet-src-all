@@ -485,7 +485,7 @@ namespace System.Windows.Forms {
         protected override void OnSubscribeControlEvents(Control control) {
             ComboBox comboBox = control as ComboBox;
             if (comboBox != null) {
-                // Please keep this alphabetized and in [....] with Unsubscribe
+                // Please keep this alphabetized and in sync with Unsubscribe
                 // 
                 comboBox.DropDown                   += new EventHandler(HandleDropDown);
                 comboBox.DropDownClosed             += new EventHandler(HandleDropDownClosed);
@@ -502,7 +502,7 @@ namespace System.Windows.Forms {
         protected override void OnUnsubscribeControlEvents(Control control) {
             ComboBox comboBox = control as ComboBox;
             if (comboBox != null) {
-               // Please keep this alphabetized and in [....] with Unsubscribe
+               // Please keep this alphabetized and in sync with Unsubscribe
                // 
                comboBox.DropDown                   -= new EventHandler(HandleDropDown);
                comboBox.DropDownClosed             -= new EventHandler(HandleDropDownClosed);

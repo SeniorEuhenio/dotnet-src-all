@@ -10523,7 +10523,7 @@ typedef struct _SE_ACCESS_REPLY
 #define SE_CHANGE_NOTIFY_NAME             TEXT("SeChangeNotifyPrivilege")
 #define SE_REMOTE_SHUTDOWN_NAME           TEXT("SeRemoteShutdownPrivilege")
 #define SE_UNDOCK_NAME                    TEXT("SeUndockPrivilege")
-#define SE_[....]_AGENT_NAME                TEXT("SeSyncAgentPrivilege")
+#define SE_SYNC_AGENT_NAME                TEXT("SeSyncAgentPrivilege")
 #define SE_ENABLE_DELEGATION_NAME         TEXT("SeEnableDelegationPrivilege")
 #define SE_MANAGE_VOLUME_NAME             TEXT("SeManageVolumePrivilege")
 #define SE_IMPERSONATE_NAME               TEXT("SeImpersonatePrivilege")
@@ -10850,7 +10850,7 @@ typedef struct _TOKEN_APPCONTAINER_INFORMATION {
 //      These #defines and data structures (almost) exactly mirror
 //      the Token_XXX definitions (except for PWSTR/PUNICODE changes)
 //      in ntseapi.w as well as AUTHZ_XXX in authz.w. 
-//      Keep them in [....]. 
+//      Keep them in sync. 
 //
 //
 //  Security attribute data types ...
@@ -12064,7 +12064,7 @@ typedef struct DECLSPEC_ALIGN(16) _MEMORY_BASIC_INFORMATION64 {
 //
 // The FILE_READ_DATA and FILE_WRITE_DATA constants are also defined in
 // devioctl.h as FILE_READ_ACCESS and FILE_WRITE_ACCESS. The values for these
-// constants *MUST* always be in [....].
+// constants *MUST* always be in sync.
 // The values are redefined in devioctl.h because they must be available to
 // both DOS and NT.
 //
@@ -12208,7 +12208,7 @@ typedef union _FILE_SEGMENT_ELEMENT {
 //        cache.
 //      - Commit all pending metadata changes for the given file from the
 //        Windows in-memory cache.
-//      - Send a [....] command to the underlying storage device to commit all
+//      - Send a SYNC command to the underlying storage device to commit all
 //        written data in the devices cache to persistent storage.
 //
 //  If a volume handle is specified:
@@ -12216,7 +12216,7 @@ typedef union _FILE_SEGMENT_ELEMENT {
 //        in-memory cache.
 //      - Commit all pending metadata changes for all files on the volume from
 //        the Windows in-memory cache.
-//      - Send a [....] command to the underlying storage device to commit all
+//      - Send a SYNC command to the underlying storage device to commit all
 //        written data in the devices cache to persistent storage.
 //
 //  This is equivalent to how NtFlushBuffersFile has always worked.
@@ -12225,7 +12225,7 @@ typedef union _FILE_SEGMENT_ELEMENT {
 //
 //  If set, this operation will write the data for the given file from the
 //  Windows in-memory cache.  This will NOT commit any associated metadata
-//  changes.  This will NOT send a [....] to the storage device to flush its
+//  changes.  This will NOT send a SYNC to the storage device to flush its
 //  cache.  Not supported on volume handles.  Only supported by the NTFS
 //  filesystem.
 //
@@ -12234,12 +12234,12 @@ typedef union _FILE_SEGMENT_ELEMENT {
 
 //
 //  If set, this operation will commit both the data and metadata changes for
-//  the given file from the Windows in-memory cache.  This will NOT send a [....]
+//  the given file from the Windows in-memory cache.  This will NOT send a SYNC
 //  to the storage device to flush its cache.  Not supported on volume handles.
 //  Only supported by the NTFS filesystem.
 //
 
-#define FLUSH_FLAGS_NO_[....]             0x00000002
+#define FLUSH_FLAGS_NO_SYNC             0x00000002
 
 #endif  // (NTDDI_VERSION >= NTDDI_WIN8)
 
@@ -12343,7 +12343,7 @@ typedef struct _REPARSE_GUID_DATA_BUFFER {
 //======================= FSCTL_SCRUB_DATA =============================
 
 #define SCRUB_DATA_INPUT_FLAG_RESUME                  0x00000001
-#define SCRUB_DATA_INPUT_FLAG_SKIP_IN_[....]            0x00000002
+#define SCRUB_DATA_INPUT_FLAG_SKIP_IN_SYNC            0x00000002
 #define SCRUB_DATA_INPUT_FLAG_SKIP_NON_INTEGRITY_DATA 0x00000004
 
 #define SCRUB_DATA_OUTPUT_FLAG_INCOMPLETE          0x00000001

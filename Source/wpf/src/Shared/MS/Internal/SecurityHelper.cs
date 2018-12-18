@@ -10,7 +10,7 @@
 
 // The SecurityHelper class differs between assemblies and could not actually be
 //  shared, so it is duplicated across namespaces to prevent name collision.
-// [[....], June'09] This duplication seems hardly necessary now. We should continue
+// [Microsoft, June'09] This duplication seems hardly necessary now. We should continue
 // trying to reduce it by pushing things from Framework to Core (whenever it makes sense).
 #if WINDOWS_BASE
 namespace MS.Internal.WindowsBase
@@ -67,11 +67,16 @@ using MS.Internal.Permissions;
     using MS.Internal.Utility;
 #endif
 #if WINDOWS_BASE
-    [FriendAccessAllowed] // To allow FontCache service to see the WindowsBase variant of this class.
+    // This existed originally to allow FontCache service to 
+    // see the WindowsBase variant of this class. We no longer have
+    // a FontCache service, but over time other parts of WPF might
+    // have started to depend on this, so we leave it as-is for 
+    // compat. 
+    [FriendAccessAllowed] 
 #endif
 
 
-    internal static class SecurityHelper
+internal static class SecurityHelper
     {
 #if !PBTCOMPILER
         /// <SecurityNote>
@@ -869,12 +874,12 @@ using MS.Internal.Permissions;
         }
 
         /// <SecurityNote>
-        /// SecurityCritical is needed due to Dev10 bug 534574. This is a TEMPORARY WORKAROUND for v4.
-        /// TAS: Callers are transparent, so we need this too to keep them working.
-        ///
-        /// Note that the XAML reader relies on being able to call RunClassConstructor() on non-public types.
-        /// This is considered a security flaw, and a future version of the CLR will likely plug it.
-        /// </SecurityNote>
+        /// SecurityCritical is needed due to Dev10 
+
+
+
+
+
         [SecuritySafeCritical]
         internal static void RunClassConstructor(Type t)
         {

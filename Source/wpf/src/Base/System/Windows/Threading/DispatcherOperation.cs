@@ -47,7 +47,7 @@ namespace System.Windows.Threading
             _numArgs = numArgs;
             _args = args;
 
-            _executionContext = ExecutionContext.Capture();
+            _executionContext = CulturePreservingExecutionContext.Capture();
 
             _taskSource = taskSource;
             _taskSource.Initialize(this);
@@ -435,7 +435,7 @@ namespace System.Windows.Threading
             // current when the operation was created.
             if(_executionContext != null)
             {
-                ExecutionContext.Run(_executionContext, _invokeInSecurityContext, this);
+                CulturePreservingExecutionContext.Run(_executionContext, _invokeInSecurityContext, this);
 
                 // Release any resources held by the execution context.
                 _executionContext.Dispose();
@@ -738,7 +738,7 @@ namespace System.Windows.Threading
         ///     Obtained under an elevation.
         /// </SecurityNote>
         [SecurityCritical]
-        private ExecutionContext _executionContext;
+        private CulturePreservingExecutionContext _executionContext;
         private static readonly ContextCallback _invokeInSecurityContext;
         
         private readonly Dispatcher _dispatcher;

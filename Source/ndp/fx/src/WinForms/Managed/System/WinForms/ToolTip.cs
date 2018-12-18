@@ -2287,7 +2287,7 @@ namespace System.Windows.Forms {
                 }
 
                 // Must reset the maxwidth to the screen size.
-                // This is required to resolve VSWhidbey bug# 363408
+                // This is required to resolve VSWhidbey 
                 if ((tt.TipType & TipInfo.Type.Auto) != 0 || (tt.TipType & TipInfo.Type.SemiAbsolute) != 0) {
                    Screen screen = Screen.FromPoint(Cursor.Position);
                    UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.TTM_SETMAXTIPWIDTH, 0, screen.WorkingArea.Width);

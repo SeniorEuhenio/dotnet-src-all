@@ -843,12 +843,12 @@ DWORD Np::InitializeListener( HANDLE   hSNIListener,
 		goto ErrorExit;
 	}
 
-	// SQL BU DT bug 346383/346389/325380: to lower the chance of named pipe
-	// "name squatting" by another (malicious) process running under a 
-	// different account we check the ownership of the listening named pipe 
-	// we created, and fail if it does not match that of the account we are 
-	// running under.  
-	//
+	// SQL BU DT 
+
+
+
+
+
 	dwError = ValidateObjectOwner( pAcc->hPipe, 
 								   SE_KERNEL_OBJECT ); 
 
@@ -1332,7 +1332,7 @@ DWORD Np::CheckConnection( )
 	return dwError;
 }
 
-// [....] functions
+// Sync functions
 //
 DWORD Np::ReadSync( __out SNI_Packet ** ppNewPacket, 
 					int           iTimeOut )
@@ -1611,7 +1611,7 @@ DWORD Np::WriteSync( SNI_Packet   * pPacket,
 	{
 		PrepareForSyncCall(pPacket);
 		
-		// If the SNI Consumer (or SNI internally, though it currently doesn't do this directly...) is using both Async and [....] writes,
+		// If the SNI Consumer (or SNI internally, though it currently doesn't do this directly...) is using both Async and Sync writes,
 		// it must ensure that it has no pending Writes at the time it calls SNIWriteSync
 		
 		// Although these are normally checked under the CritSec, it shouldn't be necessary, since per contract there should be no 
@@ -1909,7 +1909,7 @@ DWORD Np::SendPacketAsync( SNI_Packet *pPacket, DWORD *pdwBytesWritten )
 
 	if( NULL != m_pSyncReadPacket )
 	{
-		Assert( 0 && "It is forbidden to call SNIReadAsync or SNIPartialReadAsync when there is a cached [....] Read packet.\n");
+		Assert( 0 && "It is forbidden to call SNIReadAsync or SNIPartialReadAsync when there is a cached Sync Read packet.\n");
 		dwError = ERROR_INVALID_STATE;
 		SNI_SET_LAST_ERROR( TCP_PROV, SNIE_0, dwError);
 		goto Exit;
@@ -1961,8 +1961,8 @@ Exit:
 	return dwError;
 }
 
-//named pipe implementation has a bug where multiple async writes causes message re-ordering
-//so we need to wait for completion of previous write before posting a new one
+//named pipe implementation has a 
+
 
 DWORD Np::WriteAsync( SNI_Packet   * pPacket, 
 					  SNI_ProvInfo * pInfo )
@@ -2603,7 +2603,7 @@ DWORD Np::Close()
 				// Wait with time-out in case the auto-event was consumed
 				// by another thread after we checked its status (this should
 				// not really happen since the access to the Np object should
-				// be serialized in [....] mode).  We will check the status in 
+				// be serialized in sync mode).  We will check the status in 
 				// the next iteration.  
 				DWORD dwRet = WaitForSingleObject(pOvl->hEvent, CLOSEIOWAIT);
 
@@ -2800,7 +2800,7 @@ ErrorExit:
 // Inform the OS not to enqueue IO Completions on successful
 // overlapped reads/writes.
 //
-// Returns ERROR_SUCCESS if OS call succeeds, or if connection is [....] (no need to make the call)
+// Returns ERROR_SUCCESS if OS call succeeds, or if connection is Sync (no need to make the call)
 // Returns a Windows error code otherwise.
 DWORD
 Np::DWSetSkipCompletionPortOnSuccess()

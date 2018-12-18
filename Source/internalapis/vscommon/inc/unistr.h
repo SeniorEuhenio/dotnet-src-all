@@ -462,7 +462,7 @@ inline int WINAPI StrLen ( _In_opt_z_ PCWSTR psz)
 {
     if (!psz) return 0;
 
-    // Win64Fix ([....]): wcslen returns size_t which is 64-bit long.
+    // Win64Fix (Microsoft): wcslen returns size_t which is 64-bit long.
     // In this particular case I think int is sufficient and I won't need to fix all the calls to the StrLen
     return (int)wcslen(psz);
 }
@@ -471,7 +471,7 @@ inline int WINAPI StrLenA ( _In_opt_z_ PCSTR psz)
 { 
     if (!psz) return 0;
 
-    // Win64Fix ([....]): strlen returns size_t which is 64-bit long.
+    // Win64Fix (Microsoft): strlen returns size_t which is 64-bit long.
     // In this particular case I think int is sufficient and I won't need to fix all the calls to the StrLenA
     return (int) strlen(psz);
 }

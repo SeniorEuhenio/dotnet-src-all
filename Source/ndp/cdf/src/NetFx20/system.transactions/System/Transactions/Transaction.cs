@@ -480,6 +480,8 @@ namespace System.Transactions
             }
 
             this.internalTransaction = new InternalTransaction(this, superior);
+            // ISimpleTransactionSuperior is defined to also promote to MSDTC.
+            this.internalTransaction.SetPromoterTypeToMSDTC();
             this.cloneId = 1;
         }
 

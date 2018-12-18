@@ -1419,8 +1419,8 @@ DWORD CryptoBase::ReadSync(__deref_inout SNI_Packet ** ppNewPacket, __in int tim
 
 	a_cs.Enter();
 
-	// If the caller (SNI Consumer or SNI internals, though SNI internally currently never does this) is using both [....] and Async IO
-	// on the same connection, it must drain all pending Async IO before it can initiate any [....] IO of the same type.
+	// If the caller (SNI Consumer or SNI internals, though SNI internally currently never does this) is using both Sync and Async IO
+	// on the same connection, it must drain all pending Async IO before it can initiate any Sync IO of the same type.
 	Assert(m_ReadPacketQueue.IsEmpty());
 	
 	Assert( !m_fClosed );
@@ -3645,10 +3645,10 @@ DWORD Ssl::InitializeListener( __in HANDLE   hSNIListener,
 	LPWSTR wszFQDN = NULL;
 	DWORD cszFQDN = 0;
 	
-	//For prefix bug 302960:
-	//Even though we have already commented out the code that generate the warning,
-	//Initialize it to ERROR_INVALID_STATE would indicate there are improper execution
-	//of this function.
+	//For prefix 
+
+
+
 	DWORD dwRet = ERROR_INVALID_STATE;
 	
 	*pListenHandle = 0;
@@ -3691,10 +3691,10 @@ DWORD Ssl::InitializeListener( __in HANDLE   hSNIListener,
 #ifdef SNIX	
 		wszFQDN = (LPWSTR) gwszComputerName;
 #else	
-		// Because of a bug in Win2k, the call below fails to return the correct size of the 
-		// FQDN string. cszFQDN is 0 on Win2k.
-		/// To get around that, I'm allocating a large value on the stack and commenting out the 
-		// failing code (hopefully, when Win2k comes out with a fix, we can uncomment it)
+		// Because of a 
+
+
+
 		/*
 		if( GetComputerNameEx( ComputerNameDnsFullyQualified, wszFQDN, &cszFQDN ) || 
 			(ERROR_MORE_DATA != (dwRet = GetLastError())) )
@@ -4523,7 +4523,7 @@ void Ssl::ReleaseChannelBindings(void *pvChannelBindings)
 {
 	BidxScopeAutoSNI1( SNIAPI_TAG _T("pvChannelBindings: %p{void *}\n"), pvChannelBindings );
 	
-	Assert( NULL != pvChannelBindings ); // internal-only API, and this indicates an internal coding bug
+	Assert( NULL != pvChannelBindings ); // internal-only API, and this indicates an internal coding 
 	Assert( s_fChannelBindingsSupported ); // otherwise, we should never get here.
 
 	SecPkgContext_Bindings *pChannelBindings = (SecPkgContext_Bindings *)pvChannelBindings;
@@ -4565,9 +4565,9 @@ DWORD Ssl::SetChannelBindings()
 #endif
 	
 	// API contract: SNI consumer cannot request another SSL handshake on an SNI_Conn which has already established an SSL context (which, other
-	// than a coding bug within SNI, is the way to fire this assert).
-	// If a previously-established SSL context has since been removed from the SNI_Conn, then the SNI_Conn should have itself released and 
-	// NULLed its Channel Bindings pointer already; if not, it would be a coding bug.	
+	// than a coding 
+
+
 	Assert( NULL == m_pConn->m_pvChannelBindings );
 	
 	if( !s_fChannelBindingsSupported )

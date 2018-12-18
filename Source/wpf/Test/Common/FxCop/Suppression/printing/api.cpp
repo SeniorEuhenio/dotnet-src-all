@@ -17,10 +17,10 @@ using namespace System::Diagnostics::CodeAnalysis;
 //***************************************************************************************************************************
 
 //**************************************************************************************************************************
-// Bug ID:    693223
-// Developer: [....]
-// Reason:    Fixing would be a breaking change.
-//**************************************************************************************************************************
+// 
+
+
+
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Design","CA1045:DoNotPassTypesByReference", MessageId="0#", Scope="member", Target="System.Printing.PrintQueue.#CreateXpsDocumentWriter(System.Double&,System.Double&)");
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Naming","CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId="SubSystem", Scope="member", Target="System.Printing.PrintServer.#SubSystemVersion");
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Design","CA1045:DoNotPassTypesByReference", MessageId="0#", Scope="member", Target="System.Printing.PrintQueue.#CreateXpsDocumentWriter(System.Double&,System.Double&)");
@@ -59,34 +59,34 @@ CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Naming","CA1716:IdentifiersShouldNotMatchK
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Naming","CA1721:PropertyNamesShouldNotMatchGetMethods", Scope="member", Target="System.Printing.PrintQueueStringProperty.#Type");
 
 //**************************************************************************************************************************
-// Bug ID:    693223
-// Developer: [....]
-// Reason:    PrintSystemObject doesn not own the lifetime of the propertiesCollection field.
-//**************************************************************************************************************************
+// 
+
+
+
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Usage","CA2213:DisposableFieldsShouldBeDisposed", MessageId="propertiesCollection", Scope="member", Target="System.Printing.PrintSystemObject.#Dispose(System.Boolean)");
 
 //**************************************************************************************************************************
-// Bug ID:    693223
-// Developer: [....]
-// Reason:    We have shipped with this design - Filed Dev 10 697099 to re-evaluate the design
-//**************************************************************************************************************************
+// 
+
+
+
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Design","CA1044:PropertiesShouldNotBeWriteOnly", Scope="member", Target="System.Printing.IndexedProperties.PrintProperty.#IsInitialized");
 
 //**************************************************************************************************************************
-// Bug ID:    688619
-// Developer: [....]
-// Reason:    FxCop incorrectly flags these as incorrectly instantiated argument exceptions
-//**************************************************************************************************************************
+// 
+
+
+
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Usage","CA2208:InstantiateArgumentExceptionsCorrectly", Scope="member", Target="System.Printing.PrintSystemUNCPathResolver.#Resolve(System.Printing.IndexedProperties.PrintPropertyDictionary)");
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Usage","CA2208:InstantiateArgumentExceptionsCorrectly", Scope="member", Target="System.Printing.PrintSystemUNCPathResolver.#ValidateAndCapturePrinterName(System.Object,System.Printing.PrintSystemUNCPathResolver)");
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Usage","CA2208:InstantiateArgumentExceptionsCorrectly", Scope="member", Target="System.Printing.PrintSystemUNCPathResolver.#ValidateAndCaptureServerName(System.Object,System.Printing.PrintSystemUNCPathResolver)");
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Usage","CA2208:InstantiateArgumentExceptionsCorrectly", Scope="member", Target="MS.Internal.PrintWin32Thunk.GetDataThunkObject.#PopulatePrintSystemObject(MS.Internal.PrintWin32Thunk.PrinterThunkHandler,System.Printing.PrintSystemObject,System.String[])");
 
 //**************************************************************************************************************************
-// Bug ID:    688619
-// Developer: [....]
-// Reason:    SafeHandle.GetDangerousHandle call is required for MC++ language interop. All calls are protected by DangerousAddRef, DangerousRelease
-//**************************************************************************************************************************
+// 
+
+
+
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Reliability","CA2001:AvoidCallingProblematicMethods", MessageId="System.Runtime.InteropServices.SafeHandle.DangerousGetHandle", Scope="member", Target="MS.Internal.PrintWin32Thunk.DirectInteropForJob.JobInfoOne.#GetValueFromName(System.String,System.UInt32)");
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Reliability","CA2001:AvoidCallingProblematicMethods", MessageId="System.Runtime.InteropServices.SafeHandle.DangerousGetHandle", Scope="member", Target="MS.Internal.PrintWin32Thunk.DirectInteropForJob.JobInfoTwo.#GetValueFromName(System.String,System.UInt32)");
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Reliability","CA2001:AvoidCallingProblematicMethods", MessageId="System.Runtime.InteropServices.SafeHandle.DangerousGetHandle", Scope="member", Target="MS.Internal.PrintWin32Thunk.DirectInteropForPrintQueue.PrinterInfoEight.#GetValueFromName(System.String,System.UInt32)");
@@ -113,10 +113,10 @@ CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Reliability","CA2001:AvoidCallingProblemat
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Reliability","CA2001:AvoidCallingProblematicMethods", MessageId="System.Runtime.InteropServices.SafeHandle.DangerousGetHandle", Scope="member", Target="MS.Internal.PrintWin32Thunk.DirectInteropForPrintQueue.PrinterInfoTwoSetter.#SetValueFromName(System.String,System.Object)");
 
 //**************************************************************************************************************************
-// Bug ID:    688619
-// Developer: [....]
-// Reason:    Fixing would be a breaking change.
-//**************************************************************************************************************************
+// 
+
+
+
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Naming","CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId="Xps", Scope="namespace", Target="System.Windows.Xps");
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Naming","CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId="Xps", Scope="type", Target="System.Windows.Xps.VisualsToXpsDocument");
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Naming","CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId="Xps", Scope="type", Target="System.Windows.Xps.XpsDocumentNotificationLevel");
@@ -124,18 +124,18 @@ CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Naming","CA1704:IdentifiersShouldBeSpelled
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Naming","CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId="Xps", Scope="type", Target="System.Windows.Xps.XpsWriterException");
 
 //**************************************************************************************************************************
-// Bug ID:    688619
-// Developer: [....]
-// Reason:    Xps is a standard acronym for Xml Paper Specification
-//**************************************************************************************************************************
+// 
+
+
+
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Naming","CA1703:ResourceStringsShouldBeSpelledCorrectly", MessageId="Xps", Scope="resource", Target="System.Printing.resources");
 
 //**************************************************************************************************************************
-// Bug ID:    none
-// Developer: [....]
-// Reason:    These are referenced private methods flagged as uncalled by FxCop. 
-//            Surpressing until FxCop is fixed
-//**************************************************************************************************************************
+// 
+
+
+
+
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Performance","CA1811:AvoidUncalledPrivateCode", Scope="member", Target="MS.Internal.PrintWin32Thunk.AttributeValueInteropHandler.#get_SyncRoot()");
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Performance","CA1811:AvoidUncalledPrivateCode", Scope="member", Target="MS.Internal.PrintWin32Thunk.EnumDataThunkObject.#TweakTheFlags(System.UInt32)");
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Performance","CA1811:AvoidUncalledPrivateCode", Scope="member", Target="System.Printing.PrintSystemUNCPathResolver.#set_PrinterName(System.String)");
@@ -145,10 +145,10 @@ CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Performance","CA1811:AvoidUncalledPrivateC
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Performance","CA1811:AvoidUncalledPrivateCode", Scope="member", Target="System.Printing.Activation.PrintSystemObjectFactory.#get_SyncRoot()");
 
 //**************************************************************************************************************************
-// Bug ID:    Dev 11 280791
-// Developer: [....]
-// Reason:    Conversion is available via alternate public API's. Do not want to introduce new public API's
-//**************************************************************************************************************************
+// 
+
+
+
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Usage","CA2225:OperatorOverloadsHaveNamedAlternates", Scope="member", Target="System.Printing.IndexedProperties.PrintQueueAttributeProperty.#op_Implicit({modreq(System.Runtime.CompilerServices.IsImplicitlyDereferenced)}System.Printing.IndexedProperties.PrintQueueAttributeProperty):System.Printing.PrintQueueAttributes");
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Usage","CA2225:OperatorOverloadsHaveNamedAlternates", Scope="member", Target="System.Printing.IndexedProperties.PrintQueueAttributeProperty.#op_Implicit(System.Printing.IndexedProperties.PrintQueueAttributeProperty):System.Printing.PrintQueueAttributes");
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Usage","CA2225:OperatorOverloadsHaveNamedAlternates", Scope="member", Target="System.Printing.IndexedProperties.PrintQueueStatusProperty.#op_Implicit({modreq(System.Runtime.CompilerServices.IsImplicitlyDereferenced)}System.Printing.IndexedProperties.PrintQueueStatusProperty):System.Printing.PrintQueueStatus");

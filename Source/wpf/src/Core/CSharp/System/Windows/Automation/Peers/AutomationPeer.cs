@@ -475,7 +475,7 @@ namespace System.Windows.Automation.Peers
             }
 
             //last effort - find across all roots
-            //only start fault in the tree from the root if we are not in the recursive [....] update
+            //only start fault in the tree from the root if we are not in the recursive sync update
             //Otherwise it will go through the peers that are currently on the stack
             ContextLayoutManager lm = ContextLayoutManager.From(this.Dispatcher);
             if(lm != null && lm.AutomationSyncUpdateCounter == 0)

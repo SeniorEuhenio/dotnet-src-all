@@ -55,7 +55,7 @@ namespace System.Globalization
     //
 
     // StructLayout is needed here otherwise compiler can re-arrange the fields.
-    // We have to keep this in-[....] with the definition in comnlsinfo.h
+    // We have to keep this in-sync with the definition in comnlsinfo.h
     //
     // WARNING WARNING WARNING
     //
@@ -1309,7 +1309,7 @@ namespace System.Globalization
 #if !FEATURE_CORECLR
                         if (IsIncorrectNativeLanguageForSinhala())
                         {
-                            // work around bug in Windows 7 for native name of Sinhala
+                            // work around 
                             this.sNativeDisplayName ="\x0dc3\x0dd2\x0d82\x0dc4\x0dbd (\x0DC1\x0DCA\x200D\x0DBB\x0DD3\x0020\x0DBD\x0D82\x0D9A\x0DCF)";
                         }
                         else
@@ -1438,7 +1438,7 @@ namespace System.Globalization
 #if !FEATURE_CORECLR
                     if (IsIncorrectNativeLanguageForSinhala())
                     {
-                        // work around bug in Windows 7 for native language of Sinhala
+                        // work around 
                         this.sNativeLanguage = "\x0dc3\x0dd2\x0d82\x0dc4\x0dbd";
                     }
                     else
@@ -3397,7 +3397,7 @@ namespace System.Globalization
         private const uint LOCALE_SABBREVDAYNAME7 = 0x00000037;   // abbreviated name for Sunday
         private const uint LOCALE_SMONTHNAME1 = 0x00000038;   // long name for January
         private const uint LOCALE_SMONTHNAME2 = 0x00000039;   // long name for February
-        private const uint LOCALE_SMONTHNAME3 = 0x0000003A;   // long name for [....]
+        private const uint LOCALE_SMONTHNAME3 = 0x0000003A;   // long name for Microsoft
         private const uint LOCALE_SMONTHNAME4 = 0x0000003B;   // long name for April
         private const uint LOCALE_SMONTHNAME5 = 0x0000003C;   // long name for May
         private const uint LOCALE_SMONTHNAME6 = 0x0000003D;   // long name for June
@@ -3410,7 +3410,7 @@ namespace System.Globalization
         private const uint LOCALE_SMONTHNAME13 = 0x0000100E;   // long name for 13th month (if exists)
         private const uint LOCALE_SABBREVMONTHNAME1 = 0x00000044;   // abbreviated name for January
         private const uint LOCALE_SABBREVMONTHNAME2 = 0x00000045;   // abbreviated name for February
-        private const uint LOCALE_SABBREVMONTHNAME3 = 0x00000046;   // abbreviated name for [....]
+        private const uint LOCALE_SABBREVMONTHNAME3 = 0x00000046;   // abbreviated name for Microsoft
         private const uint LOCALE_SABBREVMONTHNAME4 = 0x00000047;   // abbreviated name for April
         private const uint LOCALE_SABBREVMONTHNAME5 = 0x00000048;   // abbreviated name for May
         private const uint LOCALE_SABBREVMONTHNAME6 = 0x00000049;   // abbreviated name for June

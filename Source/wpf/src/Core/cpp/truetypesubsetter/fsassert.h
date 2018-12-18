@@ -11,7 +11,7 @@
 //      file you should use FsAssert for debug Asserts.
 //
 //  History:
-//      12/9/2004 [....]
+//      12/9/2004 Microsoft
 //          Created it.
 //
 //------------------------------------------------------------------------------

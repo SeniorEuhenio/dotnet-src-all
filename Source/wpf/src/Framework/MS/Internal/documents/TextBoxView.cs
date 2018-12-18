@@ -292,12 +292,12 @@ namespace System.Windows.Controls
                     result = _scrollData.ExtentWidth;
                     if(UseLayoutRounding)
                     {
-                        // Dev 10 bug: 827316
-                        // With layout rounding enabled DesiredSize.Width is rounded
-                        // so the computed value of _scrollData.ExtentWidth may not agree with DesiredSize.
-                        // This discrepancy causes the retry logic for auto scrollbars in ScrollViewer not to terminate.
-                        // This fix applies layout rounding to the Extent so that it matches DesiredSize
-                        result = RoundLayoutValue(result, DpiScaleX);
+                        // Dev 10 
+
+
+
+
+                        result = RoundLayoutValue(result, GetDpi().DpiScaleX);
                     }
                 }
 
@@ -319,12 +319,12 @@ namespace System.Windows.Controls
                     result = _scrollData.ExtentHeight;
                     if(UseLayoutRounding)
                     {
-                        // Dev 10 bug: 827316
-                        // With layout rounding enabled DesiredSize.Width is rounded
-                        // so the computed value of _scrollData.ExtentWidth may not agree with DesiredSize.
-                        // This discrepancy causes the retry logic for auto scrollbars in ScrollViewer not to terminate
-                        // This fix applies layout rounding to the Extent so that it matches DesiredSize
-                        result = RoundLayoutValue(result, DpiScaleY);
+                        // Dev 10 
+
+
+
+
+                        result = RoundLayoutValue(result, GetDpi().DpiScaleY);
                     }
                 }
 
@@ -1600,7 +1600,7 @@ Exit:
             double formatWidth = GetWrappingWidth(_previousConstraint.Width);
 
             line.Format(metrics.Offset, formatWidth, width, lineProperties, new TextRunCache(), formatter);
-            Invariant.Assert(metrics.Length == line.Length, "Line is out of [....] with metrics!");
+            Invariant.Assert(metrics.Length == line.Length, "Line is out of sync with metrics!");
 
             return line;
         }
@@ -1726,10 +1726,10 @@ Exit:
                     {
                         line.Format(metrics.Offset, formatWidth, width, lineProperties, _cache.TextRunCache, _cache.TextFormatter);
 
-                        // We should be in [....] with current metrics, unless background layout is pending.
+                        // We should be in sync with current metrics, unless background layout is pending.
                         if (!this.IsBackgroundLayoutPending)
                         {
-                            Invariant.Assert(metrics.Length == line.Length, "Line is out of [....] with metrics!");
+                            Invariant.Assert(metrics.Length == line.Length, "Line is out of sync with metrics!");
                         }
 
                         lineVisual = line.CreateVisual();
@@ -1746,11 +1746,11 @@ Exit:
         // Removes lines that were discarded during Measure from the visual tree. We don't want to
         // clear all of the visual children and then add lines that were already in the visual tree
         // back because native resources will get freed and reallocated unnecessarily (ref count goes
-        // to 0 -- see Dev10 bug 607756).
-        //
-        // It is safe to modify the visual tree in Arrange, but there are no guarantees during Measure.
-        // It might be possible to get rid of TextBoxLineDrawingVisual and remove items from the
-        // visual tree during Measure as well.
+        // to 0 -- see Dev10 
+
+
+
+
         private void DetachDiscardedVisualChildren()
         {
             int j = _visualChildren.Count - 1; // last non-discarded element index
@@ -1861,21 +1861,21 @@ Exit:
                 }
                 else
                 {
-                    // WinBlue bug 433347 uncovered a scenario where Narrator (starting
-                    // in Win8, and worsening in Blue) asks for the geometry around a
-                    // range that includes only end-of-line characters.   Such a call
-                    // arrives in this method with startOffset==endOffset ==
-                    // _lineMetrics[lineIndex].Offset + _lineMetrics[lineIndex].ContentLength;
-                    // in other words, pointing at the end of the line, just before the
-                    // end-of-line characters.  The previous comment suggests that
-                    // this was intended be handled by adding "the newline whitespace
-                    // geometry", but that doesn't happen.   Instead, control flows
-                    // here where the assert fails.
-                    //
-                    // Ideally, we'd fix this by implementing the intent of the
-                    // comment correctly.  But at this date, the consensus is to
-                    // simply avoid crashing.   Changing the assert does this.
-                    //Invariant.Assert(endOffset == _lineMetrics[lineIndex].Offset);
+                    // WinBlue 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     Invariant.Assert(endOffset == _lineMetrics[lineIndex].Offset ||
                             endOffset == _lineMetrics[lineIndex].Offset + _lineMetrics[lineIndex].ContentLength);
                 }
@@ -1967,11 +1967,11 @@ Exit:
 
             if ((ScrollBarVisibility)((Control)_host).GetValue(ScrollViewer.VerticalScrollBarVisibilityProperty) == ScrollBarVisibility.Auto)
             {
-                // Workaround for bug 1766924.
-                // When VerticalScrollBarVisiblity == Auto, there's a problem with
-                // our interaction with ScrollViewer.  Disable background layout to
-                // mitigate the problem until we can take a real fix in v.next.
-                // 
+                // Workaround for 
+
+
+
+
                 stopTime = DateTime.MaxValue;
             }
             else
@@ -2284,7 +2284,7 @@ Exit:
                     // remove the metric.  This happens when the previous line
                     // frees up enough space to completely consume the following line.
                     // We can't simply replace the record without potentially missing our
-                    // [....] position.
+                    // sync position.
                     _lineMetrics.RemoveAt(lineIndex); // 
                     RemoveLineVisualRange(lineIndex, 1);
                 }
@@ -2310,7 +2310,7 @@ Exit:
                             // We expect to be colliding with the old line directly.
                             // If we extend past it, we're in danger of needlessly
                             // re-formatting the entire doc (ie, we miss the real
-                            // [....] position and don't stop until EndOfParagraph).
+                            // sync position and don't stop until EndOfParagraph).
                             Invariant.Assert(lineOffset < _lineMetrics[lineIndex].EndOffset);
 
                             _lineMetrics[lineIndex] = record;

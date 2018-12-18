@@ -2,7 +2,7 @@
 
 //------------------------------------------------------------------------------
 // hicolor.h
-// Author: Dylan Lingelbach [[....]]
+// Author: Dylan Lingelbach [Microsoft]
 //
 // Helpers for hicolors and IVsHiColorItem
 //------------------------------------------------------------------------------

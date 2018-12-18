@@ -165,7 +165,7 @@ namespace System.Windows.Documents
             // Return the available width and height. Please don't
             // return AdornedElement.RenderSize since it will be scrolled
             // in case of the reder size is greater than the available size.
-            // Reference bug#1068444.
+            // Reference 
 
             // We choose to return an arbitrary large value of double.MaxValue/2 in case of infinite height/width.
             // This is safer, because adding (even zero) margin to double.MaxValue causes available size to become infinite again.
@@ -561,8 +561,8 @@ namespace System.Windows.Documents
                 if (adorners != null)
                 {
                     // Verify we still adorn our element.
-                    // We have a persistent but still unexplained stress bug where
-                    // the caret adorner is mysteriously detached -- Windows OS Bugs 1645800.
+                    // We have a persistent but still unexplained stress 
+
                     for (int i = 0; i < adorners.Length; i++)
                     {
                         if (adorners[i] == this)
@@ -636,7 +636,7 @@ namespace System.Windows.Documents
         /// a rendering surface.</remarks>
         internal void OnRenderCaretSubElement(DrawingContext context)
         {
-            // [....] up Win32 caret position with Avalon caret position.
+            // Sync up Win32 caret position with Avalon caret position.
             Win32SetCaretPos();
 
             if (_showCaret)
@@ -956,7 +956,7 @@ namespace System.Windows.Documents
             }
         }
 
-        // Create Win32 caret to [....] up Avalon caret with Win32 application and show Win32 caret
+        // Create Win32 caret to sync up Avalon caret with Win32 application and show Win32 caret
         // which is the empty bitmap. This call will generate the accessiblity event for caret so that
         // Win32 application have the compatibility to handle the caret event which is Magnifier or Tablet Tip.
         /// <SecurityNote>
@@ -982,7 +982,7 @@ namespace System.Windows.Documents
             if (!_win32Caret || _win32Height != _height)
             {
                 // Create Win32 caret to support Win32 application(like Magnifier) that want to
-                // [....] Avalon caret position.
+                // sync Avalon caret position.
                 IntPtr hwnd = IntPtr.Zero;
                 PresentationSource source = PresentationSource.CriticalFromVisual(this);
 
@@ -1011,7 +1011,7 @@ namespace System.Windows.Documents
                     // Create and show Win32 empty caret for win32 compatibility.
                     // Creating Win32 empty caret and show it will generate the accesibility event
                     // so that Win32 application will have the compatibility who listen the caret event.
-                    // Specified height with the current caret height will [....] the win32 caret which
+                    // Specified height with the current caret height will sync the win32 caret which
                     // Win32 Magnifer rely on the caret height to scroll their window.
                     NativeMethods.BitmapHandle bitmap = UnsafeNativeMethods.CreateBitmap(/*width*/ 1, /*height*/ ConvertToInt32(deviceHeight), /*panels*/ 1, /*bitsPerPixel*/ 1, /*bits*/ null);
 

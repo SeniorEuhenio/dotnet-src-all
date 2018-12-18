@@ -1,9 +1,8 @@
-// ==++==
-// 
-//   Copyright (c) Microsoft Corporation.  All rights reserved.
-// 
-// ==--==
-// See code:EEStartup#TableOfContents for EE overview
+//
+// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+//
+
 /*****************************************************************************
  **                                                                         **
  ** ICeeFileGen.h - code generator interface.                               **

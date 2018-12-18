@@ -120,8 +120,8 @@ namespace System.Windows.Forms
             }
             else
             {
-                // SECREVIEW : Late-binding does not represent a security thread, see bug#411899 for more info..
-                //
+                // SECREVIEW : Late-binding does not represent a security thread, see 
+
                 dataGridViewCell = (DataGridViewColumnHeaderCell) System.Activator.CreateInstance(thisType);
             }
             base.CloneInternal(dataGridViewCell);
@@ -844,7 +844,7 @@ namespace System.Windows.Forms
                         }
                     }
 
-                    // [....]: even though XP provides support for theming the sort glyph, 
+                    // Microsoft: even though XP provides support for theming the sort glyph, 
                     // we rely on our own implementation for painting the sort glyph
                     if (this.DataGridView.RightToLeftInternal)
                     {
@@ -1233,7 +1233,7 @@ namespace System.Windows.Forms
                 Rectangle rectClip = Rectangle.Truncate(g.ClipBounds);
                 if ((int) HeaderItemState.Hot == headerState)
                 {
-                    // Workaround for a bug in XP theming: no painting of corners around orange tab.
+                    // Workaround for a 
                     VisualStyleRenderer.SetParameters(HeaderElement);
                     Rectangle cornerClip = new Rectangle(bounds.Left, bounds.Bottom-2, 2, 2);
                     cornerClip.Intersect(rectClip);

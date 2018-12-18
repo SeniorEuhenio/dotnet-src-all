@@ -7,7 +7,7 @@
 *       This include file contains a list of banned API which should not be used.
 *       Include this file as first include file (e.g. using the /FI compiler option).
 *
-*       Please contact "[....]; mclcore" for any issue with this file.
+*       Please contact "Microsoft; mclcore" for any issue with this file.
 *
 ****/
 

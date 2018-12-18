@@ -75,13 +75,13 @@
 #define VFW_E_NEED_OWNER                 ((HRESULT)0x80040202L)
 
 //
-// MessageId: VFW_E_ENUM_OUT_OF_[....]
+// MessageId: VFW_E_ENUM_OUT_OF_SYNC
 //
 // MessageText:
 //
 // The enumerator has become invalid.%0
 //
-#define VFW_E_ENUM_OUT_OF_[....]           ((HRESULT)0x80040203L)
+#define VFW_E_ENUM_OUT_OF_SYNC           ((HRESULT)0x80040203L)
 
 //
 // MessageId: VFW_E_ALREADY_CONNECTED

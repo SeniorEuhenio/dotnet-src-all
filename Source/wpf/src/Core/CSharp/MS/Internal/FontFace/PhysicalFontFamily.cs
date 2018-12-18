@@ -434,7 +434,7 @@ namespace MS.Internal.FontFace
             else
             {
                 double realEmSize = emSize * toReal;
-                return TextFormatterImp.RoundDipForDisplayMode(_family.DisplayMetrics((float)(realEmSize), checked((float)pixelsPerDip)).Baseline * realEmSize) / toReal;
+                return TextFormatterImp.RoundDipForDisplayMode(_family.DisplayMetrics((float)(realEmSize), checked((float)pixelsPerDip)).Baseline * realEmSize, pixelsPerDip) / toReal;
             }
         }
 
@@ -473,7 +473,7 @@ namespace MS.Internal.FontFace
             else
             {
                 double realEmSize = emSize * toReal;
-                return TextFormatterImp.RoundDipForDisplayMode(_family.DisplayMetrics((float)(realEmSize), checked((float)pixelsPerDip)).LineSpacing * realEmSize) / toReal;
+                return TextFormatterImp.RoundDipForDisplayMode(_family.DisplayMetrics((float)(realEmSize), checked((float)pixelsPerDip)).LineSpacing * realEmSize, pixelsPerDip) / toReal;
             }
         }
 

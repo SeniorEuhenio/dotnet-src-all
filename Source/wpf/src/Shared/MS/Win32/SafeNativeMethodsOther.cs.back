@@ -50,7 +50,7 @@ namespace MS.Win32 {
         [Flags]
         internal enum PlaySoundFlags
         {
-            SND_[....]        =   0x00000000, /* play synchronously (default) */
+            SND_SYNC        =   0x00000000, /* play synchronously (default) */
             SND_ASYNC       =   0x00000001, /* play asynchronously */
             SND_NODEFAULT   =   0x00000002, /* silence (!default) if sound not found */
             SND_MEMORY      =   0x00000004, /* pszSound points to a memory file */

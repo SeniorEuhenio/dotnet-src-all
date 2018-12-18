@@ -7,9 +7,9 @@
 //    part of the exe.
 //
 //  History
-//      2005/05/04-[....]
+//      2005/05/04-Microsoft
 //          Moved InvokeBrowser to a shared location
-//      2007/09/20-[....]
+//      2007/09/20-Microsoft
 //          Ported Windows->DevDiv. See SourcesHistory.txt.
 //
 //------------------------------------------------------------------------

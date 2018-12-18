@@ -173,7 +173,7 @@ typedef struct tagCONVINFO {
 
 /***** Transaction ID constants *****/
 
-#define     QID_[....]                0xFFFFFFFF
+#define     QID_SYNC                0xFFFFFFFF
 
 /****** public strings used in DDE ******/
 

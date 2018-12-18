@@ -24,7 +24,7 @@ namespace System.Globalization
     //            properties are available without locales using CalendarData.GetCalendar(int)
 
     // StructLayout is needed here otherwise compiler can re-arrange the fields.
-    // We have to keep this in-[....] with the definition in calendardata.h
+    // We have to keep this in-sync with the definition in calendardata.h
     //
     // WARNING WARNING WARNING
     //
@@ -60,7 +60,7 @@ namespace System.Globalization
         internal String[]   saLeapYearMonthNames     ; // Multiple strings for the month names in a leap year.
 
         // Integers at end to make marshaller happier
-        internal int        iTwoDigitYearMax=2029    ; // Max 2 digit year (for Y2K bug data entry)
+        internal int        iTwoDigitYearMax=2029    ; // Max 2 digit year (for Y2K 
         internal int        iCurrentEra=0            ;  // current era # (usually 1)
 
         // Use overrides?
@@ -85,7 +85,7 @@ namespace System.Globalization
             invariant.sNativeName           = "Gregorian Calendar";  // Calendar Name
 
             // Year
-            invariant.iTwoDigitYearMax      = 2029; // Max 2 digit year (for Y2K bug data entry)
+            invariant.iTwoDigitYearMax      = 2029; // Max 2 digit year (for Y2K 
             invariant.iCurrentEra           = 1; // Current era #
 
             // Formats
@@ -101,7 +101,7 @@ namespace System.Globalization
             invariant.saDayNames            = new String[] { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };// day names
             invariant.saAbbrevDayNames      = new String[] { "Sun",    "Mon",    "Tue",     "Wed",       "Thu",      "Fri",    "Sat" };     // abbreviated day names
             invariant.saSuperShortDayNames  = new String[] { "Su",     "Mo",     "Tu",      "We",        "Th",       "Fr",     "Sa" };      // The super short day names
-            invariant.saMonthNames          = new String[] { "January", "February", "[....]", "April", "May", "June", 
+            invariant.saMonthNames          = new String[] { "January", "February", "Microsoft", "April", "May", "June", 
                                                             "July", "August", "September", "October", "November", "December", String.Empty}; // month names
             invariant.saAbbrevMonthNames    = new String[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
                                                             "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", String.Empty}; // abbreviated month names

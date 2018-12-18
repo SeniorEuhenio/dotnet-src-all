@@ -7,7 +7,7 @@
 //
 // File:    WsdlWriter.cs
 //<EMAIL>
-// Author:  Peter de Jong ([....])
+// Author:  Peter de Jong (Microsoft)
 //</EMAIL>
 // Purpose: Defines WsdlWriter that parses a given Wsdl document
 //          and generates types defined in it.

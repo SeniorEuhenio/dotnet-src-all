@@ -611,7 +611,7 @@ namespace System.Windows.Forms {
         
         ///
         ///  Handle* wrappers:
-        ///    We [....] the event from the hosted control and call resurface it on ToolStripItem.
+        ///    We sync the event from the hosted control and call resurface it on ToolStripItem.
         ///
 
         private void HandleClick(object sender, System.EventArgs e) {
@@ -862,7 +862,7 @@ namespace System.Windows.Forms {
         protected virtual void OnSubscribeControlEvents(Control control) {
 
             if (control != null) {
-                // Please keep this alphabetized and in [....] with Unsubscribe
+                // Please keep this alphabetized and in sync with Unsubscribe
                 // 
                 control.Click                       += new EventHandler(HandleClick);
                 control.BackColorChanged            += new EventHandler(HandleBackColorChanged);
@@ -910,7 +910,7 @@ namespace System.Windows.Forms {
         /// </devdoc>
         protected virtual void OnUnsubscribeControlEvents(Control control) {
              if (control != null) {
-                // Please keep this alphabetized and in [....] with Subscribe
+                // Please keep this alphabetized and in sync with Subscribe
                 // 
                 control.Click                       -= new EventHandler(HandleClick);
                 control.BackColorChanged            -= new EventHandler(HandleBackColorChanged);

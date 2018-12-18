@@ -439,7 +439,7 @@ namespace System.Transactions
 
     //
     // Since RecoveringInternalEnlistment does not have a transaction it must take
-    // a separate object as its [....] root.
+    // a separate object as its sync root.
     //
     class RecoveringInternalEnlistment : DurableInternalEnlistment
     {

@@ -39,6 +39,7 @@
 //
 #define FACILITY_ADAL_URLMON             0xAA7
 #define FACILITY_ADAL_UNEXPECTED         0xAAA
+#define FACILITY_ADAL_TOKENBROKER        0xAAB
 #define FACILITY_ADAL_SYSTEM             0xAA5
 #define FACILITY_ADAL_SERVER             0xAA9
 #define FACILITY_ADAL_SERIALIZATION      0xAA4
@@ -1458,6 +1459,33 @@
 #define ERROR_ADAL_BASE64_URL_DECODE_FAILED ((DWORD)0xCAAA0004L)
 
 //
+// MessageId: ERROR_ADAL_HEX_TO_BYTE_CONVERSION_FAILED
+//
+// MessageText:
+//
+// Conversion of hex to byte failed.
+//
+#define ERROR_ADAL_HEX_TO_BYTE_CONVERSION_FAILED ((DWORD)0xCAAA0005L)
+
+//
+// MessageId: ERROR_ADAL_CERT_STORE_NOT_OPEN
+//
+// MessageText:
+//
+// Certificate store is not opened.
+//
+#define ERROR_ADAL_CERT_STORE_NOT_OPEN   ((DWORD)0xCAAA0006L)
+
+//
+// MessageId: ERROR_ADAL_DEVICE_CERT_NOT_FOUND
+//
+// MessageText:
+//
+// Device Certificate not found in the certificate store.
+//
+#define ERROR_ADAL_DEVICE_CERT_NOT_FOUND ((DWORD)0xCAAA0007L)
+
+//
 // MessageId: ERROR_ADAL_SERIALIZED_BLOB_INVALID
 //
 // MessageText:
@@ -1597,7 +1625,7 @@
 //
 // MessageText:
 //
-// WSTrust response does not have SAML assertion.
+// WSTrust response does not have recognized SAML assertion.
 //
 #define ERROR_ADAL_SERVER_ERROR_SAML_ASSERTION_NOT_FOUND ((DWORD)0xCAA90002L)
 
@@ -1867,7 +1895,7 @@
 //
 // MessageText:
 //
-// Url for WS-Trust metadata exchange endpoint is not a secure (https).
+// Url for WS-Trust metadata exchange endpoint is not secure (https).
 //
 #define ERROR_ADAL_WS_TRUST_METADATAURL_NOT_SECURE ((DWORD)0xCAA90020L)
 
@@ -1885,7 +1913,7 @@
 //
 // MessageText:
 //
-// Could not discover endpoint for Integrate Windows Authentication. Check your ADFS settings. It should support Integrate Widows Authentication for WS-Trust 1.3.
+// Could not discover endpoint for Integrate Windows Authentication. Check your ADFS settings. It should support Integrate Widows Authentication for WS-Trust 1.3 or WS-Trust 2005.
 //
 #define ERROR_ADAL_COULDNOT_DISCOVER_INTEGRATED_AUTH_ENDPOINT ((DWORD)0xCAA90022L)
 
@@ -1894,7 +1922,7 @@
 //
 // MessageText:
 //
-// Could not discover endpoint for username/password authentication. Check your ADFS settings. It should support username/password authentication for WS-Trust 1.3.
+// Could not discover endpoint for username/password authentication. Check your ADFS settings. It should support username/password authentication for WS-Trust 1.3 or WS-Trust 2005.
 //
 #define ERROR_ADAL_COULDNOT_DISCOVER_USERNAME_PASSWORD_ENDPOINT ((DWORD)0xCAA90023L)
 
@@ -1912,7 +1940,7 @@
 //
 // MessageText:
 //
-// Address element is found, but contains not a secure Url. Continue the search.
+// Address element is found, but contains insecure Url. Continue the search.
 //
 #define WARNING_ADAL_WS_TRUST_MEX_ADDRESS_INSECURE ((DWORD)0x8AA90025L)
 
@@ -2005,6 +2033,105 @@
 // No user information found.
 //
 #define ERROR_ADAL_NO_USER_INFO          ((DWORD)0xCAA9002FL)
+
+//
+// MessageId: INFO_ADAL_PKEYAUTH_CHALLENGE_RECEIVED
+//
+// MessageText:
+//
+// PKeyauth challenge is received.
+//
+#define INFO_ADAL_PKEYAUTH_CHALLENGE_RECEIVED ((DWORD)0x4AA90030L)
+
+//
+// MessageId: INFO_ADAL_NAVIGATE_WITH_PKEYAUTH_CHALLENGE_RESPONSE
+//
+// MessageText:
+//
+// Browser starts navigating with pkeyauth challenge response header.
+//
+#define INFO_ADAL_NAVIGATE_WITH_PKEYAUTH_CHALLENGE_RESPONSE ((DWORD)0x4AA90031L)
+
+//
+// MessageId: ERROR_ADAL_PKEYAUTH_CHALLENGE_RESPONSE_EMPTY
+//
+// MessageText:
+//
+// Challenge response header is returned empty.
+//
+#define ERROR_ADAL_PKEYAUTH_CHALLENGE_RESPONSE_EMPTY ((DWORD)0xCAA90032L)
+
+//
+// MessageId: INFO_ADAL_PKEYAUTH_SIGNED_WITH_CNG_KEY
+//
+// MessageText:
+//
+// PKeyAuth challenge is signed with CNG key.
+//
+#define INFO_ADAL_PKEYAUTH_SIGNED_WITH_CNG_KEY ((DWORD)0x4AA90033L)
+
+//
+// MessageId: INFO_ADAL_PKEYAUTH_SIGNED_WITH_CAPI_KEY
+//
+// MessageText:
+//
+// PKeyAuth challenge is signed with CAPI key.
+//
+#define INFO_ADAL_PKEYAUTH_SIGNED_WITH_CAPI_KEY ((DWORD)0x4AA90034L)
+
+//
+// MessageId: INFO_ADAL_PKEYAUTH_SENDING_RESPONSE_FOR_REFRESH_TOKEN
+//
+// MessageText:
+//
+// It is sending response for PKeyAuth challenge at refresh token request.
+//
+#define INFO_ADAL_PKEYAUTH_SENDING_RESPONSE_FOR_REFRESH_TOKEN ((DWORD)0x4AA90035L)
+
+//
+// MessageId: ERROR_ADAL_PKEYAUTH_NONCE_EMPTY
+//
+// MessageText:
+//
+// Nonce in Pkeyauth challenge is empty.
+//
+#define ERROR_ADAL_PKEYAUTH_NONCE_EMPTY  ((DWORD)0xCAA90036L)
+
+//
+// MessageId: ERROR_ADAL_PKEYAUTH_AUDIENCE_EMPTY
+//
+// MessageText:
+//
+// Audience in Pkeyauth challenge is empty.
+//
+#define ERROR_ADAL_PKEYAUTH_AUDIENCE_EMPTY ((DWORD)0xCAA90037L)
+
+//
+// MessageId: ERROR_ADAL_JWT_BEARER_GRANT_FAIL
+//
+// MessageText:
+//
+// Failed to get a token by JWT bearer grant.
+//
+#define ERROR_ADAL_JWT_BEARER_GRANT_FAIL ((DWORD)0xCAA90038L)
+
+//
+// MessageId: INFO_ADAL_JWT_BEARER_GRANT_SUCCESS
+//
+// MessageText:
+//
+// Getting token by the JWT bearer grant is completed successfully.
+//
+#define INFO_ADAL_JWT_BEARER_GRANT_SUCCESS ((DWORD)0x4AA90039L)
+
+//
+// MessageId: ERROR_ADAL_GET_ACCESS_TOKEN_FROM_STS
+//
+// MessageText:
+//
+// Getting access token from sts failed.
+//
+#define ERROR_ADAL_GET_ACCESS_TOKEN_FROM_STS ((DWORD)0x4AA9003AL)
 
 //
 // MessageId: ERROR_ADAL_MSXML_NOT_REGISTERED
@@ -2104,6 +2231,42 @@
 // The id_token JSON text being parsed is malformed.
 //
 #define ERROR_ADAL_IDTOKEN_JSON_MALFORMED ((DWORD)0xCAA60008L)
+
+//
+// MessageId: ERROR_ADAL_ACCOUNT_SWITCH
+//
+// MessageText:
+//
+// Token Broker returned status Account Switch.
+//
+#define ERROR_ADAL_ACCOUNT_SWITCH        ((DWORD)0xCAAB0001L)
+
+//
+// MessageId: ERROR_ADAL_USER_CANCEL
+//
+// MessageText:
+//
+// Token Broker returned status User Cancel.
+//
+#define ERROR_ADAL_USER_CANCEL           ((DWORD)0xCAAB0002L)
+
+//
+// MessageId: ERROR_ADAL_ACCOUNT_PROVIDER_NOT_AVAILABLE
+//
+// MessageText:
+//
+// Token Broker returned status Account provider not available.
+//
+#define ERROR_ADAL_ACCOUNT_PROVIDER_NOT_AVAILABLE ((DWORD)0xCAAB0003L)
+
+//
+// MessageId: ERROR_ADAL_UNKNOWN_TB_STATUS
+//
+// MessageText:
+//
+// Token Broker returned unknown status.
+//
+#define ERROR_ADAL_UNKNOWN_TB_STATUS     ((DWORD)0xCAAB0004L)
 
 //
 // MessageId: ERROR_ADAL_NEED_CREDENTIAL
@@ -2627,4 +2790,112 @@
 // Password expiry information is not available with this request.
 //
 #define ERROR_ADAL_NO_PASSWORD_EXPIRY    ((DWORD)0xCAA1003AL)
+
+//
+// MessageId: ERROR_ADAL_FAILED_TO_OPEN_CERTSTORE
+//
+// MessageText:
+//
+// Failed to open local user local certificate store.
+//
+#define ERROR_ADAL_FAILED_TO_OPEN_CERTSTORE ((DWORD)0xCAA1003BL)
+
+//
+// MessageId: ERROR_ADAL_FAILED_TO_CLOSE_CERTSTORE
+//
+// MessageText:
+//
+// Failed to close local user local certificate store
+//
+#define ERROR_ADAL_FAILED_TO_CLOSE_CERTSTORE ((DWORD)0xCAA1003CL)
+
+//
+// MessageId: ERROR_ADAL_OUT_OF_MEMORY
+//
+// MessageText:
+//
+// Failed to allocate memory.
+//
+#define ERROR_ADAL_OUT_OF_MEMORY         ((DWORD)0xCAA1003DL)
+
+//
+// MessageId: ERROR_ADAL_INVALID_THUMBPRINT
+//
+// MessageText:
+//
+// Given certificate thumbprint is invalid.
+//
+#define ERROR_ADAL_INVALID_THUMBPRINT    ((DWORD)0xCAA1003EL)
+
+//
+// MessageId: ERROR_ADAL_NULL_SIGN_INPUT_MESSAGE
+//
+// MessageText:
+//
+// Sign input message is null.
+//
+#define ERROR_ADAL_NULL_SIGN_INPUT_MESSAGE ((DWORD)0xCAA1003FL)
+
+//
+// MessageId: ERROR_ADAL_SIGNATURE_FAILED
+//
+// MessageText:
+//
+// Failed to sign the message.
+//
+#define ERROR_ADAL_SIGNATURE_FAILED      ((DWORD)0xCAA10040L)
+
+//
+// MessageId: ERROR_ADAL_ISSUER_NOT_SET
+//
+// MessageText:
+//
+// Certificate issuer is not set.
+//
+#define ERROR_ADAL_ISSUER_NOT_SET        ((DWORD)0xCAA10041L)
+
+//
+// MessageId: ERROR_ADAL_NULL_HASH
+//
+// MessageText:
+//
+// Hash input is null.
+//
+#define ERROR_ADAL_NULL_HASH             ((DWORD)0xCAA10042L)
+
+//
+// MessageId: ERROR_ADAL_WAM_NOT_ENABLED
+//
+// MessageText:
+//
+// The call is not supported as using Web Account Manager is disabled.
+//
+#define ERROR_ADAL_WAM_NOT_ENABLED       ((DWORD)0xCAA10043L)
+
+//
+// MessageId: ERROR_ADAL_NULL_HWND
+//
+// MessageText:
+//
+// HWND input parameter is null.
+//
+#define ERROR_ADAL_NULL_HWND             ((DWORD)0xCAA10044L)
+
+//
+// MessageId: ERROR_ADAL_WAM_ENABLED
+//
+// MessageText:
+//
+// The call is not supported as using Web Account Manager is enabled.
+//
+#define ERROR_ADAL_WAM_ENABLED           ((DWORD)0xCAA10045L)
+
+//
+// MessageId: ERROR_ADAL_HOST_EMPTY
+//
+// MessageText:
+//
+// The value specified for host argument must be non-empty.
+//
+#define ERROR_ADAL_HOST_EMPTY            ((DWORD)0xCAA10046L)
 

@@ -9,7 +9,7 @@
 //              Most text scenarios should use the FlowDocumentScrollViewer.
 //
 // History:
-//  04/25/2003 : [....] - created.
+//  04/25/2003 : Microsoft - created.
 //
 //---------------------------------------------------------------------------
 
@@ -1509,7 +1509,7 @@ Debug.Assert(lineCount == LineCount);
                                 bool ellipsis = ParagraphEllipsisShownOnLine(i, lineOffset.Y - contentOffset.Y);
                                 line.Format(dcp, wrappingWidth, GetLineProperties(dcp == 0, lineProperties), lineMetrics.TextLineBreak, _textBlockCache._textRunCache, ellipsis);
 
-                                // Check that lineMetrics length and line length are in [....]
+                                // Check that lineMetrics length and line length are in sync
                                 // 
 
 
@@ -1785,7 +1785,7 @@ Debug.Assert(lineCount == LineCount);
                         line.Format(dcp, wrappingWidth, GetLineProperties(dcp == 0, lineProperties), lineMetrics.TextLineBreak, textRunCache, ellipsis);
 
                         // Verify consistency of line formatting
-                        // Check that lineMetrics.Length is in [....] with line.Length
+                        // Check that lineMetrics.Length is in sync with line.Length
                         // 
 
 
@@ -1912,8 +1912,8 @@ Debug.Assert(lineCount == LineCount);
                     // 
                     if (lineMetrics.Length == line.Length)
                     {
-                        //MS.Internal.Invariant.Assert(lineMetrics.Length == line.Length, "Line length is out of [....]");
-                        //Debug.Assert(DoubleUtil.AreClose(CalcLineAdvance(line.Height, lineProperties), lineMetrics.Height), "Line height is out of [....].");
+                        //MS.Internal.Invariant.Assert(lineMetrics.Length == line.Length, "Line length is out of sync");
+                        //Debug.Assert(DoubleUtil.AreClose(CalcLineAdvance(line.Height, lineProperties), lineMetrics.Height), "Line height is out of sync.");
 
                         int boundStart = (startOffset >= lineStart) ? startOffset : lineStart;
                         int boundEnd = (endOffset < lineStart + lineMetrics.Length) ? endOffset : lineStart + lineMetrics.Length;
@@ -2080,7 +2080,7 @@ Debug.Assert(lineCount == LineCount);
                     {
                         if (((InlineObject)inlineObjects[index]).Dcp == inlineObject.Dcp)
                         {
-                            Debug.Assert(((InlineObject)inlineObjects[index]).Element == inlineObject.Element, "InlineObject cache is out of [....].");
+                            Debug.Assert(((InlineObject)inlineObjects[index]).Element == inlineObject.Element, "InlineObject cache is out of sync.");
                             alreadyCached = true;
                             break;
                         }
@@ -2185,7 +2185,7 @@ Debug.Assert(lineCount == LineCount);
                 bool ellipsis = ParagraphEllipsisShownOnLine(index, lineVOffset);
                 line.Format(dcp, wrappingWidth, GetLineProperties(dcp == 0, lineProperties), textLineBreak, textRunCache, ellipsis);
 
-                MS.Internal.Invariant.Assert(GetLine(index).Length == line.Length, "Line length is out of [....]");
+                MS.Internal.Invariant.Assert(GetLine(index).Length == line.Length, "Line length is out of sync");
 
                 cchContent = line.ContentLength;
                 cchEllipses = line.GetEllipsesLength();
@@ -2232,7 +2232,7 @@ Debug.Assert(lineCount == LineCount);
                 bool ellipsis = ParagraphEllipsisShownOnLine(index, lineVOffset);
                 line.Format(dcp, wrappingWidth, GetLineProperties(dcp == 0, lineProperties), textLineBreak, textRunCache, ellipsis);
 
-                MS.Internal.Invariant.Assert(GetLine(index).Length == line.Length, "Line length is out of [....]");
+                MS.Internal.Invariant.Assert(GetLine(index).Length == line.Length, "Line length is out of sync");
 
                 CharacterHit charIndex = line.GetTextPositionFromDistance(distance);
                 LogicalDirection logicalDirection;
@@ -2306,7 +2306,7 @@ Debug.Assert(lineCount == LineCount);
                         line.Format(dcp, wrappingWidth, GetLineProperties(dcp == 0, lineProperties), lineMetrics.TextLineBreak, textRunCache, ellipsis);
 
                         // Check consistency of line length
-                        MS.Internal.Invariant.Assert(lineMetrics.Length == line.Length, "Line length is out of [....]");
+                        MS.Internal.Invariant.Assert(lineMetrics.Length == line.Length, "Line length is out of sync");
 
                         rect = line.GetBoundsFromTextPosition(characterIndex, out flowDirection);
                     }
@@ -2410,7 +2410,7 @@ Debug.Assert(lineCount == LineCount);
                         if (Invariant.Strict)
                         {
                             // Check consistency of line formatting
-                            MS.Internal.Invariant.Assert(GetLine(i).Length == line.Length, "Line length is out of [....]");
+                            MS.Internal.Invariant.Assert(GetLine(i).Length == line.Length, "Line length is out of sync");
                         }
 
                         int dcpStart = Math.Max(dcpLineStart, dcpPositionStart);
@@ -2512,7 +2512,7 @@ Debug.Assert(lineCount == LineCount);
                 line.Format(dcp, wrappingWidth, GetLineProperties(lineIndex == 0, lineProperties), lineMetrics.TextLineBreak, textRunCache, false);
 
                 // Check consistency of line formatting
-                MS.Internal.Invariant.Assert(lineMetrics.Length == line.Length, "Line length is out of [....]");
+                MS.Internal.Invariant.Assert(lineMetrics.Length == line.Length, "Line length is out of sync");
                 isAtCaretUnitBoundary = line.IsAtCaretCharacterHit(charHit);
             }
 
@@ -2601,7 +2601,7 @@ Debug.Assert(lineCount == LineCount);
                 line.Format(dcp, wrappingWidth, GetLineProperties(lineIndex == 0, lineProperties), lineMetrics.TextLineBreak, textRunCache, false);
 
                 // Check consistency of line formatting
-                MS.Internal.Invariant.Assert(lineMetrics.Length == line.Length, "Line length is out of [....]");
+                MS.Internal.Invariant.Assert(lineMetrics.Length == line.Length, "Line length is out of sync");
 
                 if (direction == LogicalDirection.Forward)
                 {
@@ -2710,7 +2710,7 @@ Debug.Assert(lineCount == LineCount);
                 line.Format(dcp, wrappingWidth, GetLineProperties(lineIndex == 0, lineProperties), lineMetrics.TextLineBreak, textRunCache, false);
 
                 // Check consistency of line formatting
-                MS.Internal.Invariant.Assert(lineMetrics.Length == line.Length, "Line length is out of [....]");
+                MS.Internal.Invariant.Assert(lineMetrics.Length == line.Length, "Line length is out of sync");
 
                 backspaceCharacterHit = line.GetBackspaceCaretCharacterHit(textSourceCharacterIndex);
             }
@@ -3318,7 +3318,7 @@ Debug.Assert(lineCount == LineCount);
                 {
                     // case a: rounding to pixel boundaries can lose up to half a pixel,
                     // as adjusted for the current DPI setting
-                    width += 0.5 / MS.Internal.FontCache.Util.PixelsPerDip;
+                    width += 0.5 / (GetDpi().DpiScaleY);
                 }
 
                 if (paddingWidth != 0.0)
@@ -3428,8 +3428,8 @@ Debug.Assert(lineCount == LineCount);
                     double lineHeight = CalcLineAdvance(line.Height, lineProperties);
 
                     // Check consistency of line formatting
-                    MS.Internal.Invariant.Assert(lineMetrics.Length == line.Length, "Line length is out of [....]");
-                    Debug.Assert(DoubleUtil.AreClose(lineHeight, lineMetrics.Height), "Line height is out of [....].");
+                    MS.Internal.Invariant.Assert(lineMetrics.Length == line.Length, "Line length is out of sync");
+                    Debug.Assert(DoubleUtil.AreClose(lineHeight, lineMetrics.Height), "Line height is out of sync.");
 
                     // Calculated line width might be different from measure width in following cases:
                     // a) dynamically sized children, when FinalSize != AvailableSize

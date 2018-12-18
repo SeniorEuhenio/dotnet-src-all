@@ -8,8 +8,8 @@
 //              This class should be used by most - if not all - MIL parsers.
 //
 // History:
-//  05/19/2003 : [....] - Created it
-//  05/20/2003 : [....] - Moved to Shared
+//  05/19/2003 : Microsoft - Created it
+//  05/20/2003 : Microsoft - Moved to Shared
 //
 //---------------------------------------------------------------------------
 

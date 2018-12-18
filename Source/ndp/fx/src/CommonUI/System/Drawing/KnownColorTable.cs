@@ -477,7 +477,7 @@ namespace System.Drawing {
             colorTable[(int)KnownColor.WindowFrame] = SystemColorToArgb((int)SafeNativeMethods.Win32SystemColors.WindowFrame);
             colorTable[(int)KnownColor.WindowText] = SystemColorToArgb((int)SafeNativeMethods.Win32SystemColors.WindowText);
 #else
-            // Colors from a default XP desktop for use by UI designers in ASP.NET: <EMAIL>[....]</EMAIL>
+            // Colors from a default XP desktop for use by UI designers in ASP.NET: <EMAIL>Microsoft</EMAIL>
             colorTable[(int)KnownColor.ActiveBorder] = unchecked((int)0xffd4d0c8);
             colorTable[(int)KnownColor.ActiveCaption] = unchecked((int)0xff0054e3);
             colorTable[(int)KnownColor.ActiveCaptionText] = unchecked((int)0xffffffff);

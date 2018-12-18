@@ -4095,7 +4095,7 @@ EXTERN_C const IID IID_IOleInPlaceObjectWindowless;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IOleInPlaceObjectWindowless * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             __RPC__in IOleInPlaceObjectWindowless * This,
             /* [out] */ __RPC__deref_out_opt HWND *phwnd);
         
@@ -4109,7 +4109,7 @@ EXTERN_C const IID IID_IOleInPlaceObjectWindowless;
         HRESULT ( STDMETHODCALLTYPE *UIDeactivate )( 
             __RPC__in IOleInPlaceObjectWindowless * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *SetObjectRects )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *SetObjectRects )( 
             __RPC__in IOleInPlaceObjectWindowless * This,
             /* [in] */ __RPC__in LPCRECT lprcPosRect,
             /* [in] */ __RPC__in LPCRECT lprcClipRect);
@@ -4241,7 +4241,7 @@ EXTERN_C const IID IID_IOleInPlaceSiteEx;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IOleInPlaceSiteEx * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             __RPC__in IOleInPlaceSiteEx * This,
             /* [out] */ __RPC__deref_out_opt HWND *phwnd);
         
@@ -4474,7 +4474,7 @@ EXTERN_C const IID IID_IOleInPlaceSiteWindowless;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IOleInPlaceSiteWindowless * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             __RPC__in IOleInPlaceSiteWindowless * This,
             /* [out] */ __RPC__deref_out_opt HWND *phwnd);
         

@@ -850,7 +850,7 @@ namespace System.IO.Log
             catch (EntryPointNotFoundException)
             {
                 // CLFS API for SetEndOfLog doesn;t update the client marshaling area and directly
-                // uses the log handle. The client marshalling and kernal stats becomes out of [....] 
+                // uses the log handle. The client marshalling and kernal stats becomes out of sync 
                 // and will cause subsequent appends to fail.
                 // Work around - Invalidate the client marshall area. Call SetEndOfLog.
                 // Subsequent Append calls will create a new marshalling context.

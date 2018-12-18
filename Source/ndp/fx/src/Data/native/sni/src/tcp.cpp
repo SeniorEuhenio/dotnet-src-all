@@ -1829,7 +1829,7 @@ private:
 		// We think connection refused is the most interesting error (it means that the IP host was reachable,
 		// but no TCP endpoint is established on the target port), so we set a higher error level when we see it.
 		//
-		// Connection refused is represented by WSAECONNREFUSED, for the [....] API connect(), but by 
+		// Connection refused is represented by WSAECONNREFUSED, for the sync API connect(), but by 
 		// ERROR_CONNECTION_REFUSED, when retrieving the error code from GetOverlappedResult(), 
 		// from the Overlapped API ConnectEx().
 		if( WSAECONNREFUSED == dwError || ERROR_CONNECTION_REFUSED == dwError )
@@ -3513,7 +3513,7 @@ DWORD Tcp::Close()
 				// Wait with time-out in case the auto-event was consumed
 				// by another thread after we checked its status (this should
 				// not really happen since the access to the Tcp object should
-				// be serialized in [....] mode).  We will check the status in 
+				// be serialized in sync mode).  We will check the status in 
 				// the next iteration.  
 				DWORD dwRet = WaitForSingleObject(pOvl->hEvent, CLOSEIOWAIT);
 
@@ -3941,9 +3941,9 @@ DWORD Tcp::Initialize(PSNI_PROVIDER_INFO pInfo)
 	if( WSAStartup((WORD)0x0202, &wsadata) )
 	{
 		// Failed to start up Version 2.2, let's try starting up Version 1.0
-		//Bug: 291912
-		//On WSAStartup failure, we can not use the error code returned by WSAGetLastError() since winsock context is not avaialbe yet.
-		// In this case, we use return value of WSAStartup as the error code when everthing fails.
+		//
+
+
 		if( dwError = WSAStartup((WORD)0x0101, &wsadata) )
 		{
 			// Everything failed			
@@ -4887,7 +4887,7 @@ DWORD Tcp::PostReadAsync(SNI_Packet *pPacket, DWORD cbBuffer)
 
 	if( NULL != m_pSyncReadPacket )
 	{
-		Assert( 0 && "It is forbidden to call SNIReadAsync or SNIPartialReadAsync when there is a cached [....] Read packet.\n");
+		Assert( 0 && "It is forbidden to call SNIReadAsync or SNIPartialReadAsync when there is a cached Sync Read packet.\n");
 		dwError = ERROR_INVALID_STATE;
 		SNI_SET_LAST_ERROR( TCP_PROV, SNIE_0, dwError);
 		goto Exit;
@@ -5935,7 +5935,7 @@ ErrorExit:
 // Inform the OS not to enqueue IO Completions on successful
 // overlapped reads/writes.
 //
-// Returns ERROR_SUCCESS if OS call succeeds, or if connection is [....] (no need to make the call)
+// Returns ERROR_SUCCESS if OS call succeeds, or if connection is Sync (no need to make the call)
 // Returns a Windows error code otherwise.
 DWORD
 Tcp::DWSetSkipCompletionPortOnSuccess()

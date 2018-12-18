@@ -7,7 +7,7 @@
 //
 // File:    WsdlParser.cs
 //<EMAIL>
-// Author:  Peter de Jong ([....])
+// Author:  Peter de Jong (Microsoft)
 //</EMAIL>
 // Purpose: Defines WsdlParser that parses a given WSDL document
 //          and generates types defined in it.
@@ -784,7 +784,7 @@ namespace System.Runtime.Remoting.MetadataServices
             do
             {
                 // Initialize the parser
-                _XMLReader = new XmlTextReader(input.InputStream, _primedNametable);
+                _XMLReader = new XmlTextReader(input.InputStream, _primedNametable) { DtdProcessing = DtdProcessing.Ignore };
                 _XMLReader.WhitespaceHandling = WhitespaceHandling.None;
                 _XMLReader.XmlResolver = null;
                 ParseInput(input);
@@ -1020,7 +1020,7 @@ namespace System.Runtime.Remoting.MetadataServices
             do
             {
                 // Initialize the parser
-                _XMLReader = new XmlTextReader(input.InputStream, _primedNametable);
+                _XMLReader = new XmlTextReader(input.InputStream, _primedNametable) { DtdProcessing = DtdProcessing.Ignore };
                 _XMLReader.WhitespaceHandling = WhitespaceHandling.None;
                 _XMLReader.XmlResolver = null;
                 _parsingInput = input;

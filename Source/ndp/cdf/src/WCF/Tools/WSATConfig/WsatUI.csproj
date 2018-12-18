@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{780203c1-27a8-45f6-8845-bb0f23f4648d}</ProjectGuid>
+    <ProjectGuid>{b1dcb488-396b-41dc-b9c6-cf736fb6f904}</ProjectGuid>
     <OutputPath>.</OutputPath>
     <OutputType>Library</OutputType>
     <AssemblyName>WsatUI</AssemblyName>
@@ -20,31 +20,31 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\clr\src\bcl\mscorlib.csproj">
-      <Project>{67c368de-3511-4106-8749-000d91efd3fc}</Project>
+      <Project>{20f34c38-8c60-44e7-b703-0e341d274957}</Project>
       <Name>mscorlib</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\fx\src\System.csproj">
-      <Project>{54e500cb-cdce-4405-9ac7-200d8982ccd8}</Project>
+      <Project>{85716da4-9fb2-4f44-9c4d-b7431fdf1b20}</Project>
       <Name>System</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\fx\src\data\System.Data.csproj">
-      <Project>{106e67ed-066e-453f-8be9-df69cbc14bef}</Project>
+      <Project>{6c5dd4f8-ed35-4f22-b8dc-4489d2c3dfaa}</Project>
       <Name>System.Data</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\fx\src\System.Drawing.csproj">
-      <Project>{b5fe567f-721f-4cd8-82d6-c4b23d278d2d}</Project>
+      <Project>{712ac13c-4586-461b-9626-7c107a6981eb}</Project>
       <Name>System.Drawing</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\fx\src\wmi\managed\System\Management\System.Management.csproj">
-      <Project>{8f432928-23d4-484e-914a-0f21bcab6eb6}</Project>
+      <Project>{da04f808-7085-40db-ada1-d8f97011c479}</Project>
       <Name>System.Management</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\clr\src\managedlibraries\security\System.Security.csproj">
-      <Project>{491b9884-e83b-40cf-bc81-9f30a8847434}</Project>
+      <Project>{6cf2ea71-7eb3-48ae-8938-3edf77bb9412}</Project>
       <Name>System.Security</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\fx\src\System.Windows.Forms.csproj">
-      <Project>{484152e2-ff05-4401-8c78-c7d6d6dd106f}</Project>
+      <Project>{ab107739-db44-4e26-891e-3cb12ec52fe8}</Project>
       <Name>System.Windows.Forms</Name>
     </ProjectReference>
   </ItemGroup>

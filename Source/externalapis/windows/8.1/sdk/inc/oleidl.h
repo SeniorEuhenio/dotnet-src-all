@@ -1551,7 +1551,7 @@ EXTERN_C const IID IID_IOleWindow;
     IOleWindow : public IUnknown
     {
     public:
-        virtual /* [input_[....]] */ HRESULT STDMETHODCALLTYPE GetWindow( 
+        virtual /* [input_sync] */ HRESULT STDMETHODCALLTYPE GetWindow( 
             /* [out] */ __RPC__deref_out_opt HWND *phwnd) = 0;
         
         virtual HRESULT STDMETHODCALLTYPE ContextSensitiveHelp( 
@@ -1578,7 +1578,7 @@ EXTERN_C const IID IID_IOleWindow;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IOleWindow * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             __RPC__in IOleWindow * This,
             /* [out] */ __RPC__deref_out_opt HWND *phwnd);
         
@@ -2009,13 +2009,13 @@ EXTERN_C const IID IID_IOleInPlaceUIWindow;
     IOleInPlaceUIWindow : public IOleWindow
     {
     public:
-        virtual /* [input_[....]] */ HRESULT STDMETHODCALLTYPE GetBorder( 
+        virtual /* [input_sync] */ HRESULT STDMETHODCALLTYPE GetBorder( 
             /* [out] */ __RPC__out LPRECT lprectBorder) = 0;
         
-        virtual /* [input_[....]] */ HRESULT STDMETHODCALLTYPE RequestBorderSpace( 
+        virtual /* [input_sync] */ HRESULT STDMETHODCALLTYPE RequestBorderSpace( 
             /* [unique][in] */ __RPC__in_opt LPCBORDERWIDTHS pborderwidths) = 0;
         
-        virtual /* [input_[....]] */ HRESULT STDMETHODCALLTYPE SetBorderSpace( 
+        virtual /* [input_sync] */ HRESULT STDMETHODCALLTYPE SetBorderSpace( 
             /* [unique][in] */ __RPC__in_opt LPCBORDERWIDTHS pborderwidths) = 0;
         
         virtual HRESULT STDMETHODCALLTYPE SetActiveObject( 
@@ -2043,7 +2043,7 @@ EXTERN_C const IID IID_IOleInPlaceUIWindow;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IOleInPlaceUIWindow * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             __RPC__in IOleInPlaceUIWindow * This,
             /* [out] */ __RPC__deref_out_opt HWND *phwnd);
         
@@ -2051,15 +2051,15 @@ EXTERN_C const IID IID_IOleInPlaceUIWindow;
             __RPC__in IOleInPlaceUIWindow * This,
             /* [in] */ BOOL fEnterMode);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetBorder )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetBorder )( 
             __RPC__in IOleInPlaceUIWindow * This,
             /* [out] */ __RPC__out LPRECT lprectBorder);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *RequestBorderSpace )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *RequestBorderSpace )( 
             __RPC__in IOleInPlaceUIWindow * This,
             /* [unique][in] */ __RPC__in_opt LPCBORDERWIDTHS pborderwidths);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *SetBorderSpace )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *SetBorderSpace )( 
             __RPC__in IOleInPlaceUIWindow * This,
             /* [unique][in] */ __RPC__in_opt LPCBORDERWIDTHS pborderwidths);
         
@@ -2142,10 +2142,10 @@ EXTERN_C const IID IID_IOleInPlaceActiveObject;
             /* [annotation][in] */ 
             _In_opt_  LPMSG lpmsg) = 0;
         
-        virtual /* [input_[....]] */ HRESULT STDMETHODCALLTYPE OnFrameWindowActivate( 
+        virtual /* [input_sync] */ HRESULT STDMETHODCALLTYPE OnFrameWindowActivate( 
             /* [in] */ BOOL fActivate) = 0;
         
-        virtual /* [input_[....]] */ HRESULT STDMETHODCALLTYPE OnDocWindowActivate( 
+        virtual /* [input_sync] */ HRESULT STDMETHODCALLTYPE OnDocWindowActivate( 
             /* [in] */ BOOL fActivate) = 0;
         
         virtual /* [local] */ HRESULT STDMETHODCALLTYPE ResizeBorder( 
@@ -2180,7 +2180,7 @@ EXTERN_C const IID IID_IOleInPlaceActiveObject;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IOleInPlaceActiveObject * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             __RPC__in IOleInPlaceActiveObject * This,
             /* [out] */ __RPC__deref_out_opt HWND *phwnd);
         
@@ -2193,11 +2193,11 @@ EXTERN_C const IID IID_IOleInPlaceActiveObject;
             /* [annotation][in] */ 
             _In_opt_  LPMSG lpmsg);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *OnFrameWindowActivate )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *OnFrameWindowActivate )( 
             __RPC__in IOleInPlaceActiveObject * This,
             /* [in] */ BOOL fActivate);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *OnDocWindowActivate )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *OnDocWindowActivate )( 
             __RPC__in IOleInPlaceActiveObject * This,
             /* [in] */ BOOL fActivate);
         
@@ -2277,7 +2277,7 @@ void __RPC_STUB IOleInPlaceActiveObject_RemoteTranslateAccelerator_Stub(
     DWORD *_pdwStubPhase);
 
 
-/* [input_[....]][call_as] */ HRESULT STDMETHODCALLTYPE IOleInPlaceActiveObject_RemoteResizeBorder_Proxy( 
+/* [input_sync][call_as] */ HRESULT STDMETHODCALLTYPE IOleInPlaceActiveObject_RemoteResizeBorder_Proxy( 
     __RPC__in IOleInPlaceActiveObject * This,
     /* [in] */ __RPC__in LPCRECT prcBorder,
     /* [in] */ __RPC__in REFIID riid,
@@ -2337,7 +2337,7 @@ EXTERN_C const IID IID_IOleInPlaceFrame;
             /* [in] */ __RPC__in HMENU hmenuShared,
             /* [out][in] */ __RPC__inout LPOLEMENUGROUPWIDTHS lpMenuWidths) = 0;
         
-        virtual /* [input_[....]] */ HRESULT STDMETHODCALLTYPE SetMenu( 
+        virtual /* [input_sync] */ HRESULT STDMETHODCALLTYPE SetMenu( 
             /* [in] */ __RPC__in HMENU hmenuShared,
             /* [in] */ __RPC__in HOLEMENU holemenu,
             /* [in] */ __RPC__in HWND hwndActiveObject) = 0;
@@ -2345,7 +2345,7 @@ EXTERN_C const IID IID_IOleInPlaceFrame;
         virtual HRESULT STDMETHODCALLTYPE RemoveMenus( 
             /* [in] */ __RPC__in HMENU hmenuShared) = 0;
         
-        virtual /* [input_[....]] */ HRESULT STDMETHODCALLTYPE SetStatusText( 
+        virtual /* [input_sync] */ HRESULT STDMETHODCALLTYPE SetStatusText( 
             /* [unique][in] */ __RPC__in_opt LPCOLESTR pszStatusText) = 0;
         
         virtual HRESULT STDMETHODCALLTYPE EnableModeless( 
@@ -2376,7 +2376,7 @@ EXTERN_C const IID IID_IOleInPlaceFrame;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IOleInPlaceFrame * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             __RPC__in IOleInPlaceFrame * This,
             /* [out] */ __RPC__deref_out_opt HWND *phwnd);
         
@@ -2384,15 +2384,15 @@ EXTERN_C const IID IID_IOleInPlaceFrame;
             __RPC__in IOleInPlaceFrame * This,
             /* [in] */ BOOL fEnterMode);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetBorder )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetBorder )( 
             __RPC__in IOleInPlaceFrame * This,
             /* [out] */ __RPC__out LPRECT lprectBorder);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *RequestBorderSpace )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *RequestBorderSpace )( 
             __RPC__in IOleInPlaceFrame * This,
             /* [unique][in] */ __RPC__in_opt LPCBORDERWIDTHS pborderwidths);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *SetBorderSpace )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *SetBorderSpace )( 
             __RPC__in IOleInPlaceFrame * This,
             /* [unique][in] */ __RPC__in_opt LPCBORDERWIDTHS pborderwidths);
         
@@ -2406,7 +2406,7 @@ EXTERN_C const IID IID_IOleInPlaceFrame;
             /* [in] */ __RPC__in HMENU hmenuShared,
             /* [out][in] */ __RPC__inout LPOLEMENUGROUPWIDTHS lpMenuWidths);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *SetMenu )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *SetMenu )( 
             __RPC__in IOleInPlaceFrame * This,
             /* [in] */ __RPC__in HMENU hmenuShared,
             /* [in] */ __RPC__in HOLEMENU holemenu,
@@ -2416,7 +2416,7 @@ EXTERN_C const IID IID_IOleInPlaceFrame;
             __RPC__in IOleInPlaceFrame * This,
             /* [in] */ __RPC__in HMENU hmenuShared);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *SetStatusText )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *SetStatusText )( 
             __RPC__in IOleInPlaceFrame * This,
             /* [unique][in] */ __RPC__in_opt LPCOLESTR pszStatusText);
         
@@ -2522,7 +2522,7 @@ EXTERN_C const IID IID_IOleInPlaceObject;
         
         virtual HRESULT STDMETHODCALLTYPE UIDeactivate( void) = 0;
         
-        virtual /* [input_[....]] */ HRESULT STDMETHODCALLTYPE SetObjectRects( 
+        virtual /* [input_sync] */ HRESULT STDMETHODCALLTYPE SetObjectRects( 
             /* [in] */ __RPC__in LPCRECT lprcPosRect,
             /* [in] */ __RPC__in LPCRECT lprcClipRect) = 0;
         
@@ -2549,7 +2549,7 @@ EXTERN_C const IID IID_IOleInPlaceObject;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IOleInPlaceObject * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             __RPC__in IOleInPlaceObject * This,
             /* [out] */ __RPC__deref_out_opt HWND *phwnd);
         
@@ -2563,7 +2563,7 @@ EXTERN_C const IID IID_IOleInPlaceObject;
         HRESULT ( STDMETHODCALLTYPE *UIDeactivate )( 
             __RPC__in IOleInPlaceObject * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *SetObjectRects )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *SetObjectRects )( 
             __RPC__in IOleInPlaceObject * This,
             /* [in] */ __RPC__in LPCRECT lprcPosRect,
             /* [in] */ __RPC__in LPCRECT lprcClipRect);
@@ -2690,7 +2690,7 @@ EXTERN_C const IID IID_IOleInPlaceSite;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IOleInPlaceSite * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             __RPC__in IOleInPlaceSite * This,
             /* [out] */ __RPC__deref_out_opt HWND *phwnd);
         
@@ -3977,7 +3977,7 @@ void                      __RPC_USER  STGMEDIUM_UserFree64(     __RPC__in unsign
     _In_  BOOL fFrameWindow);
 
 
-/* [input_[....]][call_as] */ HRESULT STDMETHODCALLTYPE IOleInPlaceActiveObject_ResizeBorder_Stub( 
+/* [input_sync][call_as] */ HRESULT STDMETHODCALLTYPE IOleInPlaceActiveObject_ResizeBorder_Stub( 
     __RPC__in IOleInPlaceActiveObject * This,
     /* [in] */ __RPC__in LPCRECT prcBorder,
     /* [in] */ __RPC__in REFIID riid,

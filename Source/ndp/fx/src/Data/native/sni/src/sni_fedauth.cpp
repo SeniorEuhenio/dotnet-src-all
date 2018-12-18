@@ -279,6 +279,11 @@ DWORD SNISecADALGetAccessToken( __in LPCWSTR username,
 
     assert(setOptionResult != FALSE);
 
+    bool setOptionWamResult = g_ADAL.ADALSetOption(hContext, AdalOption::ADAL_OPTION_USE_WAM, AdalOptionValue::Disallow);
+    state = ADALState::ADALSetOptionUseWam;
+
+    assert(setOptionWamResult != FALSE);
+
     // Obtain request handle. Each call to ADALAcquireToken will return new request handle that you need to release by calling ADALDeleteRequest.
     hRequest = g_ADAL.ADALAcquireToken(hContext, resource, &correlationId);
     state = ADALState::ADALAcquireToken;

@@ -12,7 +12,7 @@
 //              -Is Digit range only
 //              -Is extended character range only
 //
-//  Created:   5-27-2009 Samer El Baghdady ([....])
+//  Created:   5-27-2009 Samer El Baghdady (Microsoft)
 //
 //------------------------------------------------------------------------
 

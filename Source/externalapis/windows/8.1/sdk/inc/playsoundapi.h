@@ -78,7 +78,7 @@ BOOL WINAPI sndPlaySound(LPCSTR pszSound, UINT fuSound);
 /*
  *  flag values for fuSound and fdwSound arguments on [snd]PlaySound
  */
-#define SND_[....]            0x0000  /* play synchronously (default) */
+#define SND_SYNC            0x0000  /* play synchronously (default) */
 #define SND_ASYNC           0x0001  /* play asynchronously */
 #define SND_NODEFAULT       0x0002  /* silence (!default) if sound not found */
 #define SND_MEMORY          0x0004  /* pszSound points to a memory file */

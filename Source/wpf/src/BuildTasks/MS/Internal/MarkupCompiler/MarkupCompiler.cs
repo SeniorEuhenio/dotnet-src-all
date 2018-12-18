@@ -1874,7 +1874,7 @@ namespace MS.Internal
             cdce.TargetObject = new CodeThisReferenceExpression();
             CodeExpression cDelExp = cdce;
 
-            // NOTE: workaround for VB CodeDom bug which does not produce correct Delegate expression code
+            // NOTE: workaround for VB CodeDom 
             if (IsLanguageVB)
             {
                 CodeExpression[] delParams = { cdce };
@@ -1882,9 +1882,9 @@ namespace MS.Internal
                 cDelExp = coce;
             }
 
-//            The bug that this chunk of code works around (VS#542946) was fixed but
-//            exposes a different bug (VS#572060)   To work around the second bug, we
-//            remove the workaround for the first one.  (RogerCh 20020918)
+//            The 
+
+
 
 //            Note that #542946 was not fixed for VB, so the code block above remains.
 

@@ -4,7 +4,7 @@
 // Copyright 1999-2000 Microsoft Corporation.  All Rights Reserved.
 //
 //-----------------------------------------------------------------
-// Created: [....] 7, 1999 Paul Chase Dempsey [paulde]
+// Created: Microsoft 7, 1999 Paul Chase Dempsey [paulde]
 //
 // This was all stolen or inspired by existing macros.
 //

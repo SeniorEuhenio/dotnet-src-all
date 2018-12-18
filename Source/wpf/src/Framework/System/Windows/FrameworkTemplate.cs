@@ -478,7 +478,7 @@ namespace System.Windows
         //  This method
         //  Creates the VisualTree
         //
-        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking Bug: 29647
+        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking 
         internal bool ApplyTemplateContent(
             UncommonField<HybridDictionary[]> templateDataField,
             FrameworkElement container)

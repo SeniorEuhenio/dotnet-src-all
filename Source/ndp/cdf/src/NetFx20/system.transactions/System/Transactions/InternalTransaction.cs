@@ -298,6 +298,22 @@ namespace System.Transactions
                     this.innerException);
             }
         }
+        
+        static InternalTransaction()
+        {
+            try
+            {
+                // Emit a telemetry event to indicate that System.Transactions is being used on the first time 
+                // InternalTransaction is used.
+                using (TelemetryEventSource eventSource = new TelemetryEventSource())
+                {
+                    eventSource.InternalTransaction();
+                }
+            }
+            catch
+            {
+            }
+        }
 
         // Construct an internal transaction
         internal InternalTransaction( TimeSpan timeout, CommittableTransaction committableTransaction )

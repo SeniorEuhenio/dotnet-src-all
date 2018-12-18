@@ -2728,7 +2728,7 @@ LsaOpenPolicy(
 
 
 //
-// Keep the following in [....] with LSA_MAXIMUM_PER_CAP_CAPE_COUNT
+// Keep the following in sync with LSA_MAXIMUM_PER_CAP_CAPE_COUNT
 // TBD: Reduce these multiple macros to one
 //
 #define MAXIMUM_CAPES_PER_CAP 0x7F
@@ -2784,7 +2784,7 @@ LsaOpenPolicy(
 // CAPE structure that specifies the access policy and when it is applicable
 //
 // WARNING !
-// Keep the fields of the following struct in [....] with LSAPR_CENTRAL_ACCESS_POLICY_ENTRY
+// Keep the fields of the following struct in sync with LSAPR_CENTRAL_ACCESS_POLICY_ENTRY
 // struct in lsarpc.idl
 //
 //
@@ -2814,7 +2814,7 @@ typedef const CENTRAL_ACCESS_POLICY_ENTRY *PCCENTRAL_ACCESS_POLICY_ENTRY;
 // of the Resource. Applicable CAPEs of a CAP are enforced during access check.
 //
 // WARNING !
-// Keep the fields of the following struct in [....] with LSAPR_CENTRAL_ACCESS_POLICY
+// Keep the fields of the following struct in sync with LSAPR_CENTRAL_ACCESS_POLICY
 // struct in lsarpc.idl
 //
 //

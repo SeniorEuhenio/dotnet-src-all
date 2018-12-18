@@ -154,7 +154,7 @@ namespace System.Windows.Controls
         internal void PrepareItemContainer(object item, ItemsControl parentItemsControl)
         {
             if (Generator == null)
-                return;     // user-declared GroupItem - ignore (bug 108423)
+                return;     // user-declared GroupItem - ignore (
 
             // If a GroupItem is being recycled set back IsItemsHost
             if (_itemsHost != null)
@@ -238,7 +238,7 @@ namespace System.Windows.Controls
         internal void ClearItemContainer(object item, ItemsControl parentItemsControl)
         {
             if (Generator == null)
-                return;     // user-declared GroupItem - ignore (bug 108423)
+                return;     // user-declared GroupItem - ignore (
 
             //
             // ItemValueStorage:  save off values for this container if we're a virtualizing Group.

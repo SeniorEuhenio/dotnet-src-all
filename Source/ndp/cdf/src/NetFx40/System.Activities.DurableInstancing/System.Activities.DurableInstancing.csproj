@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{4dd931f9-c94a-4a09-b349-8da2120e6f41}</ProjectGuid>
+    <ProjectGuid>{a6d57729-f0ab-4a58-a9b1-f925cf18fd02}</ProjectGuid>
     <OutputPath>.</OutputPath>
     <OutputType>Library</OutputType>
     <AssemblyName>System.Activities.DurableInstancing</AssemblyName>
@@ -20,51 +20,51 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\clr\src\bcl\mscorlib.csproj">
-      <Project>{67c368de-3511-4106-8749-000d91efd3fc}</Project>
+      <Project>{20f34c38-8c60-44e7-b703-0e341d274957}</Project>
       <Name>mscorlib</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\System.csproj">
-      <Project>{54e500cb-cdce-4405-9ac7-200d8982ccd8}</Project>
+      <Project>{85716da4-9fb2-4f44-9c4d-b7431fdf1b20}</Project>
       <Name>System</Name>
     </ProjectReference>
     <ProjectReference Include="..\System.Activities\System.Activities.csproj">
-      <Project>{39bfd5f6-53a2-4262-8a94-e469f21a1171}</Project>
+      <Project>{59e7e7e8-a103-43a3-8132-fe5eca7584d4}</Project>
       <Name>System.Activities</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\Core\System.Core.csproj">
-      <Project>{882677bb-a7dc-49f6-ab02-c7aff5befd7a}</Project>
+      <Project>{1d8f39aa-9297-49e4-8f18-cea8f165d7c4}</Project>
       <Name>System.Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\data\System.Data.csproj">
-      <Project>{106e67ed-066e-453f-8be9-df69cbc14bef}</Project>
+      <Project>{6c5dd4f8-ed35-4f22-b8dc-4489d2c3dfaa}</Project>
       <Name>System.Data</Name>
     </ProjectReference>
     <ProjectReference Include="..\System.Runtime.DurableInstancing\System.Runtime.DurableInstancing.csproj">
-      <Project>{04a07d45-5b57-41c8-ad85-2cdc855b6d2d}</Project>
+      <Project>{d81d7289-7d3d-4ee9-8665-cf8e10ccbad5}</Project>
       <Name>System.Runtime.DurableInstancing</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\WCF\Serialization\System.Runtime.Serialization.csproj">
-      <Project>{fb62044e-37ce-49b0-b512-41dd95afb456}</Project>
+      <Project>{8406a9a0-29c6-469d-b31f-ad24fdd85828}</Project>
       <Name>System.Runtime.Serialization</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\clr\src\managedlibraries\security\System.Security.csproj">
-      <Project>{491b9884-e83b-40cf-bc81-9f30a8847434}</Project>
+      <Project>{6cf2ea71-7eb3-48ae-8938-3edf77bb9412}</Project>
       <Name>System.Security</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\System.ServiceModel.Internals\System.ServiceModel.Internals.csproj">
-      <Project>{9d91f452-0441-451a-8036-fc665dcd0595}</Project>
+      <Project>{01dc86fb-e3cd-4b78-b584-7dba90eb3a6e}</Project>
       <Name>System.ServiceModel.Internals</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\NetFx20\System.Transactions\System.Transactions.csproj">
-      <Project>{24807d62-c423-48dd-931b-a618672cce83}</Project>
+      <Project>{d2a61b41-ea67-483d-ac54-45f74dcb0dde}</Project>
       <Name>System.Transactions</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\Xml\System.Xml.csproj">
-      <Project>{7eccbad4-f184-4260-b750-d5c802c948d8}</Project>
+      <Project>{6f992f82-1c90-4388-ab60-15c653aeeca5}</Project>
       <Name>System.Xml</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\XLinq\System.Xml.Linq.csproj">
-      <Project>{abc2facf-2e3a-4fdc-aff3-5d0f1e993027}</Project>
+      <Project>{f7ad8bac-760f-40d9-8759-886b9ddb7e23}</Project>
       <Name>System.Xml.Linq</Name>
     </ProjectReference>
   </ItemGroup>

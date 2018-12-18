@@ -4158,9 +4158,9 @@ typedef struct {
 #if (NTDDI_VERSION >= NTDDI_VISTA)
     BOOL fAutoCheckSelect: 1;
     BOOL fIconsOnly: 1;
-    UINT fRestFlags : 1; // when adding additional flags keep SHELLSTATE and SHGetSettings in [....].
+    UINT fRestFlags : 1; // when adding additional flags keep SHELLSTATE and SHGetSettings in sync.
 #else
-    UINT fRestFlags : 3; // when adding additional flags keep SHELLSTATE and SHGetSettings in [....].
+    UINT fRestFlags : 3; // when adding additional flags keep SHELLSTATE and SHGetSettings in sync.
 #endif
 } SHELLFLAGSTATE, *LPSHELLFLAGSTATE;
 

@@ -13,7 +13,7 @@ Abstract:
 
 Author:
 
-    [....] Zan (xinyanz) 30-June-2006
+    Microsoft Zan (xinyanz) 30-June-2006
 
 Environment:
 

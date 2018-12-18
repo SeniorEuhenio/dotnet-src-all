@@ -7,9 +7,9 @@
 //    and PresentationHost
 //
 //  History
-//      2005/5/4-[....]
+//      2005/5/4-Microsoft
 //          Moved browser invoke methods to a shared location
-//      2007/09/20-[....]
+//      2007/09/20-Microsoft
 //          Ported Windows->DevDiv. See SourcesHistory.txt.
 //
 //------------------------------------------------------------------------

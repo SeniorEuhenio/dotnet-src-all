@@ -607,8 +607,9 @@ namespace System.Drawing {
             if (iconData == null || handle != IntPtr.Zero) {
                 throw new InvalidOperationException(SR.GetString(SR.IllegalState, GetType().Name));
             }
-            
-            if (iconData.Length < Marshal.SizeOf(typeof(SafeNativeMethods.ICONDIR))) {
+
+            int icondirSize = Marshal.SizeOf(typeof(SafeNativeMethods.ICONDIR));
+            if (iconData.Length < icondirSize) {
                 throw new ArgumentException(SR.GetString(SR.InvalidPictureType, "picture", "Icon"));
             }
             
@@ -641,7 +642,7 @@ namespace System.Drawing {
                 short idReserved  = GetShort(pbIconData);
                 short idType      = GetShort(pbIconData + 2);
                 short idCount     = GetShort(pbIconData + 4);
-
+                
                 if (idReserved != 0 || idType != 1 || idCount == 0) 
                 {
                     throw new ArgumentException(SR.GetString(SR.InvalidPictureType, "picture", "Icon"));
@@ -656,9 +657,9 @@ namespace System.Drawing {
                 byte*   pbIconDirEntry      = unchecked(pbIconData + 6);
                 int     icondirEntrySize    = Marshal.SizeOf(typeof(SafeNativeMethods.ICONDIRENTRY));
 
-                Debug.Assert((icondirEntrySize * idCount) < iconData.Length, "Illegal number of ICONDIRENTRIES");
+                Debug.Assert((icondirEntrySize * (idCount - 1) + icondirSize) <= iconData.Length, "Illegal number of ICONDIRENTRIES");
 
-                if ((icondirEntrySize * idCount) >= iconData.Length) 
+                if ((icondirEntrySize * (idCount - 1) + icondirSize) > iconData.Length) 
                 {
                     throw new ArgumentException(SR.GetString(SR.InvalidPictureType, "picture", "Icon"));
                 }
@@ -732,10 +733,25 @@ namespace System.Drawing {
                     pbIconDirEntry += icondirEntrySize;
                 }
                 
-                Debug.Assert(bestImageOffset >= 0 && (bestImageOffset + bestBytesInRes) <= iconData.Length, "Illegal offset/length for the Icon data");
+                Debug.Assert(bestImageOffset >= 0 && bestBytesInRes >= 0 && (bestImageOffset + bestBytesInRes) <= iconData.Length, "Illegal offset/length for the Icon data");
 
-                if (bestImageOffset < 0 || (bestImageOffset + bestBytesInRes) > iconData.Length) 
-                {
+                if (bestImageOffset < 0) {
+                    throw new ArgumentException(SR.GetString(SR.InvalidPictureType, "picture", "Icon"));
+                }
+
+                if (bestBytesInRes < 0) {
+                    throw new Win32Exception(SafeNativeMethods.ERROR_INVALID_PARAMETER);
+                }
+
+                int endOffset;
+                try {
+                    endOffset = checked(bestImageOffset + bestBytesInRes);
+                }
+                catch (OverflowException) {
+                    throw new Win32Exception(SafeNativeMethods.ERROR_INVALID_PARAMETER);
+                }
+
+                if (endOffset > iconData.Length) {
                     throw new ArgumentException(SR.GetString(SR.InvalidPictureType, "picture", "Icon"));
                 }
 
@@ -750,7 +766,12 @@ namespace System.Drawing {
                     }
                 }
                 else {
-                    handle = SafeNativeMethods.CreateIconFromResourceEx(pbIconData + bestImageOffset, bestBytesInRes, true, 0x00030000, 0, 0, 0);
+                    try {
+                        handle = SafeNativeMethods.CreateIconFromResourceEx(checked(pbIconData + bestImageOffset), bestBytesInRes, true, 0x00030000, 0, 0, 0);
+                    }
+                    catch (OverflowException) {
+                        throw new Win32Exception(SafeNativeMethods.ERROR_INVALID_PARAMETER);
+                    }
                 }
                 if (handle == IntPtr.Zero) {
                     throw new Win32Exception();

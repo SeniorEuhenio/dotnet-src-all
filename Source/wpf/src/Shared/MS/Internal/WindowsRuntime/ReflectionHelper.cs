@@ -48,7 +48,7 @@ namespace MS.Internal
             /// <param name="type"></param>
             /// <param name="methodName"></param>
             /// <returns></returns>
-            /// <exception cref="NullReferenceException"><i>obj</i> is <b>null</b></exception>
+            /// <exception cref="NullReferenceException"><i>type</i> is <b>null</b></exception>
             /// <exception cref="ArgumentNullException"><i>methodName</i> is <b>null</b></exception>
             /// <exception cref="TargetInvocationException">The invoked method throws an exception</exception>
             /// <exception cref="AmbiguousMatchException">More than one method of the form <i>methodname()</i> was found</exception>
@@ -68,6 +68,39 @@ namespace MS.Internal
                 }
 
                 result = method.Invoke(null, null);
+
+                return (TResult)result;
+            }
+
+            /// <summary>
+            /// Calls method <i>methodName</i> statically from type <i>type</i>.
+            /// This function is needed since a static reflection call requires a null object to be passed in.
+            /// </summary>
+            /// <typeparam name="TResult"></typeparam>
+            /// <typeparam name="TArg"></typeparam>
+            /// <param name="type"></param>
+            /// <param name="methodName"></param>
+            /// <param name="arg"></param>
+            /// <returns></returns>
+            /// <exception cref="NullReferenceException"><i>type</i> is <b>null</b></exception>
+            /// <exception cref="ArgumentNullException"><i>methodName</i> is <b>null</b></exception>
+            /// <exception cref="TargetInvocationException">The invoked method throws an exception</exception>
+            /// <exception cref="MissingMethodException">The method <i>methodName</i> was not found</exception>
+            /// <exception cref="MethodAccessException">The caller does not have permission to execute the method</exception>
+            /// <exception cref="InvalidCastException">The result of the method call cannot be successfully cast to <i>TResult</i></exception>
+            public static TResult ReflectionStaticCall<TResult, TArg>(this Type type, string methodName, TArg arg)
+            {
+                MethodInfo method;
+                object result;
+
+                method = type.GetMethod(methodName, new Type[] { typeof(TArg) });
+
+                if (method == null)
+                {
+                    throw new MissingMethodException(methodName);
+                }
+
+                result = method.Invoke(null, new object[] { arg });
 
                 return (TResult)result;
             }
@@ -376,6 +409,28 @@ namespace MS.Internal
             public static object ReflectionGetProperty(this object obj, string propertyName)
             {
                 return obj.ReflectionGetProperty<object>(propertyName);
+            }
+
+            /// <summary>
+            /// Retrieves the static property <i>propertyName</i> from type <i>type</i>
+            /// </summary>
+            /// <typeparam name="TResult"></typeparam>
+            /// <param name="type"></param>
+            /// <param name="propertyName"></param>
+            /// <returns></returns>
+            /// <exception cref="AmbiguousMatchException">More than one property is found with the specified name. See <see cref="Type.GetProperty(string)"/></exception>
+            /// <exception cref="ArgumentNullException"><paramref name="propertyName"/> is null</exception>
+            /// <exception cref="MissingMemberException"><paramref name="propertyName"/> does not exist</exception>
+            /// <exception cref="TargetParameterCountException">An indexed property was accessed without an index</exception>
+            public static TResult ReflectionStaticGetProperty<TResult>(this Type type, string propertyName)
+            {
+                PropertyInfo p = type.GetProperty(propertyName, BindingFlags.Static);
+                if (p == null)
+                {
+                    throw new MissingMemberException(propertyName);
+                }
+
+                return (TResult)p.GetValue(null);
             }
         }
     }

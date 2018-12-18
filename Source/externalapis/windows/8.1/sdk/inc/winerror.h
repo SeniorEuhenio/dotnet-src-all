@@ -2333,7 +2333,7 @@
 //
 // MessageText:
 //
-// One or more copies of data on this device may be out of [....]. No writes may be performed until a data integrity scan is completed.
+// One or more copies of data on this device may be out of sync. No writes may be performed until a data integrity scan is completed.
 //
 #define ERROR_FT_DI_SCAN_REQUIRED        339L
 
@@ -5909,13 +5909,13 @@
 #define ERROR_NO_MORE_USER_HANDLES       1158L
 
 //
-// MessageId: ERROR_MESSAGE_[....]_ONLY
+// MessageId: ERROR_MESSAGE_SYNC_ONLY
 //
 // MessageText:
 //
 // The message can be used only with synchronous operations.
 //
-#define ERROR_MESSAGE_[....]_ONLY          1159L
+#define ERROR_MESSAGE_SYNC_ONLY          1159L
 
 //
 // MessageId: ERROR_SOURCE_ELEMENT_EMPTY
@@ -6740,13 +6740,13 @@
 #define ERROR_CALLBACK_SUPPLIED_INVALID_DATA 1273L
 
 //
-// MessageId: ERROR_[....]_FOREGROUND_REFRESH_REQUIRED
+// MessageId: ERROR_SYNC_FOREGROUND_REFRESH_REQUIRED
 //
 // MessageText:
 //
 // The group policy framework should call the extension in the synchronous foreground policy refresh.
 //
-#define ERROR_[....]_FOREGROUND_REFRESH_REQUIRED 1274L
+#define ERROR_SYNC_FOREGROUND_REFRESH_REQUIRED 1274L
 
 //
 // MessageId: ERROR_DRIVER_BLOCKED
@@ -18069,13 +18069,13 @@
 #define ERROR_DS_DRA_PREEMPTED           8461L
 
 //
-// MessageId: ERROR_DS_DRA_ABANDON_[....]
+// MessageId: ERROR_DS_DRA_ABANDON_SYNC
 //
 // MessageText:
 //
 // The replication synchronization attempt was abandoned because of a lack of updates.
 //
-#define ERROR_DS_DRA_ABANDON_[....]        8462L
+#define ERROR_DS_DRA_ABANDON_SYNC        8462L
 
 //
 // MessageId: ERROR_DS_DRA_SHUTDOWN
@@ -18100,7 +18100,7 @@
 //
 // MessageText:
 //
-// The replication synchronization attempt failed because a master replica attempted to [....] from a partial replica.
+// The replication synchronization attempt failed because a master replica attempted to sync from a partial replica.
 //
 #define ERROR_DS_DRA_SOURCE_IS_PARTIAL_REPLICA 8465L
 
@@ -18641,7 +18641,7 @@
 //
 // MessageText:
 //
-// While processing a change to the DNS Host Name for an object, the Service Principal Name values could not be kept in [....].
+// While processing a change to the DNS Host Name for an object, the Service Principal Name values could not be kept in sync.
 //
 #define ERROR_DS_COULDNT_UPDATE_SPNS     8525L
 
@@ -31587,13 +31587,13 @@ FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <=
 #define RPC_E_TIMEOUT                    _HRESULT_TYPEDEF_(0x8001011FL)
 
 //
-// MessageId: RPC_E_NO_[....]
+// MessageId: RPC_E_NO_SYNC
 //
 // MessageText:
 //
 // There are no synchronize objects to wait on.
 //
-#define RPC_E_NO_[....]                    _HRESULT_TYPEDEF_(0x80010120L)
+#define RPC_E_NO_SYNC                    _HRESULT_TYPEDEF_(0x80010120L)
 
 //
 // MessageId: RPC_E_FULLSIC_REQUIRED
@@ -39435,22 +39435,22 @@ FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <=
 #define ERROR_GRAPHICS_PATH_CONTENT_GEOMETRY_TRANSFORMATION_NOT_SUPPORTED _HRESULT_TYPEDEF_(0xC0262346L)
 
 //
-// MessageId: ERROR_GRAPHICS_INVALID_GAMMA_[....]
+// MessageId: ERROR_GRAPHICS_INVALID_GAMMA_Microsoft
 //
 // MessageText:
 //
-// Specified gamma [....] is invalid.
+// Specified gamma Microsoft is invalid.
 //
-#define ERROR_GRAPHICS_INVALID_GAMMA_[....] _HRESULT_TYPEDEF_(0xC0262347L)
+#define ERROR_GRAPHICS_INVALID_GAMMA_Microsoft _HRESULT_TYPEDEF_(0xC0262347L)
 
 //
-// MessageId: ERROR_GRAPHICS_GAMMA_[....]_NOT_SUPPORTED
+// MessageId: ERROR_GRAPHICS_GAMMA_Microsoft_NOT_SUPPORTED
 //
 // MessageText:
 //
-// Specified gamma [....] is not supported on the respective VidPN present path.
+// Specified gamma Microsoft is not supported on the respective VidPN present path.
 //
-#define ERROR_GRAPHICS_GAMMA_[....]_NOT_SUPPORTED _HRESULT_TYPEDEF_(0xC0262348L)
+#define ERROR_GRAPHICS_GAMMA_Microsoft_NOT_SUPPORTED _HRESULT_TYPEDEF_(0xC0262348L)
 
 //
 // MessageId: ERROR_GRAPHICS_MULTISAMPLING_NOT_SUPPORTED
@@ -46666,13 +46666,13 @@ FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <=
 #define ERROR_VOLMGR_DISK_CONFIGURATION_CORRUPTED _NDIS_ERROR_TYPEDEF_(0xC0380002L)
 
 //
-// MessageId: ERROR_VOLMGR_DISK_CONFIGURATION_NOT_IN_[....]
+// MessageId: ERROR_VOLMGR_DISK_CONFIGURATION_NOT_IN_SYNC
 //
 // MessageText:
 //
 // The configuration on the disk is not insync with the in-memory configuration.
 //
-#define ERROR_VOLMGR_DISK_CONFIGURATION_NOT_IN_[....] _NDIS_ERROR_TYPEDEF_(0xC0380003L)
+#define ERROR_VOLMGR_DISK_CONFIGURATION_NOT_IN_SYNC _NDIS_ERROR_TYPEDEF_(0xC0380003L)
 
 //
 // MessageId: ERROR_VOLMGR_PACK_CONFIG_UPDATE_FAILED
@@ -46954,13 +46954,13 @@ FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <=
 #define ERROR_VOLMGR_MAXIMUM_REGISTERED_USERS _NDIS_ERROR_TYPEDEF_(0xC0380022L)
 
 //
-// MessageId: ERROR_VOLMGR_MEMBER_IN_[....]
+// MessageId: ERROR_VOLMGR_MEMBER_IN_SYNC
 //
 // MessageText:
 //
-// The specified member is already in-[....] with the other active members. It does not need to be regenerated.
+// The specified member is already in-sync with the other active members. It does not need to be regenerated.
 //
-#define ERROR_VOLMGR_MEMBER_IN_[....]      _NDIS_ERROR_TYPEDEF_(0xC0380023L)
+#define ERROR_VOLMGR_MEMBER_IN_SYNC      _NDIS_ERROR_TYPEDEF_(0xC0380023L)
 
 //
 // MessageId: ERROR_VOLMGR_MEMBER_INDEX_DUPLICATE
@@ -47143,13 +47143,13 @@ FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <=
 #define ERROR_VOLMGR_PARTITION_UPDATE_FAILED _NDIS_ERROR_TYPEDEF_(0xC0380037L)
 
 //
-// MessageId: ERROR_VOLMGR_PLEX_IN_[....]
+// MessageId: ERROR_VOLMGR_PLEX_IN_SYNC
 //
 // MessageText:
 //
-// The specified plex is already in-[....] with the other active plexes. It does not need to be regenerated.
+// The specified plex is already in-sync with the other active plexes. It does not need to be regenerated.
 //
-#define ERROR_VOLMGR_PLEX_IN_[....]        _NDIS_ERROR_TYPEDEF_(0xC0380038L)
+#define ERROR_VOLMGR_PLEX_IN_SYNC        _NDIS_ERROR_TYPEDEF_(0xC0380038L)
 
 //
 // MessageId: ERROR_VOLMGR_PLEX_INDEX_DUPLICATE
@@ -50479,8 +50479,8 @@ FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <=
 //
 // MessageText:
 //
-// An internal error (Direct2D bug) occurred. On checked builds, we would assert. The application should close this instance of Direct2D and should consider restarting its process.
-//
+// An internal error (Direct2D 
+
 #define D2DERR_INTERNAL_ERROR            _HRESULT_TYPEDEF_(0x88990008L)
 
 //
@@ -51403,8 +51403,8 @@ FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <=
 //
 // MessageText:
 //
-// An internal error (MIL bug) occurred. On checked builds, an assert would be raised.
-//
+// An internal error (MIL 
+
 #define MILERR_INTERNALERROR             _HRESULT_TYPEDEF_(0x88980080L)
 
 //
@@ -51503,7 +51503,7 @@ FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <=
 // MessageText:
 //
 // There has been a presentation error that may be recoverable. The caller needs to recreate, rerender the entire frame, and reattempt present.
-// There are two known case for this: 1) D3D Driver Internal error 2) D3D E_FAIL 2a) Unknown root cause b) When resizing too quickly for DWM and D3D stay in [....]
+// There are two known case for this: 1) D3D Driver Internal error 2) D3D E_FAIL 2a) Unknown root cause b) When resizing too quickly for DWM and D3D stay in sync
 //
 #define MILERR_NEED_RECREATE_AND_PRESENT _HRESULT_TYPEDEF_(0x8898008EL)
 
@@ -51625,13 +51625,13 @@ FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <=
 #define MILERR_QPC_TIME_WENT_BACKWARD    _HRESULT_TYPEDEF_(0x8898009BL)
 
 //
-// MessageId: MILERR_DXGI_ENUMERATION_OUT_OF_[....]
+// MessageId: MILERR_DXGI_ENUMERATION_OUT_OF_SYNC
 //
 // MessageText:
 //
 // Primary Display device returned an invalid refresh rate.
 //
-#define MILERR_DXGI_ENUMERATION_OUT_OF_[....] _HRESULT_TYPEDEF_(0x8898009DL)
+#define MILERR_DXGI_ENUMERATION_OUT_OF_SYNC _HRESULT_TYPEDEF_(0x8898009DL)
 
 //
 // MessageId: MILERR_ADAPTER_NOT_FOUND
@@ -52616,14 +52616,14 @@ FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <=
 #define E_SKYDRIVE_ROOT_TARGET_VOLUME_ROOT_NOT_SUPPORTED _HRESULT_TYPEDEF_(0x80270265L)
 
 
-// [....] Engine File Error Codes
+// Sync Engine File Error Codes
 
 //
 // MessageId: E_SYNCENGINE_FILE_SIZE_OVER_LIMIT
 //
 // MessageText:
 //
-// The file size is larger than supported by the [....] engine.
+// The file size is larger than supported by the sync engine.
 //
 #define E_SYNCENGINE_FILE_SIZE_OVER_LIMIT _HRESULT_TYPEDEF_(0x8802B001L)
 
@@ -52650,30 +52650,30 @@ FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <=
 //
 // MessageText:
 //
-// The maximum file count has been reached for this folder in the [....] engine.
+// The maximum file count has been reached for this folder in the sync engine.
 //
 #define E_SYNCENGINE_FOLDER_ITEM_COUNT_LIMIT_EXCEEDED _HRESULT_TYPEDEF_(0x8802B004L)
 
 //
-// MessageId: E_SYNCENGINE_FILE_[....]_PARTNER_ERROR
+// MessageId: E_SYNCENGINE_FILE_SYNC_PARTNER_ERROR
 //
 // MessageText:
 //
-// The file [....] has been delegated to another program and has run into an issue. 
+// The file sync has been delegated to another program and has run into an issue. 
 //
-#define E_SYNCENGINE_FILE_[....]_PARTNER_ERROR _HRESULT_TYPEDEF_(0x8802B005L)
+#define E_SYNCENGINE_FILE_SYNC_PARTNER_ERROR _HRESULT_TYPEDEF_(0x8802B005L)
 
 //
-// MessageId: E_SYNCENGINE_[....]_PAUSED_BY_SERVICE
+// MessageId: E_SYNCENGINE_SYNC_PAUSED_BY_SERVICE
 //
 // MessageText:
 //
-// [....] has been delayed due to a throttling request from the service.
+// Sync has been delayed due to a throttling request from the service.
 //
-#define E_SYNCENGINE_[....]_PAUSED_BY_SERVICE _HRESULT_TYPEDEF_(0x8802B006L)
+#define E_SYNCENGINE_SYNC_PAUSED_BY_SERVICE _HRESULT_TYPEDEF_(0x8802B006L)
 
 
-// [....] Engine Stream Resolver Errors
+// Sync Engine Stream Resolver Errors
 
 //
 // MessageId: E_SYNCENGINE_FILE_IDENTIFIER_UNKNOWN
@@ -52730,14 +52730,14 @@ FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <=
 #define E_SYNCENGINE_REQUEST_BLOCKED_DUE_TO_CLIENT_ERROR _HRESULT_TYPEDEF_(0x8802C007L)
 
 
-// [....] Engine Global Errors
+// Sync Engine Global Errors
 
 //
 // MessageId: E_SYNCENGINE_FOLDER_INACCESSIBLE
 //
 // MessageText:
 //
-// The [....] engine does not have permissions to access a local folder under the [....] root.
+// The sync engine does not have permissions to access a local folder under the sync root.
 //
 #define E_SYNCENGINE_FOLDER_INACCESSIBLE _HRESULT_TYPEDEF_(0x8802D001L)
 
@@ -52755,7 +52755,7 @@ FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <=
 //
 // MessageText:
 //
-// The [....] engine is not allowed to run in your current market.
+// The sync engine is not allowed to run in your current market.
 //
 #define E_SYNCENGINE_UNSUPPORTED_MARKET  _HRESULT_TYPEDEF_(0x8802D003L)
 
@@ -52782,7 +52782,7 @@ FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <=
 //
 // MessageText:
 //
-// Updates are needed in order to use the [....] engine.
+// Updates are needed in order to use the sync engine.
 //
 #define E_SYNCENGINE_CLIENT_UPDATE_NEEDED _HRESULT_TYPEDEF_(0x8802D006L)
 
@@ -52791,7 +52791,7 @@ FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <=
 //
 // MessageText:
 //
-// The [....] engine needs to authenticate with a proxy server.
+// The sync engine needs to authenticate with a proxy server.
 //
 #define E_SYNCENGINE_PROXY_AUTHENTICATION_REQUIRED _HRESULT_TYPEDEF_(0x8802D007L)
 

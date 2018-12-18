@@ -2,8 +2,8 @@
 // <copyright file="TdsParser.cs" company="Microsoft">
 //     Copyright (c) Microsoft Corporation.  All rights reserved.
 // </copyright>
-// <owner current="true" primary="true">[....]</owner>
-// <owner current="true" primary="false">[....]</owner>
+// <owner current="true" primary="true">Microsoft</owner>
+// <owner current="true" primary="false">Microsoft</owner>
 //------------------------------------------------------------------------------
 
 namespace System.Data.SqlClient {
@@ -561,7 +561,7 @@ namespace System.Data.SqlClient {
                 _physicalStateObj.AddError(ProcessSNIError(_physicalStateObj));
                 ThrowExceptionAndWarning(_physicalStateObj);
             }
-            // create a new packet encryption changes the internal packet size Bug# 228403
+            // create a new packet encryption changes the internal packet size 
             try {}   // EmptyTry/Finally to avoid FXCop violation
             finally {
                 _physicalStateObj.ClearAllWritePackets();
@@ -991,7 +991,7 @@ namespace System.Data.SqlClient {
                                 ThrowExceptionAndWarning(_physicalStateObj);
                             }
 
-                            // create a new packet encryption changes the internal packet size Bug# 228403
+                            // create a new packet encryption changes the internal packet size 
                             try {} // EmptyTry/Finally to avoid FXCop violation
                             finally {
                                 _physicalStateObj.ClearAllWritePackets();
@@ -1228,10 +1228,10 @@ namespace System.Data.SqlClient {
             breakConnection &= (TdsParserState.Closed != _state);
             if (breakConnection) {
                 if ((_state == TdsParserState.OpenNotLoggedIn) && (_connHandler.ConnectionOptions.TransparentNetworkIPResolution || _connHandler.ConnectionOptions.MultiSubnetFailover || _loginWithFailover) && (temp.Count == 1) && ((temp[0].Number == TdsEnums.TIMEOUT_EXPIRED) || (temp[0].Number == TdsEnums.SNI_WAIT_TIMEOUT))) {
-                    // DevDiv2 Bug 459546: With "MultiSubnetFailover=yes" in the Connection String, SQLClient incorrectly throws a Timeout using shorter time slice (3-4 seconds), not honoring the actual 'Connect Timeout'
-                    // http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/459546
-                    // For Multisubnet Failover we slice the timeout to make reconnecting faster (with the assumption that the server will not failover instantaneously)
-                    // However, when timeout occurs we need to not doom the internal connection and also to mark the TdsParser as closed such that the login will be will retried
+                    // DevDiv2 
+
+
+
                     breakConnection = false;
                     Disconnect();
                 }
@@ -1378,10 +1378,10 @@ namespace System.Data.SqlClient {
                     len-=iColon;
                     /*
                         The error message should come back in the following format: "TCP Provider: MESSAGE TEXT"
-                        Fix Bug 370686, if the message is recieved on a Win9x OS, the error message will not contain MESSAGE TEXT 
-                        per Bug: 269574.  If we get a errormessage with no message text, just return the entire message otherwise 
-                        return just the message text.
-                    */
+                        Fix 
+
+
+*/
                     if (len > 0) { 
                         errorMessage = errorMessage.Substring(iColon, len); 
                     }
@@ -1908,8 +1908,8 @@ namespace System.Data.SqlClient {
                                 // anyways so we need to consume all errors.  This is not the case
                                 // if we have already given out a reader.  If we have already given out
                                 // a reader we need to throw the error but not halt further processing.  We used to
-                                // halt processing and that was a bug preventing the user from
-                                // processing subsequent results.
+                                // halt processing and that was a 
+
 
                                 if (null != dataStream) { // Webdata 104560
                                     if (!dataStream.IsInitialized) {
@@ -3244,8 +3244,8 @@ namespace System.Data.SqlClient {
 
             string server;
 
-            // MDAC bug #49307 - server sometimes does not send over server field! In those cases
-            // we will use our locally cached value.
+            // MDAC 
+
             if (byteLen == 0) {
                 server = _server;
             }
@@ -4834,8 +4834,8 @@ namespace System.Data.SqlClient {
                     break;
 
                 case SqlDbType.Timestamp:
-                    // Dev10 Bug #479607 - this should have been the same as SqlDbType.Binary, but it's a rejected breaking change
-                    // Dev10 Bug #752790 - don't assert when it does happen
+                    // Dev10 
+
                     break;
 
                 default:
@@ -7841,8 +7841,8 @@ namespace System.Data.SqlClient {
 
                 bool originalThreadHasParserLock = _connHandler.ThreadHasParserLockForClose;
                 try {
-                    // Dev11 Bug 385286 : ExecuteNonQueryAsync hangs when trying to write a parameter which generates ArgumentException and while handling that exception the server disconnects the connection
-                    // Need to set this to true such that if we have an error sending\processing the attention, we won't deadlock ourselves
+                    // Dev11 
+
                     _connHandler.ThreadHasParserLockForClose = true;
 
                     // If _outputPacketNumber prior to ResetBuffer was not equal to 1, a packet was already
@@ -7948,7 +7948,7 @@ namespace System.Data.SqlClient {
                     }, TaskScheduler.Default);
                 }
 
-                // Finished [....]
+                // Finished sync
                 return null;
             }
             catch (Exception e) {
@@ -8137,7 +8137,7 @@ namespace System.Data.SqlClient {
                                   throw SQL.PrecisionValueOutOfRange(precision);
                               }
 
-                              // bug 49512, make sure the value matches the scale the user enters
+                              // 
                               if (!isNull) {
                                   if (isSqlVal) {
                                       value = AdjustSqlDecimalScale((SqlDecimal)value, scale);
@@ -8773,7 +8773,7 @@ namespace System.Data.SqlClient {
                 case SqlDbType.Char:
                     stateObj.WriteByte(TdsEnums.SQLBIGCHAR);
                     WriteUnsignedShort(checked((ushort)(metaData.MaxLength)), stateObj);
-                    WriteUnsignedInt(_defaultCollation.info, stateObj); // TODO: Use metadata's collation??
+                    WriteUnsignedInt(_defaultCollation.info, stateObj); // 
                     stateObj.WriteByte(_defaultCollation.sortId);
                     break;
                 case SqlDbType.DateTime:
@@ -8805,13 +8805,13 @@ namespace System.Data.SqlClient {
                 case SqlDbType.NChar:
                     stateObj.WriteByte(TdsEnums.SQLNCHAR);
                     WriteUnsignedShort(checked((ushort)(metaData.MaxLength*2)), stateObj);
-                    WriteUnsignedInt(_defaultCollation.info, stateObj); // TODO: Use metadata's collation??
+                    WriteUnsignedInt(_defaultCollation.info, stateObj); // 
                     stateObj.WriteByte(_defaultCollation.sortId);
                     break;
                 case SqlDbType.NText:
                     stateObj.WriteByte(TdsEnums.SQLNVARCHAR);
                     WriteUnsignedShort(unchecked((ushort)MSS.SmiMetaData.UnlimitedMaxLengthIndicator), stateObj);
-                    WriteUnsignedInt(_defaultCollation.info, stateObj); // TODO: Use metadata's collation??
+                    WriteUnsignedInt(_defaultCollation.info, stateObj); // 
                     stateObj.WriteByte(_defaultCollation.sortId);
                     break;
                 case SqlDbType.NVarChar:
@@ -8822,7 +8822,7 @@ namespace System.Data.SqlClient {
                     else {
                         WriteUnsignedShort(checked((ushort)(metaData.MaxLength*2)), stateObj);
                     }
-                    WriteUnsignedInt(_defaultCollation.info, stateObj); // TODO: Use metadata's collation??
+                    WriteUnsignedInt(_defaultCollation.info, stateObj); // 
                     stateObj.WriteByte(_defaultCollation.sortId);
                     break;
                 case SqlDbType.Real:
@@ -8848,7 +8848,7 @@ namespace System.Data.SqlClient {
                 case SqlDbType.Text:
                     stateObj.WriteByte(TdsEnums.SQLBIGVARCHAR);
                     WriteUnsignedShort(unchecked((ushort)MSS.SmiMetaData.UnlimitedMaxLengthIndicator), stateObj);
-                    WriteUnsignedInt(_defaultCollation.info, stateObj); // TODO: Use metadata's collation??
+                    WriteUnsignedInt(_defaultCollation.info, stateObj); // 
                     stateObj.WriteByte(_defaultCollation.sortId);
                     break;
                 case SqlDbType.Timestamp:
@@ -8866,7 +8866,7 @@ namespace System.Data.SqlClient {
                 case SqlDbType.VarChar:
                     stateObj.WriteByte(TdsEnums.SQLBIGVARCHAR);
                     WriteUnsignedShort(unchecked((ushort)metaData.MaxLength), stateObj);
-                    WriteUnsignedInt(_defaultCollation.info, stateObj); // TODO: Use metadata's collation??
+                    WriteUnsignedInt(_defaultCollation.info, stateObj); // 
                     stateObj.WriteByte(_defaultCollation.sortId);
                     break;
                 case SqlDbType.Variant:
@@ -9127,7 +9127,7 @@ namespace System.Data.SqlClient {
         /// <returns></returns>
         internal void WriteTceUserTypeAndTypeInfo(SqlMetaDataPriv mdPriv, TdsParserStateObject stateObj) {
             // Write the UserType (4 byte value)
-            WriteInt(0x0, stateObj); // TODO: fix this- timestamp columns have 0x50 value here
+            WriteInt(0x0, stateObj); // 
 
             Debug.Assert(SqlDbType.Xml != mdPriv.type);
             Debug.Assert(SqlDbType.Udt != mdPriv.type);
@@ -9233,7 +9233,7 @@ namespace System.Data.SqlClient {
                     // todo:
                     // for xml WriteTokenLength results in a no-op
                     // discuss this with blaine ...
-                    // ([....]) xml datatype does not have token length in its metadata. So it should be a noop.
+                    // (Microsoft) xml datatype does not have token length in its metadata. So it should be a noop.
 
                     switch (md.type) {
                         case SqlDbType.Decimal:

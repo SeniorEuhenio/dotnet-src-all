@@ -1879,9 +1879,6 @@ namespace System.Windows.Input
                             }               
                         }
 
-                        // Update the last event we've sent through.
-                        _stylusLogic.SetLastRawMouseActions(actions);
-                        
                         RawMouseInputReport mouseInputReport = new RawMouseInputReport(
                                                      InputMode.Foreground, timestamp, mouseInputSource,
                                                      actions, 

@@ -173,7 +173,7 @@ private:
 	// Returns a Windows error code otherwise.
 	DWORD DWSetSkipCompletionPortOnSuccess();
 	
-	// Sets parameters on the SNI_Packet to allow it to be used for a [....] Overlapped operation.
+	// Sets parameters on the SNI_Packet to allow it to be used for a sync Overlapped operation.
 	void PrepareForSyncCall(SNI_Packet *pPacket);
 	
 	// Sets parameters on the SNI_Packet to allow it to be used for an Async Overlapped operation.

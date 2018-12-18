@@ -2409,7 +2409,7 @@ namespace System.Windows.Controls
 
                 // Notify other rows and column header row to
                 // remeasure their child panel's in order to be
-                // in [....] with latest column realization computations
+                // in sync with latest column realization computations
                 DataGrid dataGrid = DataGridOwner;
                 dataGrid.NotifyPropertyChanged(
                     dataGrid,
@@ -2452,7 +2452,7 @@ namespace System.Windows.Controls
 
                 // Notify other rows and column header row to
                 // remeasure their child panel's in order to be
-                // in [....] with latest column realization computations
+                // in sync with latest column realization computations
                 DataGrid dataGrid = DataGridOwner;
                 dataGrid.NotifyPropertyChanged(
                     dataGrid,

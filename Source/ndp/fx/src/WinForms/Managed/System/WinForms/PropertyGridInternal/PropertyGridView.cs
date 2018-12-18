@@ -2309,7 +2309,7 @@ namespace System.Windows.Forms.PropertyGridInternal {
         // This has no effect, see VSW#470693.
         protected override void OnImeModeChanged(EventArgs e) {
             // VSW  #375530
-            // Only update edit box mode if actually out of [....] with grid's mode (to avoid re-entrancy issues)
+            // Only update edit box mode if actually out of sync with grid's mode (to avoid re-entrancy issues)
             //
             if (edit != null && edit.ImeMode != this.ImeMode) {
                 // URT  #51190
@@ -2705,7 +2705,7 @@ namespace System.Windows.Forms.PropertyGridInternal {
             Keys keyCode = ke.KeyCode;
             bool fallingThorugh = false;
 
-            // [....], we have to do this here because if we are
+            // Microsoft, we have to do this here because if we are
             // hosted in a non-windows forms dialog, we never get a chance to
             // peek at the messages, we just get called,
             // so we have to do this here...
@@ -2900,7 +2900,7 @@ namespace System.Windows.Forms.PropertyGridInternal {
                 return;
             }
 
-            /* [....], VS30371 -- Due to conflicts with other VS commands,
+            /* Microsoft, VS30371 -- Due to conflicts with other VS commands,
                we are removing this functionality.
 
                // Ctrl + Shift + 'X' selects the property that starts with 'X'
@@ -3680,7 +3680,7 @@ namespace System.Windows.Forms.PropertyGridInternal {
                         UnsafeNativeMethods.ReleaseDC(new HandleRef(DropDownListBox, DropDownListBox.Handle), new HandleRef(DropDownListBox, hdc));
                     }
                     
-                    // [....], 4/25/1998 - must check for -1 and not call the set...
+                    // Microsoft, 4/25/1998 - must check for -1 and not call the set...
                     if (iSel != -1) {
                         DropDownListBox.SelectedIndex = iSel;
                     }
@@ -5107,7 +5107,7 @@ namespace System.Windows.Forms.PropertyGridInternal {
                     Invalidate();
                     break;
 
-                    // [....] -- if we get focus in the error
+                    // Microsoft -- if we get focus in the error
                     // state, make sure we push it back to the
                     // Edit or bad bad things can happen with
                     // our state...

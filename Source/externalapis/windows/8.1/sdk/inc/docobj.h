@@ -406,13 +406,13 @@ EXTERN_C const IID IID_IOleDocumentView;
         virtual HRESULT STDMETHODCALLTYPE GetDocument( 
             /* [out] */ __RPC__deref_out_opt IUnknown **ppunk) = 0;
         
-        virtual /* [input_[....]] */ HRESULT STDMETHODCALLTYPE SetRect( 
+        virtual /* [input_sync] */ HRESULT STDMETHODCALLTYPE SetRect( 
             /* [in] */ __RPC__in LPRECT prcView) = 0;
         
         virtual HRESULT STDMETHODCALLTYPE GetRect( 
             /* [out] */ __RPC__out LPRECT prcView) = 0;
         
-        virtual /* [input_[....]] */ HRESULT STDMETHODCALLTYPE SetRectComplex( 
+        virtual /* [input_sync] */ HRESULT STDMETHODCALLTYPE SetRectComplex( 
             /* [unique][in] */ __RPC__in_opt LPRECT prcView,
             /* [unique][in] */ __RPC__in_opt LPRECT prcHScroll,
             /* [unique][in] */ __RPC__in_opt LPRECT prcVScroll,
@@ -472,7 +472,7 @@ EXTERN_C const IID IID_IOleDocumentView;
             __RPC__in IOleDocumentView * This,
             /* [out] */ __RPC__deref_out_opt IUnknown **ppunk);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *SetRect )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *SetRect )( 
             __RPC__in IOleDocumentView * This,
             /* [in] */ __RPC__in LPRECT prcView);
         
@@ -480,7 +480,7 @@ EXTERN_C const IID IID_IOleDocumentView;
             __RPC__in IOleDocumentView * This,
             /* [out] */ __RPC__out LPRECT prcView);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *SetRectComplex )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *SetRectComplex )( 
             __RPC__in IOleDocumentView * This,
             /* [unique][in] */ __RPC__in_opt LPRECT prcView,
             /* [unique][in] */ __RPC__in_opt LPRECT prcHScroll,
@@ -1214,7 +1214,7 @@ EXTERN_C const IID IID_IOleCommandTarget;
     IOleCommandTarget : public IUnknown
     {
     public:
-        virtual /* [input_[....]] */ HRESULT STDMETHODCALLTYPE QueryStatus( 
+        virtual /* [input_sync] */ HRESULT STDMETHODCALLTYPE QueryStatus( 
             /* [unique][in] */ __RPC__in_opt const GUID *pguidCmdGroup,
             /* [in] */ ULONG cCmds,
             /* [out][in][size_is] */ __RPC__inout_ecount_full(cCmds) OLECMD prgCmds[  ],
@@ -1248,7 +1248,7 @@ EXTERN_C const IID IID_IOleCommandTarget;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IOleCommandTarget * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *QueryStatus )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *QueryStatus )( 
             __RPC__in IOleCommandTarget * This,
             /* [unique][in] */ __RPC__in_opt const GUID *pguidCmdGroup,
             /* [in] */ ULONG cCmds,

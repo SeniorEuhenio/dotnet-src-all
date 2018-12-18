@@ -4498,7 +4498,7 @@ typedef DWORD SHCONTF;
 typedef ULONG SFGAOF;
 
 typedef /* [v1_enum] */ 
-enum [....]_TRANSFER_STATUS
+enum SYNC_TRANSFER_STATUS
     {
         STS_NONE	= 0,
         STS_NEEDSUPLOAD	= 0x1,
@@ -4507,9 +4507,9 @@ enum [....]_TRANSFER_STATUS
         STS_PAUSED	= 0x8,
         STS_HASERROR	= 0x10,
         STS_FETCHING_METADATA	= 0x20
-    } 	[....]_TRANSFER_STATUS;
+    } 	SYNC_TRANSFER_STATUS;
 
-DEFINE_ENUM_FLAG_OPERATORS([....]_TRANSFER_STATUS)
+DEFINE_ENUM_FLAG_OPERATORS(SYNC_TRANSFER_STATUS)
 typedef /* [v1_enum] */ 
 enum PLACEHOLDER_STATES
     {
@@ -4522,7 +4522,7 @@ enum PLACEHOLDER_STATES
 
 DEFINE_ENUM_FLAG_OPERATORS(PLACEHOLDER_STATES);
 typedef /* [v1_enum] */ 
-enum [....]_ENGINE_STATE_FLAGS
+enum SYNC_ENGINE_STATE_FLAGS
     {
         SESF_NONE	= 0,
         SESF_SERVICE_QUOTA_NEARING_LIMIT	= 0x1,
@@ -4534,9 +4534,9 @@ enum [....]_ENGINE_STATE_FLAGS
         SESF_PAUSED_DUE_TO_SERVICE_POLICY	= 0x40,
         SESF_SERVICE_UNAVAILABLE	= 0x80,
         SESF_ALL_FLAGS	= ( ( ( ( ( ( ( ( SESF_NONE | SESF_SERVICE_QUOTA_NEARING_LIMIT )  | SESF_SERVICE_QUOTA_EXCEEDED_LIMIT )  | SESF_AUTHENTICATION_ERROR )  | SESF_PAUSED_DUE_TO_METERED_NETWORK )  | SESF_PAUSED_DUE_TO_DISK_SPACE_FULL )  | SESF_PAUSED_DUE_TO_CLIENT_POLICY )  | SESF_PAUSED_DUE_TO_SERVICE_POLICY )  | SESF_SERVICE_UNAVAILABLE ) 
-    } 	[....]_ENGINE_STATE_FLAGS;
+    } 	SYNC_ENGINE_STATE_FLAGS;
 
-DEFINE_ENUM_FLAG_OPERATORS([....]_ENGINE_STATE_FLAGS)
+DEFINE_ENUM_FLAG_OPERATORS(SYNC_ENGINE_STATE_FLAGS)
 #define CONFLICT_RESOLUTION_CLSID_KEY L"ConflictResolutionCLSID"
 typedef /* [v1_enum] */ 
 enum MERGE_UPDATE_STATUS
@@ -5906,7 +5906,7 @@ EXTERN_C const IID IID_IShellView;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IShellView * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             __RPC__in IShellView * This,
             /* [out] */ __RPC__deref_out_opt HWND *phwnd);
         
@@ -6111,7 +6111,7 @@ EXTERN_C const IID IID_IShellView2;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IShellView2 * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             __RPC__in IShellView2 * This,
             /* [out] */ __RPC__deref_out_opt HWND *phwnd);
         
@@ -6344,7 +6344,7 @@ EXTERN_C const IID IID_IShellView3;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IShellView3 * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             __RPC__in IShellView3 * This,
             /* [out] */ __RPC__deref_out_opt HWND *phwnd);
         
@@ -9178,7 +9178,7 @@ EXTERN_C const IID IID_IShellBrowser;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IShellBrowser * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             __RPC__in IShellBrowser * This,
             /* [out] */ __RPC__deref_out_opt HWND *phwnd);
         
@@ -10286,7 +10286,7 @@ enum STGOP
     {
         STGOP_MOVE	= 1,
         STGOP_COPY	= 2,
-        STGOP_[....]	= 3,
+        STGOP_SYNC	= 3,
         STGOP_REMOVE	= 5,
         STGOP_RENAME	= 6,
         STGOP_APPLYPROPERTIES	= 8,
@@ -16486,7 +16486,7 @@ EXTERN_C const IID IID_IDockingWindow;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IDockingWindow * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             __RPC__in IDockingWindow * This,
             /* [out] */ __RPC__deref_out_opt HWND *phwnd);
         
@@ -16663,7 +16663,7 @@ EXTERN_C const IID IID_IDeskBand;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IDeskBand * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             __RPC__in IDeskBand * This,
             /* [out] */ __RPC__deref_out_opt HWND *phwnd);
         
@@ -16883,7 +16883,7 @@ EXTERN_C const IID IID_IDeskBand2;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IDeskBand2 * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             __RPC__in IDeskBand2 * This,
             /* [out] */ __RPC__deref_out_opt HWND *phwnd);
         
@@ -21882,7 +21882,7 @@ EXTERN_C const IID IID_IDeskBar;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             IDeskBar * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             IDeskBar * This,
             /* [out] */ HWND *phwnd);
         
@@ -22039,7 +22039,7 @@ EXTERN_C const IID IID_IMenuPopup;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             IMenuPopup * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             IMenuPopup * This,
             /* [out] */ HWND *phwnd);
         

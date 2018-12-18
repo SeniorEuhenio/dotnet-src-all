@@ -601,7 +601,7 @@ extern "C" {
 #define LOCALE_SABBREVDAYNAME7        0x00000037   // abbreviated name for Sunday
 #define LOCALE_SMONTHNAME1            0x00000038   // long name for January
 #define LOCALE_SMONTHNAME2            0x00000039   // long name for February
-#define LOCALE_SMONTHNAME3            0x0000003A   // long name for [....]
+#define LOCALE_SMONTHNAME3            0x0000003A   // long name for Microsoft
 #define LOCALE_SMONTHNAME4            0x0000003B   // long name for April
 #define LOCALE_SMONTHNAME5            0x0000003C   // long name for May
 #define LOCALE_SMONTHNAME6            0x0000003D   // long name for June
@@ -614,7 +614,7 @@ extern "C" {
 #define LOCALE_SMONTHNAME13           0x0000100E   // long name for 13th month (if exists)
 #define LOCALE_SABBREVMONTHNAME1      0x00000044   // abbreviated name for January
 #define LOCALE_SABBREVMONTHNAME2      0x00000045   // abbreviated name for February
-#define LOCALE_SABBREVMONTHNAME3      0x00000046   // abbreviated name for [....]
+#define LOCALE_SABBREVMONTHNAME3      0x00000046   // abbreviated name for Microsoft
 #define LOCALE_SABBREVMONTHNAME4      0x00000047   // abbreviated name for April
 #define LOCALE_SABBREVMONTHNAME5      0x00000048   // abbreviated name for May
 #define LOCALE_SABBREVMONTHNAME6      0x00000049   // abbreviated name for June
@@ -779,7 +779,7 @@ extern "C" {
 // Note that in the hebrew calendar the leap month name is always returned as the 7th month
 #define CAL_SMONTHNAME1           0x00000015  // native name for January
 #define CAL_SMONTHNAME2           0x00000016  // native name for February
-#define CAL_SMONTHNAME3           0x00000017  // native name for [....]
+#define CAL_SMONTHNAME3           0x00000017  // native name for Microsoft
 #define CAL_SMONTHNAME4           0x00000018  // native name for April
 #define CAL_SMONTHNAME5           0x00000019  // native name for May
 #define CAL_SMONTHNAME6           0x0000001a  // native name for June

@@ -211,9 +211,9 @@ typedef
 enum XACTTC
     {
         XACTTC_NONE	= 0,
-        XACTTC_[....]_PHASEONE	= 1,
-        XACTTC_[....]_PHASETWO	= 2,
-        XACTTC_[....]	= 2,
+        XACTTC_SYNC_PHASEONE	= 1,
+        XACTTC_SYNC_PHASETWO	= 2,
+        XACTTC_SYNC	= 2,
         XACTTC_ASYNC_PHASEONE	= 4,
         XACTTC_ASYNC	= 4
     } 	XACTTC;

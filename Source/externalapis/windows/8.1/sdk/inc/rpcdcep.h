@@ -151,7 +151,7 @@ RPC_ENTRY RPC_ADDRESS_CHANGE_FN(
  * Used by COM to inform RPC that even though this is an
  * async RPC call, there is a thread waiting for the call
  * to complete. Essentially, from COM perspective, this is a
- * [....] call. This flag will be passed down to ALPC in order
+ * sync call. This flag will be passed down to ALPC in order
  * to count the wake charges properly. 
  */
 

@@ -2145,7 +2145,7 @@ typedef LPEXTLOGFONTA LPEXTLOGFONT;
 /* Color Management caps */
 #define CM_NONE             0x00000000
 #define CM_DEVICE_ICM       0x00000001
-#define CM_GAMMA_[....]       0x00000002
+#define CM_GAMMA_Microsoft       0x00000002
 #define CM_CMYK_COLOR       0x00000004
 
 #endif /* WINVER >= 0x0500 */

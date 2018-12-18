@@ -480,9 +480,9 @@ namespace System.Windows.Forms.PropertyGridInternal {
                 // find the next parent property with a differnet value owner
                 object owner = ge.GetValueOwner();
 
-                // Fix for Dev10 bug 584323:
-                // when owner is an instance of a value type, 
-                // we can't just use == in the following while condition testing
+                // Fix for Dev10 
+
+
                 bool isValueType = owner.GetType().IsValueType;
 
                 // find the next property descriptor with a different parent
@@ -842,7 +842,7 @@ namespace System.Windows.Forms.PropertyGridInternal {
 
                     propertyInfo.SetValue(target, value);
 
-                    // [....], okay, since the value that we modified may not
+                    // Microsoft, okay, since the value that we modified may not
                     // be stored by the parent property, we need to push this
                     // value back into the parent.  An example here is Size or
                     // Location, which return Point objects that are unconnected

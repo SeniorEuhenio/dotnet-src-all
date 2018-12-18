@@ -279,7 +279,7 @@ NetReplImportDirUnlock (
 
 #define REPL_STATE_OK                   0
 #define REPL_STATE_NO_MASTER            1
-#define REPL_STATE_NO_[....]              2
+#define REPL_STATE_NO_SYNC              2
 #define REPL_STATE_NEVER_REPLICATED     3
 
 

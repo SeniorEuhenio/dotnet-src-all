@@ -490,8 +490,8 @@ namespace System.Windows.Forms
             }
             else
             {
-                // SECREVIEW : Late-binding does not represent a security thread, see bug#411899 for more info..
-                //
+                // SECREVIEW : Late-binding does not represent a security thread, see 
+
                 dataGridViewCell = (DataGridViewCheckBoxCell)System.Activator.CreateInstance(thisType);
             }
             base.CloneInternal(dataGridViewCell);
@@ -660,22 +660,22 @@ namespace System.Windows.Forms
                     {
                         value = CheckState.Indeterminate;
                     }
-                    /* Commenting out because of bug VSWhidbey 300778
-                    else if (this.DataGridView != null && 
-                             this.FormattedValueType != null &&
-                             !(value is System.DBNull) &&
-                             !this.FormattedValueType.IsAssignableFrom(value.GetType()))
-                    {
-                        DataGridViewDataErrorEventArgs dgvdee = new DataGridViewDataErrorEventArgs(
-                            new FormatException(SR.GetString(SR.DataGridViewCheckBoxCell_InvalidValueType)), this.ColumnIndex,
-                            rowIndex, context);
-                        RaiseDataError(dgvdee);
-                        if (dgvdee.ThrowException)
-                        {
-                            throw dgvdee.Exception;
-                        }
-                    }
-                    */
+                    /* Commenting out because of 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+*/
                 }
                 else
                 {
@@ -689,22 +689,22 @@ namespace System.Windows.Forms
                     {
                         value = false;
                     }
-                    /* Commenting out because of bug VSWhidbey 300778
-                    else if (this.DataGridView != null && 
-                             this.FormattedValueType != null &&
-                             !(value is System.DBNull) &&
-                             !this.FormattedValueType.IsAssignableFrom(value.GetType()))
-                    {
-                        DataGridViewDataErrorEventArgs dgvdee = new DataGridViewDataErrorEventArgs(
-                            new FormatException(SR.GetString(SR.DataGridViewCheckBoxCell_InvalidValueType)), this.ColumnIndex,
-                            rowIndex, context);
-                        RaiseDataError(dgvdee);
-                        if (dgvdee.ThrowException)
-                        {
-                            throw dgvdee.Exception;
-                        }
-                    }
-                    */
+                    /* Commenting out because of 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+*/
                 }
             }
 

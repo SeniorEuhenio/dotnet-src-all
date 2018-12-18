@@ -21,6 +21,7 @@ using System.Windows.Media.Composition;
 using System.Windows.Media.Effects;
 using System.Diagnostics;
 using System.Collections;
+using System.Windows.Interop;
 using System.Collections.Generic;
 using MS.Internal;
 using MS.Internal.Media;
@@ -715,7 +716,7 @@ namespace System.Windows.Media
                 //
 
                 //
-                // NTRAID#Longhorn-1964653-2007/04/19-[....]:
+                // NTRAID#Longhorn-1964653-2007/04/19-Microsoft:
                 // RenderTargetBitmap and BitmapEffects use synchronous channels. If a
                 // node on the synchronous channel is the root of a VisualBrush from another
                 // channel, then the node will never be deleted. Instead we really need to
@@ -725,18 +726,18 @@ namespace System.Windows.Media
                 //
                 // If the node is the root of a VisualBrush and the VisualBrush is one of
                 // the node's children then a cycle is created. All of the nodes on the
-                // cycle will leak. On [....] channels, this is particularly bad because
-                // the user doesn't know about the [....] channel and has no control over it.
-                // We have a queue of [....] channels that are reused and leaking can lead
+                // cycle will leak. On sync channels, this is particularly bad because
+                // the user doesn't know about the sync channel and has no control over it.
+                // We have a queue of sync channels that are reused and leaking can lead
                 // to conflicts on channel reuse resulting in a crash.
                 //
-                // *** DANGER *** Fortunately, as of today, tree structure on a [....] channel is
+                // *** DANGER *** Fortunately, as of today, tree structure on a sync channel is
                 // never manipulated. The tree gets built, the tree gets drawn, and the tree gets
                 // released. Because of this, we can just always delete. In the future if that
                 // changes, the isSynchronous check here will cause a problem. *** DANGER ***
                 //
-                // The bug representing the outstanding cyle leak issue is 1981551
-                //
+                // The 
+
 
                 if (   !CheckFlagsOr(VisualFlags.NodeIsCyclicBrushRoot)
                             // If we aren't a root of a CyclicBrush, then we aren't referenced
@@ -2550,7 +2551,7 @@ namespace System.Windows.Media
         ///       During this virtual call it is not valid to modify the Visual tree.
         ///
         ///       It is okay to type this protected API to the 2D Visual.  The only 2D Visual with
-        ///       3D childern is the Viewport3DVisual which is sealed.  -- [....] 01/17/06
+        ///       3D childern is the Viewport3DVisual which is sealed.  -- Microsoft 01/17/06
         /// </summary>
         protected virtual Visual GetVisualChild(int index)
         {
@@ -2608,7 +2609,7 @@ namespace System.Windows.Media
         ///    unmarshal our composition resources).
         ///
         ///    It is okay to type this protected API to the 2D Visual.  The only 2D Visual with
-        ///    3D childern is the Viewport3DVisual which is sealed.  -- [....] 01/17/06
+        ///    3D childern is the Viewport3DVisual which is sealed.  -- Microsoft 01/17/06
         /// </summary>
         protected void AddVisualChild(Visual child)
         {
@@ -2648,12 +2649,28 @@ namespace System.Windows.Media
             //
             UIElement.PropagateResumeLayout(this, child);
 
+            if (HwndTarget.ProcessDpiAwareness == UnsafeNativeMethods.ProcessDpiAwareness.Process_Per_Monitor_DPI_Aware
+                && !CoreAppContextSwitches.DoNotScaleForDpiChanges
+                && OSVersionHelper.IsOsWindows10RS1OrGreater)
+            {
+                bool flag1 = CheckFlagsAnd(VisualFlags.DpiScaleFlag1);
+                bool flag2 = CheckFlagsAnd(VisualFlags.DpiScaleFlag2);
+                int index = 0; // dummy value;
+                if (flag1 && flag2)
+                {
+                    index = DpiIndex.GetValue(this);
+                }
+                
+                child.RecursiveSetDpiScaleVisualFlags(new DpiRecursiveChangeArgs(new DpiFlags(flag1, flag2, index),
+                    child.GetDpi(), this.GetDpi()));
+            }
+
             // Fire notifications
             this.OnVisualChildrenChanged(child, null /* no removed child */);
             child.FireOnVisualParentChanged(null);
             VisualDiagnostics.OnVisualChildChanged(this, child, true);
         }
-
+        
         /// <summary>
         /// DisconnectChild
         ///
@@ -3561,7 +3578,7 @@ namespace System.Windows.Media
 
                 OpacityField.SetValue(this, value);
 
-                // [....]: We need to do more here for animated opacity.
+                // Microsoft: We need to do more here for animated opacity.
 
                 SetFlagsOnAllChannels(true, VisualProxyFlags.IsOpacityDirty);
 
@@ -4021,6 +4038,15 @@ namespace System.Windows.Media
         protected internal virtual void OnVisualChildrenChanged(
             DependencyObject visualAdded,
             DependencyObject visualRemoved)
+        {
+        }
+
+        /// <summary>
+        /// OnDpiChanged is called when the DPI at which this visual is rendered, changes.
+        /// </summary>
+        protected virtual void OnDpiChanged(
+            DpiScale oldDpi,
+            DpiScale newDpi)
         {
         }
 
@@ -4710,6 +4736,41 @@ namespace System.Windows.Media
 
             return true;
         }
+        
+        /// <summary>
+        /// Returns the DPI information at which this Visual is rendered.
+        /// </summary>
+        internal DpiScale GetDpi()
+        {
+            DpiScale dpi;
+            lock (UIElement.DpiLock)
+            {
+                if (UIElement.DpiScaleXValues.Count == 0)
+                {
+                    // This is for scenarios where an HWND hasn't been created yet.
+                    return UIElement.EnsureDpiScale();
+                }
+
+                // initialized to system DPI as a fallback value
+                dpi = new DpiScale(UIElement.DpiScaleXValues[0], UIElement.DpiScaleYValues[0]);
+
+                int index = 0;
+                index = CheckFlagsAnd(VisualFlags.DpiScaleFlag1) ? index | 1 : index;
+                index = CheckFlagsAnd(VisualFlags.DpiScaleFlag2) ? index | 2 : index;
+
+                if (index < 3 && UIElement.DpiScaleXValues[index] != 0 && UIElement.DpiScaleYValues[index] != 0)
+                {
+                    dpi = new DpiScale(UIElement.DpiScaleXValues[index], UIElement.DpiScaleYValues[index]);
+                }
+
+                else if (index >= 3)
+                {
+                    int actualIndex = DpiIndex.GetValue(this);
+                    dpi = new DpiScale(UIElement.DpiScaleXValues[actualIndex], UIElement.DpiScaleYValues[actualIndex]);
+                }
+            }
+            return dpi;
+        }
 
         /// <summary>
         /// This method converts a point in the current Visual's coordinate
@@ -4940,6 +5001,41 @@ namespace System.Windows.Media
             _flags = value ? (_flags | flags) : (_flags & (~flags));
         }
 
+        /// <summary>
+        /// Sets the DPI scale Visual flags on the current visual.
+        /// </summary>
+        internal void SetDpiScaleVisualFlags(DpiRecursiveChangeArgs args)
+        {   
+            _flags = args.DpiScaleFlag1 ? (_flags | VisualFlags.DpiScaleFlag1) : (_flags & ~VisualFlags.DpiScaleFlag1);
+            _flags = args.DpiScaleFlag2 ? (_flags | VisualFlags.DpiScaleFlag2) : (_flags & ~VisualFlags.DpiScaleFlag2);
+            if (args.DpiScaleFlag1 && args.DpiScaleFlag2)
+            {
+                DpiIndex.SetValue(this, args.Index);
+            }
+
+            if (!args.OldDpiScale.Equals(args.NewDpiScale))
+            {
+                OnDpiChanged(args.OldDpiScale, args.NewDpiScale);
+            }
+        }
+
+        /// <summary>
+        /// Recursively sets the DPI scale visual flags.
+        /// </summary>
+        internal void RecursiveSetDpiScaleVisualFlags(DpiRecursiveChangeArgs args)
+        {
+            SetDpiScaleVisualFlags(args);
+            int count = InternalVisualChildrenCount;
+            for (int i = 0; i < count; i++)
+            {
+                Visual cv = InternalGetVisualChild(i);
+                if (cv != null)
+                {
+                    cv.RecursiveSetDpiScaleVisualFlags(args);
+                }
+            }
+        }
+
 
         /// <summary>
         /// CheckFlagsOnAllChannels returns true if all flags in
@@ -5006,7 +5102,6 @@ namespace System.Windows.Media
         {
             return (flags == 0) || ((_flags & flags) > 0);
         }
-
 
         /// <summary>
         ///     Set a bit in a Visual node and in all its direct ancestors.
@@ -5268,7 +5363,7 @@ namespace System.Windows.Media
         // Exception: children added to TextBoxView and InkPresenter.
         internal int _parentIndex;
 
-        // ([....]) I think we have to change the API so that we can save
+        // (Microsoft) I think we have to change the API so that we can save
         // here. For now that is good enough.
         internal DependencyObject _parent;
 
@@ -5303,6 +5398,7 @@ namespace System.Windows.Media
         private static readonly UncommonField<Dictionary<DUCE.Channel, int>> ChannelsToCyclicBrushMapField
             = new UncommonField<Dictionary<DUCE.Channel, int>>();
 
+        internal static readonly UncommonField<int> DpiIndex = new UncommonField<int>();
         private static readonly UncommonField<Geometry> ClipField = new UncommonField<Geometry>();
         private static readonly UncommonField<double> OpacityField = new UncommonField<double>(1.0);
         private static readonly UncommonField<Brush> OpacityMaskField = new UncommonField<Brush>();

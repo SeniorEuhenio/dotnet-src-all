@@ -79,7 +79,7 @@ namespace MS.Internal.WindowsRuntime
                     throw new ArgumentException(string.Empty, "language", tiex);
                 }
 
-                if ((_wordsSegmenter == null) || (ResolvedLanguage == Undetermined))
+                if (_wordsSegmenter == null)
                 {
                     throw new NotSupportedException();
                 }
@@ -92,8 +92,16 @@ namespace MS.Internal.WindowsRuntime
             /// <exception cref="System.ArgumentException"><paramref name="language"/> is not a well-formed language identifier</exception>
             /// <exception cref="System.NotSupportedException"><paramref name="language"/> is not supported</exception>
             /// <exception cref="PlatformNotSupportedException">The OS platform is not supported</exception>
-            public static WordsSegmenter Create(string language)
+            public static WordsSegmenter Create(string language, bool shouldPreferNeutralSegmenter = false)
             {
+                if (shouldPreferNeutralSegmenter)
+                {
+                    if (!ShouldUseDedicatedSegmenter(language))
+                    {
+                        language = Undetermined;
+                    }
+                }
+
                 return new WordsSegmenter(language);
             }
 
@@ -202,6 +210,59 @@ namespace MS.Internal.WindowsRuntime
                     return s_WinRTType;
                 }
             }
+
+            private static bool ShouldUseDedicatedSegmenter(string languageTag)
+            {
+                bool result = true;
+
+                try
+                {
+                    var language = new Globalization.Language(languageTag);
+                    string script = language.Script;
+
+                    if (ScriptCodesRequiringDedicatedSegmenter.FindIndex(s => s.Equals(script, StringComparison.InvariantCultureIgnoreCase)) == -1)
+                    {
+                        result = false;
+                    }
+                }
+                catch (Exception e) 
+                    when ((e is NotSupportedException)      || 
+                          (e is ArgumentException)          || 
+                          (e is TargetInvocationException)  || 
+                          (e is MissingMemberException))
+                {
+                    // Do nothing - return true as the default result
+                }
+
+                return result;
+            }
+
+            /// <summary>
+            /// List of ISO-15924 script codes of langugues for which we must use 
+            /// a dedicated word-breaker. These languages are broken using rules 
+            /// different than those for "spaced" languages. 
+            /// </summary>
+            private static List<string> ScriptCodesRequiringDedicatedSegmenter { get; } = new List<string>
+            {
+                "Bopo", // Bopomofo
+                "Brah", // Brahmi
+                "Egyp", // Egyptian hieroglyphs
+                "Goth", // Gothic
+                "Hang", // Hangul (Hangul, Hangeul)
+                "Hani", // Han (Hanzi, Kanji, Hanja)
+                "Ital", // Old Italic (Etruscan, Oscan, etc.)
+                "Java", // Javanese
+                "Kana", // Katakana
+                "Khar", // Kharoshthi
+                "Laoo", // Lao
+                "Lisu", // Lisu (Fraser)
+                "Mymr", // Myanmar (Burmese)
+                "Talu", // New Tai Lue
+                "Thai", // Thai
+                "Tibt", // Tibetan
+                "Xsux", // Cuneiform, Sumero-Akkadian
+                "Yiii", // Yi
+            };
 
 
             public static readonly string Undetermined = "und";

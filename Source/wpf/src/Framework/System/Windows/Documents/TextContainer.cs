@@ -8,7 +8,7 @@
 // Description: Default Framework TextContainer implementation.
 // 
 // History:  
-//  2/18/2004 : [....] - Created
+//  2/18/2004 : Microsoft - Created
 //
 //---------------------------------------------------------------------------
 
@@ -804,10 +804,10 @@ namespace System.Windows.Documents
                 // we already require -- strictly speaking that's true.  But in practice,
                 // we want the Invariant in this method to remind callers to think about
                 // when they must call BeforeAddChange ahead of logical tree events.  Then,
-                // in practice, there's a subtle bug where a listener might not initially
-                // exist but is added during the logical tree events.  That we handle
-                // here with an additional BeforeAddChange call instead of requiring all
-                // our callers to remember to handle the more subtle case.
+                // in practice, there's a subtle 
+
+
+
                 if (_changes == null)
                 {
                     _changes = new TextContainerChangedEventArgs();
@@ -1017,7 +1017,7 @@ namespace System.Windows.Documents
 
                 if (sameTextContainer)
                 {
-                    // Re-[....] the TextPointers in case we just extracted from this tree.
+                    // Re-sync the TextPointers in case we just extracted from this tree.
                     startPosition.SyncToTreeGeneration();
                     endPosition.SyncToTreeGeneration();
 
@@ -1516,7 +1516,7 @@ namespace System.Windows.Documents
             // See PS Task Item 14229: there's a general problem where any CLR
             // lock will rev up a message pump if blocked.  The Core team is
             // expecting a CLR drop in 3.3 that will enable us to change this
-            // behavior, within Avalon. [....]:3/31/2004.
+            // behavior, within Avalon. Microsoft:3/31/2004.
             lock (deadPositionList)
             {
                 if (deadPositionList.Count > 0)
@@ -2968,8 +2968,8 @@ namespace System.Windows.Documents
 
             //
             // Remove char count for logical break, since the element is leaving the tree.
-            // For more data refer to comments of dev10 bug 703174.
-            //
+            // For more data refer to comments of dev10 
+
             if (null != element.TextElementNode)
             {
                 element.TextElementNode.IMECharCount -= imeLeftEdgeCharCount;

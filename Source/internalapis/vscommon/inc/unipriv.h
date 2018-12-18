@@ -17,8 +17,8 @@
 #ifdef _DEBUG
 
 #ifdef _X86_
-// Avoid inline assembler in macros because it breaks lambdas; can be changed back when dev10 bug 658310 is fixed
-// #define __UBREAK__ _asm { int 3 }
+// Avoid inline assembler in macros because it breaks lambdas; can be changed back when dev10 
+
 #define __UBREAK__ DebugBreak();
 #else
 #define __UBREAK__ DebugBreak();

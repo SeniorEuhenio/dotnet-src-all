@@ -1223,11 +1223,11 @@ namespace System.Windows.Documents
                 fsThis.Font = fontAll;
             }
 
-            // Workaround for Word 11 \f behavior.  See bug 1636475.
-            // Word 11 does not respect \f applied above the paragraph
-            // level with \rtlpara.  This is a targeted work-around
-            // which is probably not complete, but additional repros
-            // are currently lacking.
+            // Workaround for Word 11 \f behavior.  See 
+
+
+
+
             bool isTopLevelParagraph = dnThis.Type == DocumentNodeType.dnParagraph &&
                                        dnThis.Parent != null &&
                                        dnThis.Parent.Type == DocumentNodeType.dnSection &&

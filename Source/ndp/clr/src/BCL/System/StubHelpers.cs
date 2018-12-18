@@ -147,7 +147,7 @@ namespace  System.StubHelpers {
 
                 if (hasTrailByte)
                 {
-                    // this is an odd-sized string with a trailing byte stored in its [....] block
+                    // this is an odd-sized string with a trailing byte stored in its sync block
                     lengthInBytes++;
                 }
 
@@ -231,7 +231,7 @@ namespace  System.StubHelpers {
 
                 if ((length & 1) == 1)
                 {
-                    // odd-sized strings need to have the trailing byte saved in their [....] block
+                    // odd-sized strings need to have the trailing byte saved in their sync block
                     ret.SetTrailByte(((byte *)bstr.ToPointer())[length - 1]);
                 }
 
@@ -1742,7 +1742,7 @@ namespace  System.StubHelpers {
 
 #if MDA_SUPPORTED
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        static internal extern Exception TriggerExceptionSwallowedMDA(Exception ex, IntPtr pManagedTarget);
+        static internal extern Exception TriggerException----edMDA(Exception ex, IntPtr pManagedTarget);
 #endif // MDA_SUPPORTED
 
 #endif // FEATURE_COMINTEROP

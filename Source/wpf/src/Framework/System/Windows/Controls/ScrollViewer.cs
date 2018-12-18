@@ -9,6 +9,7 @@ using MS.Internal.Commands;
 using MS.Internal.Documents;
 using MS.Internal.KnownBoxes;
 using MS.Internal.PresentationFramework;
+using MS.Internal.Telemetry.PresentationFramework;
 using MS.Utility;
 using System;
 using System.Collections;
@@ -1270,7 +1271,7 @@ namespace System.Windows.Controls
 
                         //if both are Auto, then appearance of one scrollbar may causes appearance of another.
                         //If we don't re-check here, we get some part of content covered by auto scrollbar and can never reach to it since
-                        //another scrollbar may not appear (in cases when viewport==extent) - bug 1199443
+                        //another scrollbar may not appear (in cases when viewport==extent) - 
                         if(hsbAuto && vsbAuto && (makeHorizontalBarVisible != makeVerticalBarVisible))
                         {
                             bool makeHorizontalBarVisible2 = !makeHorizontalBarVisible && DoubleUtil.GreaterThan(isi.ExtentWidth, isi.ViewportWidth);
@@ -2287,8 +2288,8 @@ namespace System.Windows.Controls
                     if (    child != null
                         &&  visi != null
                         &&  (visi == child || visi.IsAncestorOf(child))
-                        //  bug 1616807. ISI could be removed from visual tree,
-                        //  but ScrollViewer.ScrollInfo may not reflect this yet.
+                        //  
+
                         &&  this.IsAncestorOf(visi) )
                     {
                         Rect targetRect = cmd.MakeVisibleParam.TargetRect;
@@ -2963,6 +2964,8 @@ namespace System.Windows.Controls
             KeyboardNavigation.DirectionalNavigationProperty.OverrideMetadata(typeof(ScrollViewer), new FrameworkPropertyMetadata(KeyboardNavigationMode.Local));
 
             EventManager.RegisterClassHandler(typeof(ScrollViewer), RequestBringIntoViewEvent, new RequestBringIntoViewEventHandler(OnRequestBringIntoView));
+
+            ScrollViewerTraceLogger.LogUsageDetails();
         }
 
         private static bool IsValidScrollBarVisibility(object o)

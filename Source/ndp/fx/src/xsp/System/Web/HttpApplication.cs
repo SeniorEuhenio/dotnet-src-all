@@ -179,7 +179,7 @@ namespace System.Web {
         // this is the per instance list that contains the events for each module
         private PipelineModuleStepContainer[] _moduleContainers;
 
-        // Byte array to be used by HttpRequest.GetEntireRawContent. Windows OS Bug 1632921
+        // Byte array to be used by HttpRequest.GetEntireRawContent. Windows OS 
         private byte[] _entityBuffer;
 
         // Counts the number of code paths consuming this HttpApplication instance. When the counter hits zero,
@@ -304,7 +304,7 @@ namespace System.Web {
 
         }
 
-        // Used by HttpRequest.GetEntireRawContent. Windows OS Bug 1632921
+        // Used by HttpRequest.GetEntireRawContent. Windows OS 
         internal byte[] EntityBuffer
         {
             get
@@ -500,17 +500,37 @@ namespace System.Web {
             }
         }
 
-        // DevDiv Bugs 151914: Release session state before executing child request
-        internal void EnsureReleaseState() {
+        private ISessionStateModule FindISessionStateModule() {
+            if (!HttpRuntime.UseIntegratedPipeline)
+                return null;
+
             if (_moduleCollection != null) {
                 for (int i = 0; i < _moduleCollection.Count; i++) {
-                    IHttpModule module = _moduleCollection.Get(i);
-                    if (module is SessionStateModule) {
-                        ((SessionStateModule) module).EnsureReleaseState(this);
-                        break;
+                    ISessionStateModule module = _moduleCollection.Get(i) as ISessionStateModule;
+                    if (module != null) {
+                        return module;
                     }
                 }
             }
+
+            return null;
+        }
+
+        // DevDiv Bugs 151914: Release session state before executing child request
+        internal void EnsureReleaseState() {
+            ISessionStateModule module = FindISessionStateModule();
+            if (module != null) {
+                module.ReleaseSessionState(Context);
+            }
+        }
+
+        internal Task EnsureReleaseStateAsync() {
+            ISessionStateModule module = FindISessionStateModule();
+            if (module != null) {
+                return module.ReleaseSessionStateAsync(Context);
+            }
+
+            return TaskAsyncHelper.CompletedTask;
         }
 
         /// <devdoc>
@@ -769,7 +789,7 @@ namespace System.Web {
         }
 
         //
-        // [....] event hookup
+        // Sync event hookup
         //
 
 
@@ -1707,7 +1727,7 @@ namespace System.Web {
                 asyncHandler.CreateExecutionSteps(this, steps);
             }
 
-            // [....]
+            // sync
             EventHandler handler = (EventHandler)Events[eventIndex];
 
             if (handler != null) {
@@ -2398,7 +2418,7 @@ namespace System.Web {
                 Debug.Trace("PipelineRuntime", "RegisterEventSubscriptionsWithIIS: name=" + CurrentModuleCollectionKey
                             + ", type=" + httpModule.GetType().FullName + "\n");
 
-                // make sure collections are in [....]
+                // make sure collections are in sync
                 Debug.Assert(moduleInfo.Name == _currentModuleCollectionKey, "moduleInfo.Name == _currentModuleCollectionKey");
 #endif
 
@@ -2546,7 +2566,7 @@ namespace System.Web {
                 hasEvents = true;
             }
 
-            // [....]
+            // sync
             EventHandler handler = (EventHandler)Events[eventIndex];
 
             if (handler != null) {
@@ -4009,10 +4029,10 @@ namespace System.Web {
                             // a SendResponse, at which point it blocks until the SendResponse notification completes.
 
                             if (!isReEntry) { // currently we only re-enter for SendResponse
-                                // DevDiv 482614 (Sharepoint Bug 3137123)
-                                // Async completion or SendResponse can happen on a background thread while the thread that called IndicateCompletion has not unwound yet
-                                // Therefore (InIndicateCompletion == true) is not a sufficient evidence that we can use the ThreadContext stored in IndicateCompletionContext
-                                // To avoid using other thread's ThreadContext we use IndicateCompletionContext only if ThreadInsideIndicateCompletion is indeed our thread
+                                // DevDiv 482614 (Sharepoint 
+
+
+
                                 if (context.InIndicateCompletion && context.ThreadInsideIndicateCompletion == Thread.CurrentThread) {
                                     // we already have a ThreadContext
                                     threadContext = context.IndicateCompletionContext;
@@ -4087,7 +4107,7 @@ namespace System.Web {
                                         break;
                                     }
 
-                                    // [....] case (we might be able to stay in managed code and execute another notification)
+                                    // sync case (we might be able to stay in managed code and execute another notification)
                                     if (needToFinishRequest || UnsafeIISMethods.MgdGetNextNotification(wr.RequestContext, RequestNotificationStatus.Continue) != 1) {
                                         isSynchronousCompletion = true;
                                         needToComplete = true;
@@ -4151,14 +4171,14 @@ namespace System.Web {
                             if (threadContext != null) {
                                 if (context.InIndicateCompletion) {
                                     if (isSynchronousCompletion) {
-                                        // this is a [....] completion on an IIS thread
+                                        // this is a sync completion on an IIS thread
                                         threadContext.Synchronize();
                                         // Note for DevDiv 482614 fix:
                                         // If this threadContext is from IndicateCompletionContext (e.g. this thread called IndicateCompletion)
                                         // then we continue reusing this thread and only undo impersonation before unwinding back to IIS.
                                         //
                                         // If this threadContext was created while another thread was and still is in IndicateCompletion call
-                                        // (e.g. [....] or async flush on a background thread from native code, not managed since isReEnty==false)
+                                        // (e.g. sync or async flush on a background thread from native code, not managed since isReEnty==false)
                                         // then we can not reuse this thread and this threadContext will be cleaned before we leave ResumeSteps
                                         // (because needToDisassociateThreadContext was set to true when we created this threadContext)
 
@@ -4190,7 +4210,7 @@ namespace System.Web {
                                 }
                                 else if (isSynchronousCompletion) {
                                     Debug.Assert(needToDisassociateThreadContext == true, "needToDisassociateThreadContext MUST BE true");
-                                    // this is a [....] completion on an IIS thread
+                                    // this is a sync completion on an IIS thread
                                     threadContext.Synchronize();
                                     // get ready to call IndicateCompletion
                                     context.IndicateCompletionContext = threadContext;

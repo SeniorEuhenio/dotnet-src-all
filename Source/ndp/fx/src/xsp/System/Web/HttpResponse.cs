@@ -726,7 +726,7 @@ namespace System.Web {
                 return _wr.BeginFlush(callback, state);
             }
 
-            // perform a [....] flush since async is not supported
+            // perform a sync flush since async is not supported
             FlushAsyncResult ar = new FlushAsyncResult(callback, state);
             try {
                 Flush(false);
@@ -752,7 +752,7 @@ namespace System.Web {
                 return;
             }
             
-            // finish [....] flush since async is not supported
+            // finish sync flush since async is not supported
             if (asyncResult == null)
                 throw new ArgumentNullException("asyncResult");
             FlushAsyncResult ar = asyncResult as FlushAsyncResult;
@@ -1126,9 +1126,18 @@ namespace System.Web {
             }
 
             // restore content
-            _httpWriter.UseSnapshot(rawResponse.Buffers);
+            SetResponseBuffers(rawResponse.Buffers);
+  
+            _suppressContent = !sendBody;         
+        }
 
-            _suppressContent = !sendBody;
+        // set the response content bufffers
+        internal void SetResponseBuffers(ArrayList buffers) {
+            if (_httpWriter == null) {
+                throw new HttpException(SR.GetString(SR.Cannot_use_snapshot_for_TextWriter));
+            }
+
+            _httpWriter.UseSnapshot(buffers);
         }
 
         internal void CloseConnectionAfterError() {
@@ -1368,7 +1377,7 @@ namespace System.Web {
                             // the <customErrors> element to control this behavior.
 
                             if (customErrorsSetting.AllowNestedErrors) {
-                                // The user has set the compat switch to use the original (pre-bug fix) behavior.
+                                // The user has set the compat switch to use the original (pre-
                                 goto case RedirectToErrorPageStatus.NotAttempted;
                             }
 
@@ -3284,10 +3293,10 @@ namespace System.Web {
         }
 
         private String UrlEncodeIDNSafe(String url) {
-            // Bug 86594: Should not encode the domain part of the url. For example,
-            // http://Übersite/Überpage.aspx should only encode the 2nd Ü.
-            // To accomplish this we must separate the scheme+host+port portion of the url from the path portion,
-            // encode the path portion, then reconstruct the url.
+            // 
+
+
+
             Debug.Assert(!url.Contains("?"), "Querystring should have been stripped off.");
 
             string schemeAndAuthority;

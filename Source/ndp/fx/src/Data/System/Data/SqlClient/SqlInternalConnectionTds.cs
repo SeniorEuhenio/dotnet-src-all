@@ -2,8 +2,8 @@
 // <copyright file="SqlInternalConnectionTds.cs" company="Microsoft">
 //     Copyright (c) Microsoft Corporation.  All rights reserved.
 // </copyright>
-// <owner current="true" primary="true">[....]</owner>
-// <owner current="true" primary="false">[....]</owner>
+// <owner current="true" primary="true">Microsoft</owner>
+// <owner current="true" primary="false">Microsoft</owner>
 //------------------------------------------------------------------------------
 
 namespace System.Data.SqlClient
@@ -889,6 +889,7 @@ namespace System.Data.SqlClient
         }
 
         internal void DecrementAsyncCount() {
+            Debug.Assert(_asyncCommandCount > 0);
             Interlocked.Decrement(ref _asyncCommandCount);
         }
 

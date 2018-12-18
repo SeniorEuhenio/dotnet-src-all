@@ -594,7 +594,7 @@ namespace System.Windows.Forms {
                 upDownEdit.Text = value;
                 // The text changed event will at this point be triggered.
                 // After returning, the value of UserEdit will reflect
-                // whether or not the current upDownEditbox text is in [....]
+                // whether or not the current upDownEditbox text is in sync
                 // with any internally stored values. If UserEdit is true,
                 // we must validate the text the user typed or set.
 
@@ -1314,7 +1314,7 @@ namespace System.Windows.Forms {
                 parent.OnLostFocus(e);
             }
 
-            // [....]: Focus fixes. The XXXUpDown control will
+            // Microsoft: Focus fixes. The XXXUpDown control will
             //         also fire a Leave event. We don't want
             //         to fire two of them.
             // protected override void OnLeave(EventArgs e) {

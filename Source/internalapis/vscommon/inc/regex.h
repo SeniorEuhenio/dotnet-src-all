@@ -47,7 +47,7 @@ typedef struct __RE_TEXTRANGE
 //----------------------------------------------------------------
 // Regex HRESULTS
 //
-// This must be kept in [....] with VS textfind.idl.
+// This must be kept in sync with VS textfind.idl.
 //
 #ifndef __RE_E_DEFINED__ // Don't collide with textfind.h if it's being used
 #define __RE_E_DEFINED__

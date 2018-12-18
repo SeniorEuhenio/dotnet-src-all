@@ -12,7 +12,7 @@
 *
 *       This file will be modified as soon as more fixes come online in the LKG drops.
 *
-*       Please contact "[....], mcllead" for any issue regarding this file.
+*       Please contact "Microsoft, mcllead" for any issue regarding this file.
 *
 *       [Internal, Temp]
 *

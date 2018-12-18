@@ -353,7 +353,7 @@ NetSetPrimaryComputerName(
 
 //
 // The following enumeration must be kept
-// in [....] with COMPUTER_NAME_TYPE defined
+// in sync with COMPUTER_NAME_TYPE defined
 // in winbase.h
 //
 

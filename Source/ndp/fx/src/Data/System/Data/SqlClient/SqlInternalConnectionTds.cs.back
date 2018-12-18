@@ -2,8 +2,8 @@
 // <copyright file="SqlInternalConnectionTds.cs" company="Microsoft">
 //     Copyright (c) Microsoft Corporation.  All rights reserved.
 // </copyright>
-// <owner current="true" primary="true">[....]</owner>
-// <owner current="true" primary="false">[....]</owner>
+// <owner current="true" primary="true">Microsoft</owner>
+// <owner current="true" primary="false">Microsoft</owner>
 //------------------------------------------------------------------------------
 
 namespace System.Data.SqlClient
@@ -650,8 +650,8 @@ namespace System.Data.SqlClient
         override protected void ChangeDatabaseInternal(string database) {
             // MDAC 73598 - add brackets around database
             database = SqlConnection.FixupDatabaseTransactionName(database);
-            Threading.Tasks.Task executeTask = _parser.TdsExecuteSQLBatch("use " + database, ConnectionOptions.ConnectTimeout, null, _parser._physicalStateObj, [....]: true);
-            Debug.Assert(executeTask == null, "Shouldn't get a task when doing [....] writes");
+            Threading.Tasks.Task executeTask = _parser.TdsExecuteSQLBatch("use " + database, ConnectionOptions.ConnectTimeout, null, _parser._physicalStateObj, sync: true);
+            Debug.Assert(executeTask == null, "Shouldn't get a task when doing sync writes");
             _parser.Run(RunBehavior.UntilDone, null, null, null, _parser._physicalStateObj);
         }
 
@@ -867,8 +867,8 @@ namespace System.Data.SqlClient
                     // may only reset if not enlisted in a distributed transaction.
                     try {
                         // execute sp
-                        Threading.Tasks.Task executeTask = _parser.TdsExecuteSQLBatch("sp_reset_connection", 30, null, _parser._physicalStateObj, [....]: true);
-                        Debug.Assert(executeTask == null, "Shouldn't get a task when doing [....] writes");
+                        Threading.Tasks.Task executeTask = _parser.TdsExecuteSQLBatch("sp_reset_connection", 30, null, _parser._physicalStateObj, sync: true);
+                        Debug.Assert(executeTask == null, "Shouldn't get a task when doing sync writes");
                         _parser.Run(RunBehavior.UntilDone, null, null, null, _parser._physicalStateObj);
                     }
                     catch (Exception e) {
@@ -889,6 +889,7 @@ namespace System.Data.SqlClient
         }
 
         internal void DecrementAsyncCount() {
+            Debug.Assert(_asyncCommandCount > 0);
             Interlocked.Decrement(ref _asyncCommandCount);
         }
 
@@ -1010,8 +1011,8 @@ namespace System.Data.SqlClient
                     break;
             }
 
-            Threading.Tasks.Task executeTask = _parser.TdsExecuteSQLBatch(sqlBatch.ToString(), ConnectionOptions.ConnectTimeout, null, _parser._physicalStateObj, [....]: true);
-            Debug.Assert(executeTask == null, "Shouldn't get a task when doing [....] writes");            
+            Threading.Tasks.Task executeTask = _parser.TdsExecuteSQLBatch(sqlBatch.ToString(), ConnectionOptions.ConnectTimeout, null, _parser._physicalStateObj, sync: true);
+            Debug.Assert(executeTask == null, "Shouldn't get a task when doing sync writes");            
             _parser.Run(RunBehavior.UntilDone, null, null, null, _parser._physicalStateObj);
 
             // Prior to Yukon, we didn't have any transaction tokens to manage,

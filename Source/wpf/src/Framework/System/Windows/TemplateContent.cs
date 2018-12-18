@@ -189,9 +189,9 @@ namespace System.Windows
         /// <SecurityNote>
         /// Critical: Sets critical property LoadPermission so we can assert the right permission
         ///           when instantiating the template.
-        ///           Sets critical field _templateLoadData.Reader, which needs to be kept in [....] with LoadPermission.
+        ///           Sets critical field _templateLoadData.Reader, which needs to be kept in sync with LoadPermission.
         /// Safe: Demands the requested permission before setting the fields. Sets both fields together
-        ///       so they stay in [....].
+        ///       so they stay in sync.
         /// </SecurityNote>
         [SecurityCritical, SecurityTreatAsSafe]
         internal TemplateContent(System.Xaml.XamlReader xamlReader, IXamlObjectWriterFactory factory,

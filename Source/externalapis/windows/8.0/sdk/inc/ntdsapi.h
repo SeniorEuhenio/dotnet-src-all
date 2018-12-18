@@ -89,7 +89,7 @@ typedef void VOID;
                                             SORT_STRINGSORT )
 
 // When booted to DS mode, this event is signalled when the DS has completed
-// its initial [....] attempts.  The period of time between system startup and
+// its initial sync attempts.  The period of time between system startup and
 // this event's state being set is indeterminate from the local service's
 // standpoint.  In the meantime the contents of the DS should be considered
 // incomplete / out-dated, and the machine will not be advertised as a domain
@@ -381,7 +381,7 @@ typedef struct
 
 
 // ********************
-// Replica [....] flags
+// Replica Sync flags
 // These flag values are used both as input to DsReplicaSync and
 // as output from DsReplicaGetInfo, PENDING_OPS, DS_REPL_OPW.ulOptions
 // ********************
@@ -392,23 +392,23 @@ typedef struct
 // Writeable replica.  Otherwise, read-only.
 #define DS_REPSYNC_WRITEABLE              0x00000002
 
-// This is a periodic [....] request as scheduled by the admin.
+// This is a periodic sync request as scheduled by the admin.
 #define DS_REPSYNC_PERIODIC               0x00000004
 
 // Use inter-site messaging
 #define DS_REPSYNC_INTERSITE_MESSAGING    0x00000008
 
-// [....] starting from scratch (i.e., at the first USN).
+// Sync starting from scratch (i.e., at the first USN).
 #define DS_REPSYNC_FULL                   0x00000020
 
 // This is a notification of an update that was marked urgent.
 #define DS_REPSYNC_URGENT                 0x00000040
 
 // Don't discard this synchronization request, even if a similar
-// [....] is pending.
+// sync is pending.
 #define DS_REPSYNC_NO_DISCARD             0x00000080
 
-// [....] even if link is currently disabled.
+// Sync even if link is currently disabled.
 #define DS_REPSYNC_FORCE                  0x00000100
 
 // Causes the source DSA to check if a reps-to is present for the local DSA
@@ -416,16 +416,16 @@ typedef struct
 // source sends change notifications.
 #define DS_REPSYNC_ADD_REFERENCE          0x00000200
 
-// A [....] from this source has never completed (e.g., a new source).
+// A sync from this source has never completed (e.g., a new source).
 #define DS_REPSYNC_NEVER_COMPLETED        0x00000400
 
-// When this [....] is complete, requests a [....] in the opposite direction.
+// When this sync is complete, requests a sync in the opposite direction.
 #define DS_REPSYNC_TWO_WAY                0x00000800
 
 // Do not request change notifications from this source.
 #define DS_REPSYNC_NEVER_NOTIFY           0x00001000
 
-// [....] the NC from this source when the DSA is started.
+// Sync the NC from this source when the DSA is started.
 #define DS_REPSYNC_INITIAL                0x00002000
 
 // Use compression when replicating.  Saves message size (e.g., network
@@ -433,26 +433,26 @@ typedef struct
 // destination servers.
 #define DS_REPSYNC_USE_COMPRESSION        0x00004000
 
-// [....] was abandoned for lack of updates (W2K, W2K3)
+// Sync was abandoned for lack of updates (W2K, W2K3)
 #define DS_REPSYNC_ABANDONED              0x00008000
 
 // Special secret processing
 #define DS_REPSYNC_SELECT_SECRETS         0x00008000
 
-// Initial [....] in progress
+// Initial sync in progress
 #define DS_REPSYNC_INITIAL_IN_PROGRESS    0x00010000
 
-// Partial Attribute Set [....] in progress
+// Partial Attribute Set sync in progress
 #define DS_REPSYNC_PARTIAL_ATTRIBUTE_SET  0x00020000
 
-// [....] is being retried
+// Sync is being retried
 #define DS_REPSYNC_REQUEUE                0x00040000
 
-// [....] is a notification request from a source
+// Sync is a notification request from a source
 #define DS_REPSYNC_NOTIFICATION           0x00080000
 
-// [....] is a special form which requests to establish contact
-// now and do the rest of the [....] later
+// Sync is a special form which requests to establish contact
+// now and do the rest of the sync later
 #define DS_REPSYNC_ASYNCHRONOUS_REPLICA   0x00100000
 
 // Request critical objects only
@@ -477,14 +477,14 @@ typedef struct
 // Create a writeable replica.  Otherwise, read-only.
 #define DS_REPADD_WRITEABLE               0x00000002
 
-// [....] the NC from this source when the DSA is started.
+// Sync the NC from this source when the DSA is started.
 #define DS_REPADD_INITIAL                 0x00000004
 
-// [....] the NC from this source periodically, as defined by the
+// Sync the NC from this source periodically, as defined by the
 // schedule passed in the preptimesSync argument.
 #define DS_REPADD_PERIODIC                0x00000008
 
-// [....] from the source DSA via an Intersite Messaging Service (ISM) transport
+// Sync from the source DSA via an Intersite Messaging Service (ISM) transport
 // (e.g., SMTP) rather than native DS RPC.
 #define DS_REPADD_INTERSITE_MESSAGING     0x00000010
 
@@ -513,14 +513,14 @@ typedef struct
 // disabled only temporarily.
 #define DS_REPADD_NEVER_NOTIFY             0x00000200
 
-// When this [....] is complete, requests a [....] in the opposite direction.
+// When this sync is complete, requests a sync in the opposite direction.
 #define DS_REPADD_TWO_WAY                  0x00000400
 
 // Request critical objects only
 // Critical only is only allowed while installing
-// A critical only [....] does not bring all objects in the partition. It
+// A critical only sync does not bring all objects in the partition. It
 // replicates just the ones necessary for minimal directory operation.
-// A normal, non-critical [....] must be performed before the partition
+// A normal, non-critical sync must be performed before the partition
 // can be considered fully synchronized.
 #define DS_REPADD_CRITICAL                 0x00000800
 
@@ -650,7 +650,7 @@ typedef struct
 // what the overridden default shall be.
 //
 #define NTDSCONN_OPT_IS_GENERATED ( 1 << 0 )  /* object generated by DS, not admin */
-#define NTDSCONN_OPT_TWOWAY_[....]  ( 1 << 1 )  /* force [....] in opposite direction at end of [....] */
+#define NTDSCONN_OPT_TWOWAY_SYNC  ( 1 << 1 )  /* force sync in opposite direction at end of sync */
 #define NTDSCONN_OPT_OVERRIDE_NOTIFY_DEFAULT (1 << 2 )  // Do not use defaults to determine notification
 #define NTDSCONN_OPT_USE_NOTIFY   (1 << 3) // Does source notify destination
 
@@ -688,7 +688,7 @@ typedef struct
 //
 // The high 4 bits of the options attribute are used by NTFRS to assign priority
 // for inbound connections. Bit 31 is used to force FRS to ignore schedule during
-// the initial [....]. Bits 30 - 28 are used to specify a priority between 0-7.
+// the initial sync. Bits 30 - 28 are used to specify a priority between 0-7.
 //
 
 #define FRSCONN_PRIORITY_MASK		      0x70000000
@@ -750,7 +750,7 @@ typedef struct
 //
 // These are not realized in the DS, but are built up in the KCC
 #define NTDSSITECONN_OPT_USE_NOTIFY ( 1 << 0 ) // Use notification on this link
-#define NTDSSITECONN_OPT_TWOWAY_[....] ( 1 << 1 )  /* force [....] in opposite direction at end of [....] */
+#define NTDSSITECONN_OPT_TWOWAY_SYNC ( 1 << 1 )  /* force sync in opposite direction at end of sync */
 
 // This bit means:
 //  0 - Compression of replication data across this site connection enabled
@@ -761,7 +761,7 @@ typedef struct
 // Note that these options are AND-ed along a site-link path
 //
 #define NTDSSITELINK_OPT_USE_NOTIFY ( 1 << 0 ) // Use notification on this link
-#define NTDSSITELINK_OPT_TWOWAY_[....] ( 1 << 1 )  /* force [....] in opposite direction at end of [....] */
+#define NTDSSITELINK_OPT_TWOWAY_SYNC ( 1 << 1 )  /* force sync in opposite direction at end of sync */
 
 // This bit means:
 //  0 - Compression of replication data across this site link enabled
@@ -1546,7 +1546,7 @@ Description:
    This call is executed on the destination.  It causes the destination to
    add a "replication from" reference to the indicated source system.
 
-The source server is identified by string name, not uuid as with [....].
+The source server is identified by string name, not uuid as with Sync.
 The DsaSrcAddress parameter is the transport specific address of the source
 DSA, usually its guid-based dns name.  The guid in the guid-based dns name is
 the object-guid of that server's ntds-dsa (settings) object.
@@ -1609,7 +1609,7 @@ DsReplicaAddW(
 // The server that this call is executing on is the destination.  The call
 // causes the destination to remove a "replication from" reference to the
 // indicated source server.
-// The source server is identified by string name, not uuid as with [....].
+// The source server is identified by string name, not uuid as with Sync.
 // The DsaSrc parameter is the transport specific address of the source DSA,
 // usually its guid-based dns name.  The guid in the guid-based dns name is
 // the object-guid of that server's ntds-dsa (settings) object.
@@ -1816,8 +1816,8 @@ typedef enum {
 typedef enum {
 
     DS_REPSYNCALL_EVENT_ERROR			= 0,
-    DS_REPSYNCALL_EVENT_[....]_STARTED		= 1,
-    DS_REPSYNCALL_EVENT_[....]_COMPLETED		= 2,
+    DS_REPSYNCALL_EVENT_SYNC_STARTED		= 1,
+    DS_REPSYNCALL_EVENT_SYNC_COMPLETED		= 2,
     DS_REPSYNCALL_EVENT_FINISHED			= 3
 
 } DS_REPSYNCALL_EVENT;
@@ -1867,17 +1867,17 @@ typedef struct {
 } DS_REPSYNCALL_UPDATEW, * PDS_REPSYNCALL_UPDATEW;
 
 #ifdef UNICODE
-#define DS_REPSYNCALL_[....] DS_REPSYNCALL_SYNCW
+#define DS_REPSYNCALL_SYNC DS_REPSYNCALL_SYNCW
 #define DS_REPSYNCALL_ERRINFO DS_REPSYNCALL_ERRINFOW
 #define DS_REPSYNCALL_UPDATE DS_REPSYNCALL_UPDATEW
-#define PDS_REPSYNCALL_[....] PDS_REPSYNCALL_SYNCW
+#define PDS_REPSYNCALL_SYNC PDS_REPSYNCALL_SYNCW
 #define PDS_REPSYNCALL_ERRINFO PDS_REPSYNCALL_ERRINFOW
 #define PDS_REPSYNCALL_UPDATE PDS_REPSYNCALL_UPDATEW
 #else
-#define DS_REPSYNCALL_[....] DS_REPSYNCALL_SYNCA
+#define DS_REPSYNCALL_SYNC DS_REPSYNCALL_SYNCA
 #define DS_REPSYNCALL_ERRINFO DS_REPSYNCALL_ERRINFOA
 #define DS_REPSYNCALL_UPDATE DS_REPSYNCALL_UPDATEA
-#define PDS_REPSYNCALL_[....] PDS_REPSYNCALL_SYNCA
+#define PDS_REPSYNCALL_SYNC PDS_REPSYNCALL_SYNCA
 #define PDS_REPSYNCALL_ERRINFO PDS_REPSYNCALL_ERRINFOA
 #define PDS_REPSYNCALL_UPDATE PDS_REPSYNCALL_UPDATEA
 #endif
@@ -1898,7 +1898,7 @@ typedef struct {
 
 // This option disables transitive replication; syncs will only be performed
 // with adjacent servers and no DsBind calls will be made.
-#define DS_REPSYNCALL_[....]_ADJACENT_SERVERS_ONLY	0x00000002
+#define DS_REPSYNCALL_SYNC_ADJACENT_SERVERS_ONLY	0x00000002
 
 // Ordinarily, when DsReplicaSyncAll encounters a non-fatal error, it returns
 // the GUID DNS of the relevant server(s).  Enabling this option causes
@@ -1907,7 +1907,7 @@ typedef struct {
 
 // This option disables all syncing.  The topology will still be analyzed and
 // unavailable / unreachable servers will still be identified.
-#define DS_REPSYNCALL_DO_NOT_[....]			0x00000008
+#define DS_REPSYNCALL_DO_NOT_SYNC			0x00000008
 
 // Ordinarily, DsReplicaSyncAll attempts to bind to all servers before
 // generating the topology.  If a server cannot be contacted, DsReplicaSyncAll
@@ -2652,20 +2652,20 @@ typedef enum _DS_REPL_INFO_TYPE {
 // Bit values for the dwReplicaFlags field of the DS_REPL_NEIGHBOR structure.
 // Also used for the ulReplicaFlags argument to DsReplicaModify
 #define DS_REPL_NBR_WRITEABLE                       (0x00000010)
-#define DS_REPL_NBR_[....]_ON_STARTUP                 (0x00000020)
+#define DS_REPL_NBR_SYNC_ON_STARTUP                 (0x00000020)
 #define DS_REPL_NBR_DO_SCHEDULED_SYNCS              (0x00000040)
 #define DS_REPL_NBR_USE_ASYNC_INTERSITE_TRANSPORT   (0x00000080)
-#define DS_REPL_NBR_TWO_WAY_[....]                    (0x00000200)
+#define DS_REPL_NBR_TWO_WAY_SYNC                    (0x00000200)
 #define DS_REPL_NBR_NONGC_RO_REPLICA                (0x00000400)
 #define DS_REPL_NBR_RETURN_OBJECT_PARENTS           (0x00000800)
 #define DS_REPL_NBR_SELECT_SECRETS                  (0x00001000)
-#define DS_REPL_NBR_FULL_[....]_IN_PROGRESS           (0x00010000)
-#define DS_REPL_NBR_FULL_[....]_NEXT_PACKET           (0x00020000)
+#define DS_REPL_NBR_FULL_SYNC_IN_PROGRESS           (0x00010000)
+#define DS_REPL_NBR_FULL_SYNC_NEXT_PACKET           (0x00020000)
 #define DS_REPL_NBR_GCSPN                           (0x00100000)
 #define DS_REPL_NBR_NEVER_SYNCED                    (0x00200000)
 #define DS_REPL_NBR_PREEMPTED                       (0x01000000)
 #define DS_REPL_NBR_IGNORE_CHANGE_NOTIFICATIONS     (0x04000000)
-#define DS_REPL_NBR_DISABLE_SCHEDULED_[....]          (0x08000000)
+#define DS_REPL_NBR_DISABLE_SCHEDULED_SYNC          (0x08000000)
 #define DS_REPL_NBR_COMPRESS_CHANGES                (0x10000000)
 #define DS_REPL_NBR_NO_CHANGE_NOTIFICATIONS         (0x20000000)
 #define DS_REPL_NBR_PARTIAL_ATTRIBUTE_SET           (0x40000000)
@@ -2676,11 +2676,11 @@ typedef enum _DS_REPL_INFO_TYPE {
 // advance and merged into the ulReplicaFlags parameter unchanged.
 #define DS_REPL_NBR_MODIFIABLE_MASK \
         ( \
-        DS_REPL_NBR_[....]_ON_STARTUP | \
+        DS_REPL_NBR_SYNC_ON_STARTUP | \
         DS_REPL_NBR_DO_SCHEDULED_SYNCS | \
-        DS_REPL_NBR_TWO_WAY_[....] | \
+        DS_REPL_NBR_TWO_WAY_SYNC | \
         DS_REPL_NBR_IGNORE_CHANGE_NOTIFICATIONS | \
-        DS_REPL_NBR_DISABLE_SCHEDULED_[....] | \
+        DS_REPL_NBR_DISABLE_SCHEDULED_SYNC | \
         DS_REPL_NBR_COMPRESS_CHANGES | \
         DS_REPL_NBR_NO_CHANGE_NOTIFICATIONS \
         )
@@ -2878,7 +2878,7 @@ typedef struct _DS_REPL_KCC_DSA_FAILURESW {
 } DS_REPL_KCC_DSA_FAILURESW;
 
 typedef enum _DS_REPL_OP_TYPE {
-    DS_REPL_OP_TYPE_[....] = 0,
+    DS_REPL_OP_TYPE_SYNC = 0,
     DS_REPL_OP_TYPE_ADD,
     DS_REPL_OP_TYPE_DELETE,
     DS_REPL_OP_TYPE_MODIFY,
@@ -2887,13 +2887,13 @@ typedef enum _DS_REPL_OP_TYPE {
 
 typedef struct _DS_REPL_OPW {
     FILETIME        ftimeEnqueued;  // time at which the operation was enqueued
-    ULONG           ulSerialNumber; // ID of this [....]; unique per machine per boot
+    ULONG           ulSerialNumber; // ID of this sync; unique per machine per boot
     ULONG           ulPriority;     // > priority, > urgency
     DS_REPL_OP_TYPE OpType;
 
     ULONG           ulOptions;      // Zero or more bits specific to OpType; e.g.,
                                     //  DS_REPADD_* for DS_REPL_OP_TYPE_ADD,
-                                    //  DS_REPSYNC_* for DS_REPL_OP_TYPE_[....], etc.
+                                    //  DS_REPSYNC_* for DS_REPL_OP_TYPE_SYNC, etc.
     LPWSTR          pszNamingContext;
     LPWSTR          pszDsaDN;
     LPWSTR          pszDsaAddress;
@@ -2905,13 +2905,13 @@ typedef struct _DS_REPL_OPW {
 // Fields can be added only to the end of this structure.
 typedef struct _DS_REPL_OPW_BLOB {
     FILETIME        ftimeEnqueued;  // time at which the operation was enqueued
-    ULONG           ulSerialNumber; // ID of this [....]; unique per machine per boot
+    ULONG           ulSerialNumber; // ID of this sync; unique per machine per boot
     ULONG           ulPriority;     // > priority, > urgency
     DS_REPL_OP_TYPE OpType;
 
     ULONG           ulOptions;      // Zero or more bits specific to OpType; e.g.,
                                     //  DS_REPADD_* for DS_REPL_OP_TYPE_ADD,
-                                    //  DS_REPSYNC_* for DS_REPL_OP_TYPE_[....], etc.
+                                    //  DS_REPSYNC_* for DS_REPL_OP_TYPE_SYNC, etc.
     DWORD           oszNamingContext;
     DWORD           oszDsaDN;
     DWORD           oszDsaAddress;

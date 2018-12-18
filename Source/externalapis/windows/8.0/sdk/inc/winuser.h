@@ -12940,7 +12940,7 @@ IsWinEventHookInstalled(
 #define WINEVENT_OUTOFCONTEXT   0x0000  // Events are ASYNC
 #define WINEVENT_SKIPOWNTHREAD  0x0001  // Don't call back for events on installer's thread
 #define WINEVENT_SKIPOWNPROCESS 0x0002  // Don't call back for events on installer's process
-#define WINEVENT_INCONTEXT      0x0004  // Events are [....], this causes your dll to be injected into every process
+#define WINEVENT_INCONTEXT      0x0004  // Events are SYNC, this causes your dll to be injected into every process
 
 #pragma region Desktop Family
 #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)

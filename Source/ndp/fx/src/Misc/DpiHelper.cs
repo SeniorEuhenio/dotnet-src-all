@@ -1,4 +1,4 @@
-//------------------------------------------------------------------------------
+﻿//------------------------------------------------------------------------------
 // <copyright file="DpiHelper.cs" company="Microsoft">
 //     Copyright (c) Microsoft Corporation.  All rights reserved.
 // </copyright>
@@ -10,7 +10,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
 
-#if WINFORMS_NAMESPACE
+#if Microsoft_NAMESPACE
 using System.Windows.Forms.Internal;
 using CAPS = System.Windows.Forms.NativeMethods;
 #elif DRAWING_NAMESPACE
@@ -254,7 +254,7 @@ namespace System.Windows.Forms
         // This method is used only in System.Design, thus excluding the rest.
         // This is particularly important for System.Drawing, which should not depend 
         // on System.Windows.Forms assembly, where "Button" type is defined. 
-#if (!DRAWING_NAMESPACE && !DRAWINGDESIGN_NAMESPACE && !WINFORMS_NAMESPACE)
+#if (!DRAWING_NAMESPACE && !DRAWINGDESIGN_NAMESPACE && !Microsoft_NAMESPACE)
         /// <summary>
         /// Create a new button bitmap scaled for the device units. 
         /// Note: original image might be disposed.

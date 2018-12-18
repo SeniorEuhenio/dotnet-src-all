@@ -314,7 +314,7 @@ namespace System.Windows.Forms {
         internal ToolStripItemInternalLayout SplitButtonButtonLayout {
             get { 
                 // For preferred size caching reasons, we need to keep our two 
-                // internal layouts (button, dropdown button) in [....]. 
+                // internal layouts (button, dropdown button) in sync. 
              
                 if (InternalLayout != null /*if layout is invalid - calls CreateInternalLayout - which resets splitButtonButtonLayout to null*/
                     && splitButtonButtonLayout == null) {

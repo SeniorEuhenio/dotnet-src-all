@@ -25,7 +25,10 @@ namespace System.Windows.Documents
     using System.Windows.Navigation;
 
     // Spell checking component for the TextEditor.
-    internal class Speller
+    // Class is marked as partial to allow for definition of TextMapOffsetLogger in a separate
+    // source file. When TextMapOffsetLogger is removed, the partial declaration can 
+    // be removed. See doc comments in TextMapOffsetErrorLogger for more details.
+    internal partial class Speller
     {
         //------------------------------------------------------
         //
@@ -199,7 +202,7 @@ namespace System.Windows.Documents
             // IMPORTANT!!
             //
             // This logic here must match ScanRange, or else we might not
-            // calculate the exact same error.  Keep the two methods in [....]!
+            // calculate the exact same error.  Keep the two methods in sync!
             //
 
             XmlLanguage language;
@@ -840,7 +843,7 @@ namespace System.Windows.Documents
 
             //
             // IMPORTANT: the scan logic here (word break expansion, TextMap creation, etc.)
-            // must match GetSuggestionForError exactly.  Keep the methods in [....]!
+            // must match GetSuggestionForError exactly.  Keep the methods in sync!
             //
 
             //
@@ -906,7 +909,7 @@ namespace System.Windows.Documents
                             // otherwise we'll never finish checking the document.
                             if (status.TimeoutPosition.CompareTo(start) <= 0)
                             {
-                                // Diagnostic info for bug 1577085.
+                                // Diagnostic info for 
                                 string debugMessage = "Speller is not advancing! \n" +
                                                       "Culture = " + culture + "\n" +
                                                       "Start offset = " + start.Offset + " parent = " + start.ParentType.Name + "\n" +
@@ -1230,6 +1233,12 @@ namespace System.Windows.Documents
                 {
                     contentOffset = textMap.ContentStartOffset == leftWordBreak ? leftWordBreak : rightWordBreak;
                 }
+
+                // See <summary> section in the doc comments of TextMapOffsetErrorLogger for details on 
+                // what is being logged and why. 
+                var errorLogger = new TextMapOffsetErrorLogger(direction, textMap, segments, i, leftWordBreak, rightWordBreak, contentOffset);
+                errorLogger.LogDebugInfo();
+
                 contentPosition = textMap.MapOffsetToPosition(contentOffset);
 
                 // contextPosition should be MinWordBreaksForContext - 1 words away.
@@ -1249,6 +1258,10 @@ namespace System.Windows.Documents
                     // Don't let that happen.
                     contextOffset = Math.Max(sTextRange.Start + sTextRange.Length, contentOffset);
                 }
+
+                errorLogger.ContextOffset = contextOffset;
+                errorLogger.LogDebugInfo();
+
                 contextPosition = textMap.MapOffsetToPosition(contextOffset);
             }
 

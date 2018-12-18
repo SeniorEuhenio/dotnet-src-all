@@ -573,7 +573,7 @@ namespace System.IO.Log
                 if (errorCode == Error.ERROR_IO_PENDING)
                 {
                     // The CLFS API was called with a NULL overlapped, so the operation should not be asynchronous.
-                    // This means that CLFS has a bug, so it is not safe to continue processing.
+                    // This means that CLFS has a 
                     DiagnosticUtility.FailFast("Unexpected IO in progress (FlushToLsnSync)");
                 }
                 switch (errorCode)
@@ -612,7 +612,7 @@ namespace System.IO.Log
             if (errorCode == Error.ERROR_IO_PENDING)
             {
                 // The CLFS API was called with a NULL overlapped, so the operation should not be asynchronous.
-                // This means that CLFS has a bug, so it is not safe to continue processing.
+                // This means that CLFS has a 
                 DiagnosticUtility.FailFast("Async must be handled elsewhere");
             }
             switch (errorCode)
@@ -765,7 +765,7 @@ namespace System.IO.Log
                 if (errorCode == Error.ERROR_IO_PENDING)
                 {
                     // The CLFS API was called with a NULL overlapped, so the operation should not be asynchronous.
-                    // This means that CLFS has a bug, so it is not safe to continue processing.
+                    // This means that CLFS has a 
                     DiagnosticUtility.FailFast("Unexpected IO in progress (ReadLogRA)");
                 }
                 switch (errorCode)
@@ -804,7 +804,7 @@ namespace System.IO.Log
                 if (errorCode == Error.ERROR_IO_PENDING)
                 {
                     // The CLFS API was called with a NULL overlapped, so the operation should not be asynchronous.
-                    // This means that CLFS has a bug, so it is not safe to continue processing.
+                    // This means that CLFS has a 
                     DiagnosticUtility.FailFast("Unexpected IO in progress (ReadPrevRA)");
                 }
                 switch (errorCode)
@@ -855,7 +855,7 @@ namespace System.IO.Log
                 if (errorCode == Error.ERROR_IO_PENDING)
                 {
                     // The CLFS API was called with a NULL overlapped, so the operation should not be asynchronous.
-                    // This means that CLFS has a bug, so it is not safe to continue processing.
+                    // This means that CLFS has a 
                     DiagnosticUtility.FailFast("No async in ReadLogRecordSync");
                 }
                 switch (errorCode)
@@ -905,7 +905,7 @@ namespace System.IO.Log
                 if (errorCode == Error.ERROR_IO_PENDING)
                 {
                     // The CLFS API was called with a NULL overlapped, so the operation should not be asynchronous.
-                    // This means that CLFS has a bug, so it is not safe to continue processing.
+                    // This means that CLFS has a 
                     DiagnosticUtility.FailFast("No async in ReadNextLogRecordSync");
                 }
                 switch (errorCode)
@@ -965,7 +965,7 @@ namespace System.IO.Log
             if (errorCode == Error.ERROR_IO_PENDING)
             {
                 // The CLFS API was called with a NULL overlapped, so the operation should not be asynchronous.
-                // This means that CLFS has a bug, so it is not safe to continue processing.
+                // This means that CLFS has a 
                 DiagnosticUtility.FailFast("Async must be handled elsewhere");
             }
             switch (errorCode)
@@ -1038,7 +1038,7 @@ namespace System.IO.Log
             if (errorCode == Error.ERROR_IO_PENDING)
             {
                 // The CLFS API was called with a NULL overlapped, so the operation should not be asynchronous.
-                // This means that CLFS has a bug, so it is not safe to continue processing.
+                // This means that CLFS has a 
                 DiagnosticUtility.FailFast("Async must be handled elsewhere");
             }
             switch (errorCode)
@@ -1070,7 +1070,7 @@ namespace System.IO.Log
                 if (errorCode == Error.ERROR_IO_PENDING)
                 {
                     // The CLFS API was called with a NULL overlapped, so the operation should not be asynchronous.
-                    // This means that CLFS has a bug, so it is not safe to continue processing.
+                    // This means that CLFS has a 
                     DiagnosticUtility.FailFast("No async in AddLogContainerSync");
                 }
                 switch (errorCode)
@@ -1109,7 +1109,7 @@ namespace System.IO.Log
                 if (errorCode == Error.ERROR_IO_PENDING)
                 {
                     // The CLFS API was called with a NULL overlapped, so the operation should not be asynchronous.
-                    // This means that CLFS has a bug, so it is not safe to continue processing.
+                    // This means that CLFS has a 
                     DiagnosticUtility.FailFast("No async in AddLogContainerNSSync");
                 }
                 switch (errorCode)
@@ -1149,7 +1149,7 @@ namespace System.IO.Log
                 if (errorCode == Error.ERROR_IO_PENDING)
                 {
                     // The CLFS API was called with a NULL overlapped, so the operation should not be asynchronous.
-                    // This means that CLFS has a bug, so it is not safe to continue processing.
+                    // This means that CLFS has a 
                     DiagnosticUtility.FailFast("No async in RemoveLogContainerSync");
                 }
                 switch (errorCode)
@@ -1195,7 +1195,7 @@ namespace System.IO.Log
                 if (errorCode == Error.ERROR_IO_PENDING)
                 {
                     // The CLFS API was called with a NULL overlapped, so the operation should not be asynchronous.
-                    // This means that CLFS has a bug, so it is not safe to continue processing.
+                    // This means that CLFS has a 
                     DiagnosticUtility.FailFast("No async in CreateLCScanSync");
                 }
                 switch (errorCode)
@@ -1221,8 +1221,8 @@ namespace System.IO.Log
                                           IntPtr.Zero);
             if (!ret)
             {
-                // The CLFS API was called in close handle mode. If it fails, either CLFS has a bug or IO.Log does
-                // Either way, it is not safe to continue processing.
+                // The CLFS API was called in close handle mode. If it fails, either CLFS has a 
+
                 DiagnosticUtility.FailFast("Closing scan context cannot fail");
             }
 
@@ -1238,7 +1238,7 @@ namespace System.IO.Log
                 if (errorCode == Error.ERROR_IO_PENDING)
                 {
                     // The CLFS API was called with a NULL overlapped, so the operation should not be asynchronous.
-                    // This means that CLFS has a bug, so it is not safe to continue processing.
+                    // This means that CLFS has a 
                     DiagnosticUtility.FailFast("No async in SetLogArchiveTailSync");
                 }
                 switch (errorCode)
@@ -1263,7 +1263,7 @@ namespace System.IO.Log
                 if (errorCode == Error.ERROR_IO_PENDING)
                 {
                     // The CLFS API was called with a NULL overlapped, so the operation should not be asynchronous.
-                    // This means that CLFS has a bug, so it is not safe to continue processing.
+                    // This means that CLFS has a 
                     DiagnosticUtility.FailFast("No async in SetEndOfLogSync");
                 }
                 switch (errorCode)
@@ -1295,7 +1295,7 @@ namespace System.IO.Log
                 if (errorCode == Error.ERROR_IO_PENDING)
                 {
                     // The CLFS API was called with a NULL overlapped, so the operation should not be asynchronous.
-                    // This means that CLFS has a bug, so it is not safe to continue processing.
+                    // This means that CLFS has a 
                     DiagnosticUtility.FailFast("No async in TruncateLogSync");
                 }
                 switch (errorCode)
@@ -1710,7 +1710,7 @@ namespace System.IO.Log
             if (errorCode == Error.ERROR_IO_PENDING)
             {
                 // The CLFS API was called with a NULL overlapped, so the operation should not be asynchronous.
-                // This means that CLFS has a bug, so it is not safe to continue processing.
+                // This means that CLFS has a 
                 DiagnosticUtility.FailFast("Async must be handled elsewhere");
             }
             switch (errorCode)

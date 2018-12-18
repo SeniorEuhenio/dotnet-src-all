@@ -703,7 +703,7 @@ DWORD Sm::OpenWithFallback( __in SNI_CONSUMER_INFO *  pConsumerInfo,
 			goto ErrorExit;
 		}
 		// Otherwise, we failed to retrieve the server version, failed 
-		// to make a Yukon LPC connection, and the connection is [....], 
+		// to make a Yukon LPC connection, and the connection is sync, 
 		// so fall back and try Shiloh LPC connection.  
 	}
 

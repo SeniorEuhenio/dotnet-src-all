@@ -40,7 +40,16 @@ enum class AdalOption
 
     // if ADAL_OPTION_FORCE_PROMPT == ADAL_DISALLOW(default), ADAL will use stored cookies and cache for the token.
     // if ADAL_OPTION_FORCE_PROMPT == ADAL_ALLOW, then new requests will not use cache, but they will update cache. Interactive flow will prompt the user for credentials again.
-    ForcePrompt = 8
+    ForcePrompt = 8,
+
+    // Note: This option skipped to 32 because aoClientAssertion took the 16 spot over in the AuthOptions in AuthenticationContext.Enums.h.
+    // if ADAL_OPTION_INTERNET_OPTION_END_BROWSER_SESSION == ADAL_ALLOW (default), the INTERNET_OPTION_END_BROWSER_SESSION option will be set in WebUIController::Start()
+    // if ADAL_OPTION_INTERNET_OPTION_END_BROWSER_SESSION == ADAL_DISALLOW, the INTERNET_OPTION_END_BROWSER_SESSION will not be set in WebUIController::Start() allowing session to carry over
+    ADAL_OPTION_INTERNET_OPTION_END_BROWSER_SESSION = 32,
+
+    // if ADAL_OPTION_USE_WAM == ADAL_ALLOW(default), ADAL will use Web Account Manager (starting Windows 10 TH2) to obtain tokens.
+    // if ADAL_OPTION_USE_WAM == ADAL_DISALLOW, ADAL will not use Web Account Manager (even on Windows 10 TH2 and beyond) and will communicate with AAD directly.
+    ADAL_OPTION_USE_WAM = 64
 };
 
 enum class AdalOptionValue
@@ -109,6 +118,7 @@ public:
     static const DWORD ADALGetRequestStatusForUsernamePassword = 18;
     static const DWORD ADALGetRequestStatusForWindowsIntegrated = 19;
     static const DWORD ADALGetAccessTokenExpirationTime = 20;
+    static const DWORD ADALSetOptionUseWam = 21;
 };
 
 typedef HADALCONTEXT(__stdcall *PFADALCreateAuthenticationContextNoUI) (LPCWSTR, LPCWSTR);

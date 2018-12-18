@@ -184,6 +184,11 @@ namespace System.Web.Hosting {
             // start watching for app domain unloading
             _onAppDomainUnload = new EventHandler(OnAppDomainUnload);
             Thread.GetDomain().DomainUnload += _onAppDomainUnload;
+
+            // VSO 160528: We used to listen to the default AppDomain's UnhandledException only.
+            // However, non-serializable exceptions cannot be passed to the default domain. Therefore
+            // we should try to log exceptions in application AppDomains.
+            Thread.GetDomain().UnhandledException += new UnhandledExceptionEventHandler(ApplicationManager.OnUnhandledException);
         }
 
         internal long TrimCache(int percent) {
@@ -590,7 +595,7 @@ namespace System.Web.Hosting {
 
             HttpRuntime.SetShutdownReason(ApplicationShutdownReason.HostingEnvironment, "HostingEnvironment initiated shutdown");
 
-            // Avoid calling Environment.StackTrace if we are in the ClientBuildManager (Dev10 bug 824659)
+            // Avoid calling Environment.StackTrace if we are in the ClientBuildManager (Dev10 
             if (!BuildManagerHost.InClientBuildManager) {
                 new EnvironmentPermission(PermissionState.Unrestricted).Assert();
                 try {
@@ -601,7 +606,7 @@ namespace System.Web.Hosting {
                 }
             }
 
-            // waitChangeNotification need not be honored in ClientBuildManager (Dev11 bug 264894)
+            // waitChangeNotification need not be honored in ClientBuildManager (Dev11 
             if (!BuildManagerHost.InClientBuildManager) {
                 // this should only be called once, before the cache is disposed, and
                 // the config records are released.

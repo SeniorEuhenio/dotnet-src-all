@@ -780,7 +780,7 @@ namespace System.ServiceModel.Channels
                 {
                     completeSelf = thisPtr.ContinueReading(thisPtr.inputStream.EndRead(result));
                 }
-#pragma warning suppress 56500 // [....], transferring exception to another thread
+#pragma warning suppress 56500 // Microsoft, transferring exception to another thread
                 catch (Exception e)
                 {
                     if (Fx.IsFatal(e))
@@ -2193,7 +2193,7 @@ namespace System.ServiceModel.Channels
 
             bool WriteStreamedMessage()
             {
-                // return a bool to determine if we are [....]. 
+                // return a bool to determine if we are sync. 
 
                 if (onWriteStreamedMessage == null)
                 {
@@ -2289,7 +2289,7 @@ namespace System.ServiceModel.Channels
                         completeSelf = true;
                     }
                 }
-#pragma warning suppress 56500 // [....], transferring exception to another thread
+#pragma warning suppress 56500 // Microsoft, transferring exception to another thread
                 catch (Exception e)
                 {
                     if (Fx.IsFatal(e))
@@ -2315,7 +2315,7 @@ namespace System.ServiceModel.Channels
                 {
                     completeSelf = thisPtr.WriteStreamedMessage();
                 }
-#pragma warning suppress 56500 // [....], transferring exception to another thread
+#pragma warning suppress 56500 // Microsoft, transferring exception to another thread
                 catch (Exception e)
                 {
                     if (Fx.IsFatal(e))
@@ -2349,7 +2349,7 @@ namespace System.ServiceModel.Channels
                     thisPtr.CompleteWriteBody(result);
                     thisPtr.httpOutput.TraceSend();
                 }
-#pragma warning suppress 56500 // [....], transferring exception to another thread
+#pragma warning suppress 56500 // Microsoft, transferring exception to another thread
                 catch (Exception e)
                 {
                     if (Fx.IsFatal(e))
@@ -2512,14 +2512,14 @@ namespace System.ServiceModel.Channels
 
                 if (action != null)
                 {
-                    //This code is calling UrlPathEncode due to MessageBus bug 53362.
-                    //After reviewing this decision, we
-                    //feel that this was probably the wrong thing to do because UrlPathEncode
-                    //doesn't escape some characters like '+', '%', etc.  The real issue behind 
-                    //bug 53362 may have been as simple as being encoded multiple times on the client
-                    //but being decoded one time on the server.  Calling UrlEncode would correctly
-                    //escape these characters, but since we don't want to break any customers and no
-                    //customers have complained, we will leave this as is for now...
+                    //This code is calling UrlPathEncode due to MessageBus 
+
+
+
+
+
+
+
                     action = string.Format(CultureInfo.InvariantCulture, "\"{0}\"", UrlUtility.UrlPathEncode(action));
                 }
 
@@ -2781,7 +2781,7 @@ namespace System.ServiceModel.Channels
                     {
                         thisPtr.CompleteGetRequestStream(result);
                     }
-#pragma warning suppress 56500 // [....], transferring exception to another thread
+#pragma warning suppress 56500 // Microsoft, transferring exception to another thread
                     catch (Exception e)
                     {
                         if (Fx.IsFatal(e))

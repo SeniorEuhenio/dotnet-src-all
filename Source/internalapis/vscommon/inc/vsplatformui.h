@@ -259,7 +259,7 @@ enum __tagVSUIDATAFORMAT
         VSDF_INVALID	= -1,
         VSDF_BUILTIN	= 0,
         VSDF_WIN32	= 1,
-        VSDF_[....]	= 2,
+        VSDF_Microsoft	= 2,
         VSDF_WPF	= 3
     } 	__VSUIDATAFORMAT;
 

@@ -1488,7 +1488,7 @@ DWORD SNITerminate()
 	// client: 1/6 miniutes
 	// managed code: 1/40 minutes
 #ifdef SNI_BASED_CLIENT		
-	// Per [....], an AppDomain unload is interrupted
+	// Per Microsoft, an AppDomain unload is interrupted
 	// after ~2 seconds, so putting a shorter wait 
 	// for SNIX.  
 #ifdef SNIX
@@ -3625,7 +3625,7 @@ DWORD SNIGetInfo( __in SNI_Conn * pConn, UINT QType, __out VOID * pbQInfo)
 
 			break;
 			
-		case SNI_QUERY_CONN_SUPPORTS_[....]_OVER_ASYNC:
+		case SNI_QUERY_CONN_SUPPORTS_SYNC_OVER_ASYNC:
 			{
 				dwError = ERROR_SUCCESS;
 				*(BOOL *) pbQInfo = FALSE;

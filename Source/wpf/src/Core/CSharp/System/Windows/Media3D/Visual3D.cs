@@ -7,7 +7,7 @@
 // Description:
 //
 // History:
-//  6/8/2005 : [....] - Created
+//  6/8/2005 : Microsoft - Created
 //
 //---------------------------------------------------------------------------
 
@@ -181,7 +181,7 @@ namespace System.Windows.Media.Media3D
                 owner.SetFlagsOnAllChannels(true, VisualProxyFlags.IsTransformDirty);
             }
 
-            // NTRAID#Longhorn-1614112-2006/05/25-[....] - Stop over-invalidating _bboxSubgraph
+            // NTRAID#Longhorn-1614112-2006/05/25-Microsoft - Stop over-invalidating _bboxSubgraph
             //
             // We currently maintain a cache of both a ModelVisual3D’s content
             // and subgraph bounds.  A better solution that would be both a 2D
@@ -1001,7 +1001,7 @@ namespace System.Windows.Media.Media3D
         ///       During this virtual call it is not valid to modify the Visual tree.
         ///
         ///       It is okay to type this protected API to the 2D Visual.  The only 2D Visual with
-        ///       3D childern is the Viewport3DVisual which is sealed.  -- [....] 01/17/06
+        ///       3D childern is the Viewport3DVisual which is sealed.  -- Microsoft 01/17/06
         /// </summary>
         protected virtual Visual3D GetVisual3DChild(int index)
         {

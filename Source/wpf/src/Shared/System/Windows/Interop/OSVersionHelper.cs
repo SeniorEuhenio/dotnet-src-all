@@ -46,6 +46,12 @@ namespace Microsoft.Internal.Interop
     {
         #region Static OS Members
 
+        internal static bool IsOsWindows10RS1OrGreater { get; set; }
+
+        internal static bool IsOsWindows10TH2OrGreater { get; set; }
+
+        internal static bool IsOsWindows10TH1OrGreater { get; set; }
+
         internal static bool IsOsWindows10OrGreater { get; set; }
 
         internal static bool IsOsWindows8Point1OrGreater { get; set; }
@@ -79,6 +85,12 @@ namespace Microsoft.Internal.Interop
         [SecurityCritical]
         static OSVersionHelper()
         {
+            IsOsWindows10RS1OrGreater = IsWindows10RS1OrGreater();
+
+            IsOsWindows10TH2OrGreater = IsWindows10TH2OrGreater();
+
+            IsOsWindows10TH1OrGreater = IsWindows10TH1OrGreater();
+
             IsOsWindows10OrGreater = IsWindows10OrGreater();
 
             IsOsWindows8Point1OrGreater = IsWindows8Point1OrGreater();
@@ -109,6 +121,21 @@ namespace Microsoft.Internal.Interop
         #endregion
 
         #region DLL Imports
+
+        [SecurityCritical, SuppressUnmanagedCodeSecurity]
+        [DllImport(DllImport.PresentationNative, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        static extern bool IsWindows10RS1OrGreater();
+
+        [SecurityCritical, SuppressUnmanagedCodeSecurity]
+        [DllImport(DllImport.PresentationNative, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        static extern bool IsWindows10TH2OrGreater();
+
+        [SecurityCritical, SuppressUnmanagedCodeSecurity]
+        [DllImport(DllImport.PresentationNative, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        static extern bool IsWindows10TH1OrGreater();
 
         [SecurityCritical, SuppressUnmanagedCodeSecurity]
         [DllImport(DllImport.PresentationNative, CallingConvention = CallingConvention.Cdecl)]

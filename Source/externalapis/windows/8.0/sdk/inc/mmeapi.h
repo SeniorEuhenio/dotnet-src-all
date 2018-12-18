@@ -49,7 +49,7 @@ extern "C" {
 #define WAVERR_BADFORMAT      (WAVERR_BASE + 0)    /* unsupported wave format */
 #define WAVERR_STILLPLAYING   (WAVERR_BASE + 1)    /* still something playing */
 #define WAVERR_UNPREPARED     (WAVERR_BASE + 2)    /* header not prepared */
-#define WAVERR_[....]           (WAVERR_BASE + 3)    /* device is synchronous */
+#define WAVERR_SYNC           (WAVERR_BASE + 3)    /* device is synchronous */
 #define WAVERR_LASTERROR      (WAVERR_BASE + 3)    /* last error in range */
 
 /* waveform audio data types */
@@ -193,7 +193,7 @@ typedef struct waveoutcaps_tag {
 #define WAVECAPS_PLAYBACKRATE   0x0002   /* supports playback rate control */
 #define WAVECAPS_VOLUME         0x0004   /* supports volume control */
 #define WAVECAPS_LRVOLUME       0x0008   /* separate left-right volume control */
-#define WAVECAPS_[....]           0x0010
+#define WAVECAPS_SYNC           0x0010
 #define WAVECAPS_SAMPLEACCURATE 0x0020
 
 

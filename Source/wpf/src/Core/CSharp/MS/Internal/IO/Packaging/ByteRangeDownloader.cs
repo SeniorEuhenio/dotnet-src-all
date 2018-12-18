@@ -11,8 +11,8 @@
 //  web requests other than through WININET
 //
 // History:
-//  03/20/2003 - [....]    Created
-//  06/30/2003 - [....]    Ported to WCP tree
+//  03/20/2003 - Microsoft    Created
+//  06/30/2003 - Microsoft    Ported to WCP tree
 //  10/25/2003 - brucemac   Introduced FileMutex to enable safe shared access to the temp file
 //
 // Copyright (C) 2003 by Microsoft Corporation.  All rights reserved.
@@ -40,7 +40,7 @@ namespace MS.Internal.IO.Packaging
     /// <summary>
     /// Downloader for byte range requests
     /// </summary>
-    // Consider ([....] 05/15/2003): For now, we will only process one batch of requests at a time. We will most likely
+    // Consider (Microsoft 05/15/2003): For now, we will only process one batch of requests at a time. We will most likely
     //  want to spin multiple threads and do multiple batches at a time in the future
     [FriendAccessAllowed]
     internal class ByteRangeDownloader : IDisposable
@@ -389,7 +389,7 @@ namespace MS.Internal.IO.Packaging
         }
 
         /// <summary>
-        /// OS synchronization object use to synchronize access to the temp file - if null, no [....] is needed
+        /// OS synchronization object use to synchronize access to the temp file - if null, no sync is needed
         /// </summary>
         internal Mutex FileMutex
         {
@@ -517,10 +517,10 @@ namespace MS.Internal.IO.Packaging
 
             // Set the Proxy to Empty one; If we don't set this to empty one, it will try to find one for us
             //  and ends up triggering JScript in another assembly. This will throw PolicyException since the JScript
-            //  dll doesn't have execution right. This is bug in CLR; supposed to be fixed later
-            // ToDo ([....] 05/15/2003): Need to keep consistent HTTP stack with the WININET one (e.g. authentication, proxy, cookies)
-//            IWebProxy emptyProxy = GlobalProxySelection.GetEmptyWebProxy();
-//            request.Proxy = emptyProxy;
+            //  dll doesn't have execution right. This is 
+
+
+
 
             // Local assert to allow Proxy get/set under partial trust
             new WebPermission(PermissionState.Unrestricted).Assert();   // Blessed

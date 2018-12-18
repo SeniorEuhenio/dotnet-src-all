@@ -7,6 +7,7 @@
 //------------------------------------------------------------------------------
 
 using MS.Internal;
+using MS.Internal.Interop;
 using MS.Internal.KnownBoxes;
 using MS.Internal.Media;
 using MS.Internal.PresentationCore;
@@ -466,8 +467,8 @@ namespace System.Windows
             //no need to walk down in this case
             if(v.CheckFlagsAnd(VisualFlags.IsLayoutSuspended)) return;
 
-            //  (bug # 1623922) assert that a UIElement has not being
-            //  removed from the visual tree while updating layout.
+            //  (
+
             if (    Invariant.Strict
                 &&  v.CheckFlagsAnd(VisualFlags.IsUIElement)    )
             {
@@ -885,8 +886,8 @@ namespace System.Windows
                         // If using layout rounding, round final size before calling ArrangeCore.
                         if (CheckFlagsAnd(VisualFlags.UseLayoutRounding))
                         {
-                            EnsureDpiScale();
-                            finalRect = RoundLayoutRect(finalRect, _dpiScaleX, _dpiScaleY);
+                            DpiScale dpi = GetDpi();
+                            finalRect = RoundLayoutRect(finalRect, dpi.DpiScaleX, dpi.DpiScaleY);
                         }
 
                         try
@@ -1148,7 +1149,7 @@ namespace System.Windows
         ///        it only uses it for calculation of screen coordinates.
         ///</SecurityNote>
         [SecurityCritical, SecurityTreatAsSafe]
-        private static void EnsureDpiScale()
+        internal static DpiScale EnsureDpiScale()
         {
             if (_setDpi)
             {
@@ -1173,14 +1174,15 @@ namespace System.Windows
                 {
                     dpiX = UnsafeNativeMethods.GetDeviceCaps(new HandleRef(null, dc), NativeMethods.LOGPIXELSX);
                     dpiY = UnsafeNativeMethods.GetDeviceCaps(new HandleRef(null, dc), NativeMethods.LOGPIXELSY);
-                    _dpiScaleX = (double)dpiX / 96.0;
-                    _dpiScaleY = (double)dpiY / 96.0;
+                    _dpiScaleX = (double)dpiX / DpiUtil.DefaultPixelsPerInch;
+                    _dpiScaleY = (double)dpiY / DpiUtil.DefaultPixelsPerInch;
                 }
                 finally
                 {
                     UnsafeNativeMethods.ReleaseDC(desktopWnd, new HandleRef(null, dc));
                 }
             }
+            return new DpiScale(_dpiScaleX, _dpiScaleY);
         }
 
         /// <summary>
@@ -2627,6 +2629,12 @@ namespace System.Windows
         {
             if (Keyboard.Focus(this) == this)
             {
+                // DDVSO:178044
+                // In order to show the touch keyboard we need to prompt the WinRT InputPane API.
+                // We only do this when the keyboard focus has changed as the keyboard focus dictates
+                // our current input targets for the touch and physical keyboards.
+                TipTsfHelper.Show(this);
+
                 // Successfully setting the keyboard focus updated the logical focus as well
                 return true;
             }
@@ -4676,7 +4684,9 @@ namespace System.Windows
         // See PersistId property
         private int _persistId = 0;
 
-        // Device transform
+        internal static List<double> DpiScaleXValues = new List<double>(3);
+        internal static List<double> DpiScaleYValues = new List<double>(3);
+        internal static object DpiLock = new object();
         private static double _dpiScaleX = 1.0;
         private static double _dpiScaleY = 1.0;
         private static bool _setDpi = true;
@@ -4814,6 +4824,43 @@ namespace System.Windows
         TouchesCapturedWithinChanged    = 0x20000000,
         TouchLeaveCache                 = 0x40000000,
         TouchEnterCache                 = 0x80000000,
+    }
+
+    public struct DpiScale
+    {
+        public DpiScale(double dpiScaleX, double dpiScaleY)
+        {
+            _dpiScaleX = dpiScaleX;
+            _dpiScaleY = dpiScaleY;
+        }
+
+        public double DpiScaleX
+        {
+            get { return _dpiScaleX; }
+        }
+
+        public double DpiScaleY
+        {
+            get { return _dpiScaleY; }
+        }
+
+        public double PixelsPerDip
+        {
+            get { return _dpiScaleY; }
+        }
+
+        public double PixelsPerInchX
+        {
+            get { return DpiUtil.DefaultPixelsPerInch * _dpiScaleX; }
+        }
+
+        public double PixelsPerInchY
+        {
+            get { return DpiUtil.DefaultPixelsPerInch * _dpiScaleY; }
+        }
+
+        private readonly double _dpiScaleX;
+        private readonly double _dpiScaleY;
     }
 }
 

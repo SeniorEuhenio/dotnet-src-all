@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{1bbf6583-1a45-4b4f-8855-3d825380d72b}</ProjectGuid>
+    <ProjectGuid>{4983754d-64d8-48fc-ae21-676567936d79}</ProjectGuid>
     <OutputPath>.</OutputPath>
     <OutputType>Library</OutputType>
     <AssemblyName>PresentationCore</AssemblyName>
@@ -20,27 +20,27 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\ndp\clr\src\bcl\mscorlib.csproj">
-      <Project>{67c368de-3511-4106-8749-000d91efd3fc}</Project>
+      <Project>{20f34c38-8c60-44e7-b703-0e341d274957}</Project>
       <Name>mscorlib</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ndp\fx\src\System.csproj">
-      <Project>{54e500cb-cdce-4405-9ac7-200d8982ccd8}</Project>
+      <Project>{85716da4-9fb2-4f44-9c4d-b7431fdf1b20}</Project>
       <Name>System</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ndp\fx\src\Configuration\System.Configuration.csproj">
-      <Project>{d055238a-9098-47e9-8d76-70acbfa31ac3}</Project>
+      <Project>{a4d7a44f-817d-4fad-ba6a-076580aadfbe}</Project>
       <Name>System.Configuration</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ndp\fx\src\Xml\System.Xml.csproj">
-      <Project>{7eccbad4-f184-4260-b750-d5c802c948d8}</Project>
+      <Project>{6f992f82-1c90-4388-ab60-15c653aeeca5}</Project>
       <Name>System.Xml</Name>
     </ProjectReference>
     <ProjectReference Include="UIAutomation\UIAutomationClient\UIAutomationClient.csproj">
-      <Project>{ad5cdb7e-95ed-4a7b-b4be-5d2e9933caea}</Project>
+      <Project>{41f3df7d-f1f8-44c0-954e-17238996531d}</Project>
       <Name>UIAutomationClient</Name>
     </ProjectReference>
     <ProjectReference Include="WindowsBase.csproj">
-      <Project>{f354ca4c-e299-457c-9226-7d1b35af65fb}</Project>
+      <Project>{9568abec-69cd-47db-8bc7-647cd12fea14}</Project>
       <Name>WindowsBase</Name>
     </ProjectReference>
   </ItemGroup>
@@ -186,7 +186,6 @@
     <Compile Include="Core\CSharp\MS\Internal\Media3D\LineUtil.cs" />
     <Compile Include="Core\CSharp\MS\Internal\Media3D\M3DUtil.cs" />
     <Compile Include="Core\CSharp\MS\Internal\MediaTrace.cs" />
-    <Compile Include="Core\CSharp\MS\Internal\MemoryPressure.cs" />
     <Compile Include="Core\CSharp\MS\Internal\PartialArray.cs" />
     <Compile Include="Core\CSharp\MS\Internal\Resources\ContentFileHelper.cs" />
     <Compile Include="Core\CSharp\MS\Internal\Resources\ResourceManagerWrapper.cs" />

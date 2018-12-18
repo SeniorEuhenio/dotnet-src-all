@@ -1205,7 +1205,7 @@ namespace System.Windows.Forms {
                         if (gridView != null) {
                             // TypeResolutionService is needed to access the HelpKeyword. However,
                             // TypeResolutionService might be disposed when project is closing. We
-                            // need ---- the exception in this case.
+                            // need swallow the exception in this case.
                             try {
                                 gridView.RemoveSelectedEntryHelpAttributes();
                             }
@@ -1288,7 +1288,7 @@ namespace System.Windows.Forms {
    
                     /*
        
-                    [....], hopefully this won't be a big perf problem, but it looks like we
+                    Microsoft, hopefully this won't be a big perf problem, but it looks like we
                            need to refresh even if we didn't change the selected objects.
        
                     if (propertiesChanged) {*/
@@ -2738,8 +2738,8 @@ namespace System.Windows.Forms {
                         object[] newObjects = new object[currentObjects.Length - 1];
                         Array.Copy(currentObjects, 0, newObjects, 0, i);
                         if (i < newObjects.Length) {
-                            // Dev10 Bug 462203: Array.Copy throws Argument Exception when deleting
-                            //                   multiple controls with PropertyTabs in designer.
+                            // Dev10 
+
                             Array.Copy(currentObjects, i + 1, newObjects, i, newObjects.Length - i);
                         }
 

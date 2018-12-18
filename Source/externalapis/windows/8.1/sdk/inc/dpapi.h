@@ -131,7 +131,7 @@ typedef struct  _CRYPTPROTECT_PROMPTSTRUCT
 //
 // force credential synchronize during CryptProtectData()
 // Synchronize is only operation that occurs during this operation
-#define CRYPTPROTECT_CRED_[....]           0x8
+#define CRYPTPROTECT_CRED_SYNC           0x8
 
 //
 // Generate an Audit on protect and unprotect operations

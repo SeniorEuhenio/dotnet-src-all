@@ -5718,7 +5718,7 @@ EXTERN_C const IID IID_IShellView;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IShellView * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             __RPC__in IShellView * This,
             /* [out] */ __RPC__deref_out_opt HWND *phwnd);
         
@@ -5923,7 +5923,7 @@ EXTERN_C const IID IID_IShellView2;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IShellView2 * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             __RPC__in IShellView2 * This,
             /* [out] */ __RPC__deref_out_opt HWND *phwnd);
         
@@ -6156,7 +6156,7 @@ EXTERN_C const IID IID_IShellView3;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IShellView3 * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             __RPC__in IShellView3 * This,
             /* [out] */ __RPC__deref_out_opt HWND *phwnd);
         
@@ -8990,7 +8990,7 @@ EXTERN_C const IID IID_IShellBrowser;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IShellBrowser * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             __RPC__in IShellBrowser * This,
             /* [out] */ __RPC__deref_out_opt HWND *phwnd);
         
@@ -10098,7 +10098,7 @@ enum STGOP
     {
         STGOP_MOVE	= 1,
         STGOP_COPY	= 2,
-        STGOP_[....]	= 3,
+        STGOP_SYNC	= 3,
         STGOP_REMOVE	= 5,
         STGOP_RENAME	= 6,
         STGOP_APPLYPROPERTIES	= 8,
@@ -16342,7 +16342,7 @@ EXTERN_C const IID IID_IDockingWindow;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IDockingWindow * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             __RPC__in IDockingWindow * This,
             /* [out] */ __RPC__deref_out_opt HWND *phwnd);
         
@@ -16519,7 +16519,7 @@ EXTERN_C const IID IID_IDeskBand;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IDeskBand * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             __RPC__in IDeskBand * This,
             /* [out] */ __RPC__deref_out_opt HWND *phwnd);
         
@@ -16739,7 +16739,7 @@ EXTERN_C const IID IID_IDeskBand2;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IDeskBand2 * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             __RPC__in IDeskBand2 * This,
             /* [out] */ __RPC__deref_out_opt HWND *phwnd);
         
@@ -21738,7 +21738,7 @@ EXTERN_C const IID IID_IDeskBar;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             IDeskBar * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             IDeskBar * This,
             /* [out] */ HWND *phwnd);
         
@@ -21895,7 +21895,7 @@ EXTERN_C const IID IID_IMenuPopup;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             IMenuPopup * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             IMenuPopup * This,
             /* [out] */ HWND *phwnd);
         

@@ -492,7 +492,7 @@ namespace System.IO.Log
         // If pinningHandle is not null, caller must free it AFTER the call to
         // CreateFile has returned.
         //
-        // [....]: Copied this from System.IO.FileStream
+        // Microsoft: Copied this from System.IO.FileStream
         //
         private static unsafe SECURITY_ATTRIBUTES GetSecAttrs(
             FileShare share,

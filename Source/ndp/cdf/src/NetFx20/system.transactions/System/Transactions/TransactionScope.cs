@@ -1251,8 +1251,8 @@ namespace System.Transactions
                 // if this is a not supported scope it will be cleared.
                 if ( newCurrent != null )
                 {
-                    // To work around an SWC bug in Com+ we need to create 2
-                    // service domains.
+                    // To work around an SWC 
+
 
                     // Com+ will by default try to inherit synchronization from
                     // an existing context.  Turn that off.
@@ -1304,8 +1304,8 @@ namespace System.Transactions
         {
             if ( this.createdDoubleServiceDomain )
             {
-                // This is an ugly work around to a bug in Com+ that prevents the use of BYOT and SWC with
-                // anything other than required synchronization.
+                // This is an ugly work around to a 
+
                 SysES.ServiceDomain.Leave();
             }
             SysES.ServiceDomain.Leave();

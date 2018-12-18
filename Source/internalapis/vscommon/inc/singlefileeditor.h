@@ -478,7 +478,7 @@ EXTERN_C const IID IID_IVsIntellisenseHost;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IVsIntellisenseHost * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *QueryStatus )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *QueryStatus )( 
             __RPC__in IVsIntellisenseHost * This,
             /* [unique][in] */ __RPC__in_opt const GUID *pguidCmdGroup,
             /* [in] */ ULONG cCmds,
@@ -751,7 +751,7 @@ EXTERN_C const IID IID_IVsTextViewIntellisenseHost;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IVsTextViewIntellisenseHost * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *QueryStatus )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *QueryStatus )( 
             __RPC__in IVsTextViewIntellisenseHost * This,
             /* [unique][in] */ __RPC__in_opt const GUID *pguidCmdGroup,
             /* [in] */ ULONG cCmds,
@@ -1149,7 +1149,7 @@ EXTERN_C const IID IID_IVsIntellisenseCompletor;
         ULONG ( STDMETHODCALLTYPE *Release )( 
             __RPC__in IVsIntellisenseCompletor * This);
         
-        /* [input_[....]] */ HRESULT ( STDMETHODCALLTYPE *QueryStatus )( 
+        /* [input_sync] */ HRESULT ( STDMETHODCALLTYPE *QueryStatus )( 
             __RPC__in IVsIntellisenseCompletor * This,
             /* [unique][in] */ __RPC__in_opt const GUID *pguidCmdGroup,
             /* [in] */ ULONG cCmds,

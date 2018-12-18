@@ -164,7 +164,7 @@ namespace System.Configuration
                 CspParameters csp = new CspParameters();
                 csp.KeyContainerName = KeyContainerName;
                 csp.KeyNumber = 1;
-                csp.ProviderType = 1; // Dev10 Bug #548719: Explicitly require "RSA Full (Signature and Key Exchange)"
+                csp.ProviderType = 1; // Dev10 
 
                 if (CspProviderName != null && CspProviderName.Length > 0)
                     csp.ProviderName = CspProviderName;

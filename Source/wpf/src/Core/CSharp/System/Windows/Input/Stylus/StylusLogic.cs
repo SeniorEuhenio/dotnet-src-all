@@ -435,9 +435,9 @@ namespace System.Windows.Input
                 }
             }
 
-            // Bug 839668, StylusDevice could have been disposed internally here.
-            // We should check StylusDevice.IsValid property.  This check has
-            // been moved to support DevDiv:1078091.
+            // 
+
+
             if (rawStylusInputReport != null
                 && rawStylusInputReport.StylusDevice != null
                 && rawStylusInputReport.StylusDevice.IsValid)
@@ -611,8 +611,8 @@ namespace System.Windows.Input
                         {
                             _inDragDrop = _inputManager.Value.InDragDrop;
 
-                            // If we are going out of DragDrop then we need to re [....] the mouse state
-                            // if we have a stylus device in range (otherwise we [....] on the next
+                            // If we are going out of DragDrop then we need to re sync the mouse state
+                            // if we have a stylus device in range (otherwise we sync on the next
                             // stylus coming in range).
                             if (!_inDragDrop && _stylusDeviceInRange)
                             {
@@ -1135,7 +1135,7 @@ namespace System.Windows.Input
                     RawStylusInputReport rawStylusInputReport = (RawStylusInputReport) inputReportEventArgs.Report;
                     StylusDevice stylusDevice = rawStylusInputReport.StylusDevice;
 
-                    // Bug 839668,StylusDevice could have been disposed internally here.
+                    // 
                     if (stylusDevice != null && stylusDevice.IsValid)
                     {
                         // update stylus device state (unless this is exclusively system gesture or
@@ -1156,7 +1156,6 @@ namespace System.Windows.Input
                                 stylusDevice.UpdateInRange(true, rawStylusInputReport.PenContext);
                                 stylusDevice.UpdateState(rawStylusInputReport);
                                 UpdateIsStylusInRange(true);
-                                _lastRawMouseAction = RawMouseActions.None; // make sure we promote a mouse move on next event.
                                 break;
                             default: // InAirMove, Down, Move, Up go through here.
                                 stylusDevice.UpdateState(rawStylusInputReport);
@@ -1177,8 +1176,8 @@ namespace System.Windows.Input
                         }
 
                         // If this is a stylus down and we don't have a valid target then the stylus went down
-                        // on the wrong window (a transparent window handling bug in wisptis).  In this case
-                        // we want to ignore all stylus input until after the next stylus up.
+                        // on the wrong window (a transparent window handling 
+
                         if (rawStylusInputReport.Actions == RawStylusActions.Down && stylusDevice.Target == null)
                         {
                             stylusDevice.IgnoreStroke = true;
@@ -1202,7 +1201,7 @@ namespace System.Windows.Input
 
                 StylusDevice stylusDevice = stylusDownEventArgs.StylusDevice;
 
-                // Bug 839668,StylusDevice could have been disposed internally here.
+                // 
                 if (stylusDevice != null && stylusDevice.IsValid)
                 {
                     Point ptClient = stylusDevice.GetRawPosition(null);
@@ -1290,12 +1289,12 @@ namespace System.Windows.Input
         [SecurityCritical ]
         private void PostProcessInput(object sender, ProcessInputEventArgs e)
         {
-            //only [....] with mouse capture if we're enabled, or else there are no tablet devices
+            //only sync with mouse capture if we're enabled, or else there are no tablet devices
             //hence no input.  We have to work around this because getting the
             //Tablet.TabletDevices will load Penimc.dll.
             if (_inputEnabled)
             {
-                // Watch the LostMouseCapture and GotMouseCapture events to keep stylus capture in [....].
+                // Watch the LostMouseCapture and GotMouseCapture events to keep stylus capture in sync.
                 if(e.StagingItem.Input.RoutedEvent == Mouse.LostMouseCaptureEvent ||
                     e.StagingItem.Input.RoutedEvent == Mouse.GotMouseCaptureEvent)
                 {
@@ -1324,34 +1323,63 @@ namespace System.Windows.Input
                 }
             }
 
-            if(e.StagingItem.Input.RoutedEvent == InputManager.InputReportEvent && !_inDragDrop)
+            if(e.StagingItem.Input.RoutedEvent == InputManager.InputReportEvent)
             {
                 InputReportEventArgs input = e.StagingItem.Input as InputReportEventArgs;
                 if(!input.Handled && input.Report.Type == InputType.Stylus)
                 {
                     RawStylusInputReport report = (RawStylusInputReport) input.Report;
-                    // Only promote if the window is enabled!
-                    if (!report.PenContext.Contexts.IsWindowDisabled)
-                    {
-                        PromoteRawToPreview(report, e);
 
-                        // Need to reset this flag at the end of StylusUp processing.
-                        if (report.Actions == RawStylusActions.Up)
+                    if (!_inDragDrop)
+                    {
+                        // Only promote if the window is enabled!
+                        if (!report.PenContext.Contexts.IsWindowDisabled)
                         {
-                            report.StylusDevice.IgnoreStroke = false;
+                            PromoteRawToPreview(report, e);
+
+                            // Need to reset this flag at the end of StylusUp processing.
+                            if (report.Actions == RawStylusActions.Up)
+                            {
+                                report.StylusDevice.IgnoreStroke = false;
+                            }
+                        }
+                        else
+                        {
+                            // We don't want to send input messages to a disabled window, but if this
+                            // is a StylusUp action then we need to make sure that the device knows it
+                            // is no longer active.  If we don't do this, we will incorrectly think this
+                            // device is still active, and so therefore no other touch input will be
+                            // considered "primary" input, causing it to be ignored for most actions
+                            // (like button clicks).  (DevDiv2 520639)
+                            if ((report.Actions & RawStylusActions.Up) != 0 && report.StylusDevice != null)
+                            {
+                                StylusTouchDevice touchDevice = report.StylusDevice.TouchDevice;
+                                // Don't try to deactivate if the device isn't active.  This can happen if
+                                // the window was disabled for the touch-down as well, in which case we
+                                // never activated the device and therefore don't need to deactivate it.
+                                if (touchDevice.IsActive)
+                                {
+                                    touchDevice.OnDeactivate();
+                                }
+                            }
                         }
                     }
                     else
                     {
-                        // We don't want to send input messages to a disabled window, but if this
-                        // is a StylusUp action then we need to make sure that the device knows it
-                        // is no longer active.  If we don't do this, we will incorrectly think this
-                        // device is still active, and so therefore no other touch input will be
-                        // considered "primary" input, causing it to be ignored for most actions
-                        // (like button clicks).  (DevDiv2 520639)
-                        if ((report.Actions & RawStylusActions.Up) != 0 && report.StylusDevice != null)
+                        // DDVSO:185548
+                        // Previously, lifting a StylusDevice that was not the CurrentMousePromotionStylusDevice
+                        // during a multi-touch down drag/drop would ignore the Up for that device.  This was
+                        // resulting in an invalid active devices count in StylusTouchDevice, causing subsequent
+                        // touch interactions to never mouse promote and leaving the stack in an invalid state.
+                        // To fix this, deactivate for stylus device up received during a drag/drop as long as they
+                        // do not originate with the CurrentMousePromotionStylusDevice (which is the device for the
+                        // drag/drop operation).
+                        if (report.StylusDevice != null
+                            && report.StylusDevice != CurrentMousePromotionStylusDevice
+                            && ((report.Actions & RawStylusActions.Up) != 0))
                         {
                             StylusTouchDevice touchDevice = report.StylusDevice.TouchDevice;
+
                             // Don't try to deactivate if the device isn't active.  This can happen if
                             // the window was disabled for the touch-down as well, in which case we
                             // never activated the device and therefore don't need to deactivate it.
@@ -1374,12 +1402,6 @@ namespace System.Windows.Input
                 RawMouseInputReport mouseDeactivateInputReport = _mouseDeactivateInputReport;
                 _mouseDeactivateInputReport = null;
                 StylusEventArgs eventArgsOutOfRange = (StylusEventArgs)e.StagingItem.Input;
-
-                // If we have deferred mouse moves then make sure we process last one now.
-                if (_lastRawMouseAction == RawMouseActions.AbsoluteMove && _waitingForDelegate)
-                {
-                    ProcessMouseMove(eventArgsOutOfRange.StylusDevice, eventArgsOutOfRange.Timestamp, false);
-                }
 
                 // See if we need to set the Mouse Activate flag.
                 PresentationSource mouseSource = _inputManager.Value.PrimaryMouseDevice.CriticalActiveSource;
@@ -1913,41 +1935,18 @@ namespace System.Windows.Input
                             {
                                 Point pt = PointUtil.ScreenToClient(stylusDevice.LastMouseScreenPoint, mouseInputSource);
 
-                                //
-                                // use the dispatcher as a way of coalescing mouse *move* messages
-                                // BUT don't flood the dispatcher with delegates if we're already
-                                // waiting for a callback
-                                //
-                                if ((actions & RawMouseActions.AbsoluteMove) != 0)
-                                {
-                                    if (actions == _lastRawMouseAction && _waitingForDelegate)
-                                    {
-                                        return; // We don't need to process this one.
-                                    }
-                                    else
-                                    {
-                                        //set the waiting bit so we won't enter here again
-                                        //until we get the callback
-                                        _waitingForDelegate = true;
-
-                                        Dispatcher.BeginInvoke(DispatcherPriority.Input,
-                                        (DispatcherOperationCallback)delegate(object unused)
-                                        {
-                                            //reset our flags here in the callback.
-                                            _waitingForDelegate = false;
-                                            return null;
-                                        },
-                                        null);
-                                    }
-                                }
+                                // DevDivVSO:153798
+                                // Mouse move coalescing code has been removed from this function.  This used to be needed
+                                // since all touch moves were added to the stylus queue.  Now that touch moves are themselves
+                                // coalesced, this was wrongly cutting down all touch move to mouse move promotions by a third 
+                                // or so.  This results in a poor experience for anyone relying on mouse move promotions instead
+                                // of straight touch events.
 
                                 // See if we need to set the Mouse Activate flag.
                                 if (_inputManager.Value.PrimaryMouseDevice.CriticalActiveSource != mouseInputSource)
                                 {
                                     actions |= RawMouseActions.Activate;
                                 }
-
-                                _lastRawMouseAction = actions;
 
                                 RawMouseInputReport mouseInputReport = new RawMouseInputReport(
                                                                             InputMode.Foreground, stylusArgs.Timestamp, mouseInputSource,
@@ -3262,8 +3261,6 @@ namespace System.Windows.Input
                     mouseInputReport._isSynchronize = true;
                 }
 
-                _lastRawMouseAction = actions;
-
                 InputReportEventArgs inputReportArgs = new InputReportEventArgs(stylusDevice, mouseInputReport);
                 inputReportArgs.RoutedEvent = InputManager.PreviewInputReportEvent;
 
@@ -4069,10 +4066,10 @@ namespace System.Windows.Input
 
         internal Matrix GetTabletToViewTransform(TabletDevice tabletDevice)
         {
-            // NTRAID#Tablet_PC_Bug 26555-2004/11/3-xiaotu: Inking is offset under 120 DPI
-            // Changet the TabletToViewTransform matrix to take DPI into account. The default
-            // value is 96 DPI in Avalon. The device DPI value is cached after the first call
-            // to this function.
+            // NTRAID#Tablet_PC_
+
+
+
 
             Matrix matrix = _transformToDevice;
             matrix.Invert();
@@ -4102,14 +4099,6 @@ namespace System.Windows.Input
             Matrix matrix = _transformToDevice;
             matrix.Invert();
             return measurePoint * matrix;
-        }
-
-
-        // This is used to determine whether we postpone promoting mouse move events
-        // from stylus events.
-        internal void SetLastRawMouseActions(RawMouseActions actions)
-        {
-            _lastRawMouseAction = actions;
         }
 
 #if !MULTICAPTURE
@@ -4194,9 +4183,6 @@ namespace System.Windows.Input
 
         private const double DoubleTapMinFactor = 0.7; // 70% of the default threshold.
         private const double DoubleTapMaxFactor = 1.3; // 130% of the default threshold.
-
-        private RawMouseActions _lastRawMouseAction = RawMouseActions.None;
-        private bool _waitingForDelegate = false;
 
         private MouseButtonState _mouseLeftButtonState = MouseButtonState.Released;
         private MouseButtonState _mouseRightButtonState = MouseButtonState.Released;

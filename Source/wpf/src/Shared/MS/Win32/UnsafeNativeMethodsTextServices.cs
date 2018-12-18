@@ -1112,7 +1112,7 @@ namespace MS.Win32
         public interface ITfContext
         {
             //const DWORD TF_ES_ASYNCDONTCARE   = 0x0;
-            //const DWORD TF_ES_[....]            = 0x1;
+            //const DWORD TF_ES_SYNC            = 0x1;
             //const DWORD TF_ES_READ            = 0x2;
             //const DWORD TF_ES_READWRITE       = 0x6;
             //const DWORD TF_ES_ASYNC           = 0x8;

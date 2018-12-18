@@ -8,7 +8,7 @@
 // Description: ITextStoreACP implementation.
 //
 // History:
-//  07/17/2003 : [....] - Ported from dotnet tree.
+//  07/17/2003 : Microsoft - Ported from dotnet tree.
 //
 //---------------------------------------------------------------------------
 
@@ -206,7 +206,7 @@ namespace System.Windows.Documents
                     }
                     else
                     {
-                        // Caller insists on a [....] lock -- give up.
+                        // Caller insists on a sync lock -- give up.
                         hrSession = UnsafeNativeMethods.TS_E_SYNCHRONOUS;
                     }
                 }
@@ -464,11 +464,11 @@ namespace System.Windows.Documents
 #if true
             //
             // Disable embedded object temporarily because...
-            // -  There is no persistency supported including cut and past (Bug 985589).
-            // -  It is GDI metadata that is rendered so there is no relation with Avalon ink editing at all.
-            // -  This was one of major feature in Cicero on Office XP timeframe however the latest Tablet
-            //    Input Panel does not have this feature anymore. (Does it?)
-            //
+            // -  There is no persistency supported including cut and past (
+
+
+
+
             insertable = false;
 #else
             if (TextEditor.AcceptsRichContent)
@@ -1634,7 +1634,7 @@ namespace System.Windows.Documents
         {
             // If there is a composition that covers the current selection,
             // we can return it is reconvertable.
-            // Some TIP may finalize and cancel the current candidate list (Bug 1291712).
+            // Some TIP may finalize and cancel the current candidate list (
             if (_isComposing && !fDoReconvert)
             {
                 ITextPointer compositionStart;
@@ -2212,9 +2212,9 @@ namespace System.Windows.Documents
 
                 // Reset the composition offsets.  Sometimes an IME will
                 // allow the editor handle a keystroke during an active composition.
-                // See bug 118934.  When this happens, we need to update the composition
-                // here.  Where the IME holds a lock, no one else can modify
-                // the text, and int offsets allow us to use the undo stack internally.
+                // See 
+
+
                 _previousCompositionStartOffset = (_previousCompositionStart == null) ? -1 : _previousCompositionStart.Offset;
                 _previousCompositionEndOffset = (_previousCompositionEnd == null) ? -1 : _previousCompositionEnd.Offset;
 
@@ -2255,8 +2255,8 @@ namespace System.Windows.Documents
 
                             // The next call to HandleCompositionEvents involves firing events
                             // that could result in a reentrancy. By initializing these TextPointers
-                            // we are being prepared for such an eventuality. See Dev11 bug#
-                            // 262694 for details.
+                            // we are being prepared for such an eventuality. See Dev11 
+
                             _previousCompositionStart = (_previousCompositionStartOffset == -1) ? null : textEditor.TextContainer.CreatePointerAtOffset(_previousCompositionStartOffset, LogicalDirection.Backward);
                             _previousCompositionEnd = (_previousCompositionEndOffset == -1) ? null : textEditor.TextContainer.CreatePointerAtOffset(_previousCompositionEndOffset, LogicalDirection.Forward);
                         }
@@ -3259,7 +3259,7 @@ namespace System.Windows.Documents
         }
 
         // Asserts that this TextStore is sending TS_TEXTCHANGE structs
-        // in [....] with the actual TextContainer.
+        // in sync with the actual TextContainer.
         private void VerifyTextStoreConsistency()
         {
             if (_netCharCount != this.TextContainer.IMECharCount)
@@ -3269,8 +3269,8 @@ namespace System.Windows.Documents
         }
 
         // Validates the character offset supplied by cicero.
-        // See bug 1395082.  Sometimes cicero gives us offsets that are
-        // too large for the document.
+        // See 
+
         private void ValidateCharOffset(int offset)
         {
             if (offset < 0 || offset > this.TextContainer.IMECharCount)
@@ -3899,7 +3899,7 @@ namespace System.Windows.Documents
             {
                 CompositionParentUndoUnit unit = undoManager.GetUndoUnit(i) as CompositionParentUndoUnit;
 
-                if (unit == null || (unit.IsFirstCompositionUnit && unit.IsLastCompositionUnit)) // TODO: what if first/last by chance? Miss preceeding...
+                if (unit == null || (unit.IsFirstCompositionUnit && unit.IsLastCompositionUnit)) // 
                     break;
 
                 if (!unit.IsFirstCompositionUnit)
@@ -4401,7 +4401,7 @@ namespace System.Windows.Documents
         // We can't simply store int offsets because under some circumstances
         // IMEs will ignore text input during a composition, letting the editor
         // handle the event, in which case we need live pointers to react
-        // to the changes.  See bug 118934.
+        // to the changes.  See 
         private ITextPointer _previousCompositionStart;
 
         // Position of the composition end as of the last update.

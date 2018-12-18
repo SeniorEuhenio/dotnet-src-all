@@ -9,7 +9,7 @@
 *       individual header files on a functional basis.
 *       [ISO]
 *
-*       Note: keep in [....] with ctype.h, stdio.h, stdlib.h, string.h, time.h.
+*       Note: keep in sync with ctype.h, stdio.h, stdlib.h, string.h, time.h.
 *
 *       [Public]
 *
