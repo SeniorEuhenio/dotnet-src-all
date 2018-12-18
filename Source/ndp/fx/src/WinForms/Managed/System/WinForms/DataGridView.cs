@@ -519,8 +519,17 @@ namespace System.Windows.Forms
             PerformLayout();
 
             this.toolTipControl = new DataGridViewToolTip(this);
-            
+            this.rowHeadersWidth = ScaleToCurrentDpi(defaultRowHeadersWidth);
+            this.columnHeadersHeight = ScaleToCurrentDpi(defaultColumnHeadersHeight);
             Invalidate();
+        }
+
+        /// <summary>
+        /// Scaling row header width and column header height.
+        /// </summary>
+        private int ScaleToCurrentDpi(int value)
+        {
+            return DpiHelper.EnableDataGridViewControlHighDpiImprovements ? LogicalToDeviceUnits(value) : value;
         }
 
         /// <include file='doc\DataGridView.uex' path='docs/doc[@for="DataGridView.AdjustedTopLeftHeaderBorderStyle"]/*' />

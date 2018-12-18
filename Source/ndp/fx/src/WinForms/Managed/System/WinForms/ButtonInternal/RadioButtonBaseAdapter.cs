@@ -67,7 +67,7 @@ namespace System.Windows.Forms.ButtonInternal {
                 field = SystemColors.Control;
             }
 
-            float scale = GetDpiScaleRatio(e.Graphics);
+            double scale = GetDpiScaleRatio(e.Graphics);
 
             using( WindowsGraphics wg = WindowsGraphics.FromGraphics(e.Graphics) ) {
                 using( WindowsPen borderPen = new WindowsPen(wg.DeviceContext, border) ) {
@@ -120,7 +120,7 @@ namespace System.Windows.Forms.ButtonInternal {
 			wg.DrawLine(borderPen, new Point(bounds.X + 10, bounds.Y + 8), new Point(bounds.X + 10, bounds.Y + 10));
 		}
 
-        private static int GetScaledNumber(int n, float scale)
+        private static int GetScaledNumber(int n, double scale)
         {
             return (int)(n * scale);
         }
@@ -134,7 +134,7 @@ namespace System.Windows.Forms.ButtonInternal {
                     checkColor = SystemColors.ControlDark;
                 }
 
-		float scale = GetDpiScaleRatio(e.Graphics);
+                double scale = GetDpiScaleRatio(e.Graphics);
                 using( WindowsGraphics wg = WindowsGraphics.FromGraphics(e.Graphics) ) {
                     using (WindowsBrush brush = new WindowsSolidBrush(wg.DeviceContext, checkColor)) {
                         // circle drawing doesn't work at this size
@@ -181,7 +181,7 @@ namespace System.Windows.Forms.ButtonInternal {
             ButtonState style = GetState();
             
             if (Application.RenderWithVisualStyles) {
-                RadioButtonRenderer.DrawRadioButton(g, new Point(check.Left, check.Top), RadioButtonRenderer.ConvertFromButtonState(style, Control.MouseIsOver));
+                RadioButtonRenderer.DrawRadioButton(g, new Point(check.Left, check.Top), RadioButtonRenderer.ConvertFromButtonState(style, Control.MouseIsOver), Control.HandleInternal);
             }
             else {
                 ControlPaint.DrawRadioButton(g, check, style);

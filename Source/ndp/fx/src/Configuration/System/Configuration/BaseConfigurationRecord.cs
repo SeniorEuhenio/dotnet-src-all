@@ -3143,17 +3143,17 @@ namespace System.Configuration {
                 locationSubPath = NormalizeLocationSubPath(locationSubPath, xmlUtil);
 
                 // VSWhidbey 535595
-                // See attached email in the 
-
-
-
-
-
-
-
-
-
-
+                // See attached email in the bug.  Basically, we decided to throw if we see one of these
+                // in machine.config or root web.config:
+                //  <location path="." inheritInChildApplications="false" >
+                //  <location inheritInChildApplications="false" >
+                //
+                // To detect whetherewe're machine.config or root web.config, the current fix is to use
+                // Host.IsDefinitionAllowed.  Instead of this we should invent a new method in
+                // IInternalConfigHost to return whether a configPath can be part of an app or not.
+                // But since it's Whidbey RC "Ask Mode" I chose not to do it due to bigger code churn.
+                //
+                // 
                 if (locationSubPath == null &&
                     !inheritInChildApp &&
                     Host.IsDefinitionAllowed(_configPath, ConfigurationAllowDefinition.MachineToWebRoot, ConfigurationAllowExeDefinition.MachineOnly)) {
@@ -4124,9 +4124,12 @@ namespace System.Configuration {
         //
         const string ProtectedConfigurationSectionTypeName = "System.Configuration.ProtectedConfigurationSection, " + AssemblyRef.SystemConfiguration;
         internal const string RESERVED_SECTION_PROTECTED_CONFIGURATION       = "configProtectedData";
+        internal const string Microsoft_CONFIGURATION_SECTION = ConfigurationStringConstants.WinformsApplicationConfigurationSectionName;
+        const string SystemConfigurationSectionTypeName = "System.Configuration.AppSettingsSection, " + AssemblyRef.SystemConfiguration;
 
         internal static bool IsImplicitSection(string configKey) {
-            if (configKey == RESERVED_SECTION_PROTECTED_CONFIGURATION) {
+            if (string.Equals(configKey, RESERVED_SECTION_PROTECTED_CONFIGURATION, StringComparison.Ordinal) || 
+                string.Equals(configKey, Microsoft_CONFIGURATION_SECTION, StringComparison.Ordinal)) {
                 return true;
             }
             else {
@@ -4161,6 +4164,34 @@ namespace System.Configuration {
                                 string.Empty,                               // group
                                 RESERVED_SECTION_PROTECTED_CONFIGURATION,   // name
                                 ProtectedConfigurationSectionTypeName,      // factoryTypeName
+                                true,                                       // allowLocation
+                                ConfigurationAllowDefinition.Everywhere,    // allowDefinition
+                                ConfigurationAllowExeDefinition.MachineToApplication,   // allowExeDefinition
+                                OverrideModeSetting.SectionDefault,         // overrideModeDefault
+                                true,                                       // restartOnExternalChanges
+                                true,                                       // requirePermission
+                                true,                                       // isFromTrustedConfig
+                                true,                                       // isUndeclared
+                                null,                                       // filename
+                                -1);                                        // lineNumber
+                }
+
+                factoryRecord = (FactoryRecord)factoryList[Microsoft_CONFIGURATION_SECTION];
+
+                // If the user has mistakenly declared an implicit section, we should leave the factoryRecord
+                // alone because it contains the error and the error will be thrown later.
+                if (factoryRecord != null)
+                {
+                    Debug.Assert(factoryRecord.HasErrors, "If the user has mistakenly declared an implicit section, we should have recorded an error.");
+                }
+                else
+                {
+                    factoryList[Microsoft_CONFIGURATION_SECTION] =
+                        new FactoryRecord(
+                                Microsoft_CONFIGURATION_SECTION,             // configKey
+                                string.Empty,                               // group
+                                Microsoft_CONFIGURATION_SECTION,             // name
+                                SystemConfigurationSectionTypeName,         // factoryTypeName
                                 true,                                       // allowLocation
                                 ConfigurationAllowDefinition.Everywhere,    // allowDefinition
                                 ConfigurationAllowExeDefinition.MachineToApplication,   // allowExeDefinition

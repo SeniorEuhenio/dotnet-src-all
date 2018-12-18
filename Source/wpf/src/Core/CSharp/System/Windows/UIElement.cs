@@ -467,8 +467,8 @@ namespace System.Windows
             //no need to walk down in this case
             if(v.CheckFlagsAnd(VisualFlags.IsLayoutSuspended)) return;
 
-            //  (
-
+            //  (bug # 1623922) assert that a UIElement has not being
+            //  removed from the visual tree while updating layout.
             if (    Invariant.Strict
                 &&  v.CheckFlagsAnd(VisualFlags.IsUIElement)    )
             {

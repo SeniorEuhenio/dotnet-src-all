@@ -120,8 +120,8 @@ namespace System.Windows.Forms
             }
             else
             {
-                // SECREVIEW : Late-binding does not represent a security thread, see 
-
+                // SECREVIEW : Late-binding does not represent a security thread, see bug#411899 for more info..
+                //
                 dataGridViewCell = (DataGridViewColumnHeaderCell) System.Activator.CreateInstance(thisType);
             }
             base.CloneInternal(dataGridViewCell);
@@ -1233,7 +1233,7 @@ namespace System.Windows.Forms
                 Rectangle rectClip = Rectangle.Truncate(g.ClipBounds);
                 if ((int) HeaderItemState.Hot == headerState)
                 {
-                    // Workaround for a 
+                    // Workaround for a bug in XP theming: no painting of corners around orange tab.
                     VisualStyleRenderer.SetParameters(HeaderElement);
                     Rectangle cornerClip = new Rectangle(bounds.Left, bounds.Bottom-2, 2, 2);
                     cornerClip.Intersect(rectClip);

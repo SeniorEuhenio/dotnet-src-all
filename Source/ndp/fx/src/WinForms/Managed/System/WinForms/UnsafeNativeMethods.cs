@@ -1130,6 +1130,12 @@ namespace System.Windows.Forms {
         [DllImport(ExternDll.User32, ExactSpelling=true, CharSet=CharSet.Auto)]
         [ResourceExposure(ResourceScope.None)]
         public static extern int GetSystemMetrics(int nIndex);
+        
+        // This API is available starting Windows10 RS1
+        [DllImport(ExternDll.User32, ExactSpelling=true, CharSet=CharSet.Auto)]
+        [ResourceExposure(ResourceScope.None)]
+        public static extern int GetSystemMetricsForDpi(int nIndex, uint dpi);
+
         [DllImport(ExternDll.User32, CharSet=CharSet.Auto)]
         [ResourceExposure(ResourceScope.None)]
         public static extern bool SystemParametersInfo(int nAction, int nParam, ref NativeMethods.RECT rc, int nUpdate);
@@ -1145,6 +1151,12 @@ namespace System.Windows.Forms {
         [DllImport(ExternDll.User32, CharSet=CharSet.Auto)]
         [ResourceExposure(ResourceScope.None)]
         public static extern bool SystemParametersInfo(int nAction, int nParam, [In, Out] NativeMethods.NONCLIENTMETRICS metrics, int nUpdate);
+        
+        // This API is available starting Windows10 RS1
+        [DllImport(ExternDll.User32, SetLastError=true, CharSet=CharSet.Auto, BestFitMapping=false)]
+        [ResourceExposure(ResourceScope.None)]
+        public static extern bool SystemParametersInfoForDpi(int nAction, int nParam, [In, Out] NativeMethods.NONCLIENTMETRICS metrics, int nUpdate, uint dpi);
+
 /*
         [DllImport(ExternDll.User32, CharSet=CharSet.Auto)]
         public static extern bool SystemParametersInfo(int nAction, int nParam, [In, Out] NativeMethods.ICONMETRICS iconMetrics, int nUpdate);
@@ -1595,6 +1607,11 @@ namespace System.Windows.Forms {
         [DllImport(ExternDll.User32, ExactSpelling=true, CharSet=CharSet.Auto)]
         [ResourceExposure(ResourceScope.None)]
         public static extern bool SetWindowPlacement(HandleRef hWnd, [In] ref NativeMethods.WINDOWPLACEMENT placement);
+
+        // This method is not available until Windows 8.1
+        [DllImport(ExternDll.User32, ExactSpelling=true, SetLastError = true)]
+        [ResourceExposure(ResourceScope.None)]
+        public static extern uint GetDpiForWindow(HandleRef hWnd);
 
         // For system power status
         //
@@ -8216,5 +8233,6 @@ namespace System.Windows.Forms {
             int activationDataCount,
             string[] activationData,
             PROCESS_INFORMATION processInformation);
+
     }
 }

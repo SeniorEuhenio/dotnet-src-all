@@ -1,4 +1,4 @@
-﻿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //
 // Copyright (C) Microsoft Corporation.  All rights reserved.
 //
@@ -119,11 +119,11 @@ namespace System.Windows.Automation.Peers
 
                 if (IsDayButton)
                 {
-                    return OwningCalendar.MonthControl.GetCalendarDayButton(this.Date);
+                    return OwningCalendar.MonthControl?.GetCalendarDayButton(this.Date);
                 }
-                else 
+                else
                 {
-                    return OwningCalendar.MonthControl.GetCalendarButton(this.Date, ButtonMode);
+                    return OwningCalendar.MonthControl?.GetCalendarButton(this.Date, ButtonMode);
                 }
             }
         }

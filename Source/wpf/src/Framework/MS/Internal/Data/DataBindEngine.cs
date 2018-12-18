@@ -66,7 +66,7 @@ namespace MS.Internal.Data
         // hashtable.  This allows rapid cancellation of all tasks pending
         // for a particular client - we only need to look at the tasks that
         // are actually affected, rather than the entire list.  This avoids
-        // an O(n^2) algorithm (
+        // an O(n^2) algorithm (bug 1366032).
 
         private class Task
         {
@@ -222,7 +222,7 @@ namespace MS.Internal.Data
             // if the task is AttachToContext and the target is a UIElement,
             // register for the LayoutUpdated event, and run the task list from the
             // event handler.  This avoids flashing, at the expense of lots more
-            // events and handlers (
+            // events and handlers (bug 1019232)
             if (op == TaskOps.AttachToContext &&
                 _layoutElement == null &&
                 (_layoutElement = c.TargetElement as UIElement) != null)
@@ -297,9 +297,9 @@ namespace MS.Internal.Data
 
                     // fetch the next task _after_ the current task has
                     // run (in case the current task causes new tasks to be
-                    // added to the list, as in 
-
-
+                    // added to the list, as in bug 1938866), but _before_
+                    // moving the current task to the retry list (which overwrites
+                    // the Next pointer)
                     nextTask = task.Next;
 
                     if (task.status == Task.Status.Retry && !lastChance)
@@ -499,50 +499,56 @@ namespace MS.Internal.Data
             if (IsShutDown)
                 return;
 
-            long startTime = DateTime.Now.Ticks;        // unit = 10^-7 sec
-
-            while (true)
+            try
             {
-                // get the next request
-                DataBindOperation op;
+                long startTime = DateTime.Now.Ticks;        // unit = 10^-7 sec
+
+                while (true)
+                {
+                    // get the next request
+                    DataBindOperation op;
+                    lock (_crossThreadQueueLock)
+                    {
+                        if (_crossThreadQueue.Count > 0)
+                        {
+                            op =  _crossThreadQueue.Dequeue();
+                            _crossThreadCost -= op.Cost;
+                        }
+                        else
+                        {
+                            op = null;
+                        }
+                    }
+
+                    if (op == null)
+                        break;
+
+                    // do the work
+                    op.Invoke();
+
+                    // check the time
+                    if (DateTime.Now.Ticks - startTime > CrossThreadThreshold)
+                        break;
+                }
+            }
+            finally
+            {
+                // update state even if an op throws an exception (DDVSO 260469)
                 lock (_crossThreadQueueLock)
                 {
                     if (_crossThreadQueue.Count > 0)
                     {
-                        op =  _crossThreadQueue.Dequeue();
-                        _crossThreadCost -= op.Cost;
+                        // if there's still more work to do, schedule a new callback
+                        _crossThreadDispatcherOperation = Dispatcher.BeginInvoke(
+                            DispatcherPriority.ContextIdle,
+                            (Action)ProcessCrossThreadRequests);
                     }
                     else
                     {
-                        op = null;
+                        // otherwise revert to the empty state
+                        _crossThreadDispatcherOperation = null;
+                        _crossThreadCost = 0;
                     }
-                }
-
-                if (op == null)
-                    break;
-
-                // do the work
-                op.Invoke();
-
-                // check the time
-                if (DateTime.Now.Ticks - startTime > CrossThreadThreshold)
-                    break;
-            }
-
-            lock (_crossThreadQueueLock)
-            {
-                if (_crossThreadQueue.Count > 0)
-                {
-                    // if there's still more work to do, schedule a new callback
-                    _crossThreadDispatcherOperation = Dispatcher.BeginInvoke(
-                        DispatcherPriority.ContextIdle,
-                        (Action)ProcessCrossThreadRequests);
-                }
-                else
-                {
-                    // otherwise revert to the empty state
-                    _crossThreadDispatcherOperation = null;
-                    _crossThreadCost = 0;
                 }
             }
         }

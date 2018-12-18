@@ -316,8 +316,8 @@ namespace System.IO.Log
             // The error codes in the above list are explicitly recognized by the (internal) caller as 
             // being known and understood. If we recognize and understand a new error code, it 
             // should be added to this list. Otherwise, the error code should be converted to an 
-            // exception using ExceptionForUnknownCode. If we reach this point, we have a 
-
+            // exception using ExceptionForUnknownCode. If we reach this point, we have a bug 
+            // in our own error handling code.
             DiagnosticUtility.DebugAssert("Either the code is unknown, or it should not have failed.");
             return ExceptionForUnknownCode(errorCode);
         }

@@ -77,9 +77,10 @@ namespace System.Windows.Forms.ButtonInternal {
                 return adapter.GetPreferredSizeCore(proposedSize);
             } 
             else {
-                using (Graphics measurementGraphics = WindowsFormsUtils.CreateMeasurementGraphics()) {
+                using (Graphics measurementGraphics = WindowsFormsUtils.CreateMeasurementGraphics(Control)) {
                     using (PaintEventArgs pe = new PaintEventArgs(measurementGraphics, new Rectangle())) {
                         LayoutOptions options = Layout(pe);
+                        
                         return options.GetPreferredSizeCore(proposedSize);
                     }
                 }
@@ -105,13 +106,18 @@ namespace System.Windows.Forms.ButtonInternal {
 
             // VSWhidbey 420870
             if (Application.RenderWithVisualStyles) {
-                using (Graphics g = WindowsFormsUtils.CreateMeasurementGraphics()) {
-                    layout.checkSize = CheckBoxRenderer.GetGlyphSize(g, CheckBoxRenderer.ConvertFromButtonState(GetState(), true, Control.MouseIsOver)).Width;
+                using (Graphics g = WindowsFormsUtils.CreateMeasurementGraphics(Control)) {
+                    layout.checkSize = CheckBoxRenderer.GetGlyphSize(g, CheckBoxRenderer.ConvertFromButtonState(GetState(), true, Control.MouseIsOver), Control.HandleInternal).Width;
                 }
             }
-            // Dev10 
+            // Dev10 bug 525537
             else {
-                layout.checkSize = (int)(layout.checkSize * GetDpiScaleRatio(e.Graphics));
+                if (DpiHelper.EnableDpiChangedMessageHandling) {
+                    layout.checkSize = Control.LogicalToDeviceUnits(layout.checkSize);
+                } 
+                else { 
+                    layout.checkSize = (int)(layout.checkSize * GetDpiScaleRatio(e.Graphics));
+                }
             }
 
             return layout;

@@ -16,83 +16,83 @@ using namespace System::Diagnostics::CodeAnalysis;
 //***************************************************************************************************************************
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
-
+// Bug ID:    202863 in DevDiv bug DB  
+// Developer: Microsoft
+// Reason: Wish to avoid accidentally causing a breaking change at this stage in the product cycle. We may remove this method for Dev 10 but for SP1 
+// suppression is preferred.
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Performance","CA1811:AvoidUncalledPrivateCode", Scope="member", Target="MS.Internal.PrintWin32Thunk.AttributeNameToInfoLevelMapping.DriverThunk.DriverThunkingProfile.#RegisterAttributeMap()");
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
-
+// Bug ID:    202863 in DevDiv bug DB  
+// Developer: Microsoft
+// Reason: Wish to avoid accidentally causing a breaking change at this stage in the product cycle. We may remove this method for Dev 10 but for SP1 
+// suppression is preferred.
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Performance","CA1811:AvoidUncalledPrivateCode", Scope="member", Target="Microsoft.Internal.GDIExporter.GeometryProxy.#ConvertToPathGeometry()");
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
-
+// Bug ID:    202863 in DevDiv bug DB  
+// Developer: Microsoft
+// Reason: Wish to avoid accidentally causing a breaking change at this stage in the product cycle. We may remove this method for Dev 10 but for SP1 
+// suppression is preferred.
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Performance","CA1811:AvoidUncalledPrivateCode", Scope="member", Target="Microsoft.Internal.GDIExporter.TrueTypeFont.#write16(System.UInt32,System.UInt16)");
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
-
+// Bug ID:    202863 in DevDiv bug DB  
+// Developer: Microsoft
+// Reason: Wish to avoid accidentally causing a breaking change at this stage in the product cycle. We may remove this method for Dev 10 but for SP1 
+// suppression is preferred.
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Performance","CA1811:AvoidUncalledPrivateCode", Scope="member", Target="Microsoft.Internal.GDIExporter.TrueTypeFont.#writeString(System.UInt32,System.UInt32,System.Char[],System.Text.Encoding)");
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
-
+// Bug ID:    202863 in DevDiv bug DB  
+// Developer: Microsoft
+// Reason: Wish to avoid accidentally causing a breaking change at this stage in the product cycle. We may remove this method for Dev 10 but for SP1 
+// suppression is preferred.
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Performance","CA1811:AvoidUncalledPrivateCode", Scope="member", Target="Microsoft.Internal.GDIExporter.TrueTypeFont.#writeString(System.UInt32,System.UInt32,System.String,System.Text.Encoding)");
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
-
+// Bug ID:    202863 in DevDiv bug DB  
+// Developer: Microsoft
+// Reason: Wish to avoid accidentally causing a breaking change at this stage in the product cycle. We may remove this method for Dev 10 but for SP1 
+// suppression is preferred.
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Performance","CA1811:AvoidUncalledPrivateCode", Scope="member", Target="System.Printing.PrintDocumentImageableArea.#VerifyAccess()");
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
-
+// Bug ID:    202863 in DevDiv bug DB  
+// Developer: Microsoft
+// Reason: Wish to avoid accidentally causing a breaking change at this stage in the product cycle. We may remove this method for Dev 10 but for SP1 
+// suppression is preferred.
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Performance","CA1811:AvoidUncalledPrivateCode", Scope="member", Target="System.Printing.PrintJobInfoCollection.#VerifyAccess()");
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
-
+// Bug ID:    202863 in DevDiv bug DB  
+// Developer: Microsoft
+// Reason: Wish to avoid accidentally causing a breaking change at this stage in the product cycle. We may remove this method for Dev 10 but for SP1 
+// suppression is preferred.
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Performance","CA1811:AvoidUncalledPrivateCode", Scope="member", Target="System.Printing.PrintJobSettings.#VerifyAccess()");
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
-
+// Bug ID:    202863 in DevDiv bug DB  
+// Developer: Microsoft
+// Reason: Wish to avoid accidentally causing a breaking change at this stage in the product cycle. We may remove this method for Dev 10 but for SP1 
+// suppression is preferred.
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Performance","CA1811:AvoidUncalledPrivateCode", Scope="member", Target="System.Printing.PrintQueueCollection.#VerifyAccess()");
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
-
+// Bug ID:    202863 in DevDiv bug DB  
+// Developer: Microsoft
+// Reason: Wish to avoid accidentally causing a breaking change at this stage in the product cycle. We may remove this method for Dev 10 but for SP1 
+// suppression is preferred.
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Performance","CA1811:AvoidUncalledPrivateCode", Scope="member", Target="System.Printing.PrintSystemObject.#CreatePropertiesDelegates()");
 
 // New since V4 RTM:

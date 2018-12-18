@@ -867,7 +867,7 @@ namespace System.Windows.Controls.Primitives
                         typeof(TextBoxBase),
                         new FrameworkPropertyMetadata(MS.Internal.KnownBoxes.BooleanBoxes.FalseBox));
 
-        public static readonly DependencyProperty IsSelectionActiveProperty = 
+        public static readonly DependencyProperty IsSelectionActiveProperty =
             IsSelectionActivePropertyKey.DependencyProperty;
 
         public bool IsSelectionActive
@@ -875,7 +875,7 @@ namespace System.Windows.Controls.Primitives
             get { return (bool)GetValue(IsSelectionActiveProperty); }
         }
 
-        public static readonly DependencyProperty IsInactiveSelectionHighlightEnabledProperty = 
+        public static readonly DependencyProperty IsInactiveSelectionHighlightEnabledProperty =
             DependencyProperty.Register("IsInactiveSelectionHighlightEnabled", typeof(bool), typeof(TextBoxBase));
 
         public bool IsInactiveSelectionHighlightEnabled
@@ -1901,20 +1901,23 @@ namespace System.Windows.Controls.Primitives
         // Uninitializes a render scope and clears this control's reference.
         private void UninitializeRenderScope()
         {
+            TextBoxView tbv;
+            FlowDocumentView fdv;
+
             // Clear TextView property in TextEditor
             _textEditor.TextView = null;
 
             // Remove our content from the renderScope
-            if (_renderScope is TextBoxView)
+            if ((tbv = _renderScope as TextBoxView) != null)
             {
-                // Nothing to do.
+                tbv.RemoveTextContainerListeners();
             }
-            else if (_renderScope is FlowDocumentView)
+            else if ((fdv = _renderScope as FlowDocumentView) != null)
             {
-                if (((FlowDocumentView)_renderScope).Document != null)
+                if (fdv.Document != null)
                 {
-                    ((FlowDocumentView)_renderScope).Document.Uninitialize();
-                    ((FlowDocumentView)_renderScope).Document = null;
+                    fdv.Document.Uninitialize();
+                    fdv.Document = null;
                 }
             }
             else

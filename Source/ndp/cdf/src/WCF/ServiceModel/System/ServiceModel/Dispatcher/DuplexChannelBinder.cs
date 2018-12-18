@@ -30,7 +30,7 @@ namespace System.ServiceModel.Dispatcher
         List<IDuplexRequest> requests;
         List<ICorrelatorKey> timedOutRequests;
         ChannelHandler channelHandler;
-        volatile bool requestAborted;
+        bool requestAborted;
 
         internal DuplexChannelBinder(IDuplexChannel channel, IRequestReplyCorrelator correlator)
         {
@@ -207,25 +207,32 @@ namespace System.ServiceModel.Dispatcher
         void AbortRequests()
         {
             IDuplexRequest[] array = null;
+
             lock (this.ThisLock)
             {
                 if (this.requests != null)
                 {
                     array = this.requests.ToArray();
-
-                    foreach (IDuplexRequest request in array)
-                    {
-                        request.Abort();
-                    }
+                    this.requests = null;
                 }
-                this.requests = null;
+
                 this.requestAborted = true;
+            }
+
+            bool hadRequests = array != null && array.Length > 0;
+
+            if (hadRequests)
+            {
+                foreach (IDuplexRequest request in array)
+                {
+                    request.Abort();
+                }
             }
 
             // Remove requests from the correlator since the channel might be either faulting or aborting,
             // We are not going to get a reply for these requests. If they are not removed from the correlator, this will cause a leak.
             // This operation does not have to be under the lock
-            if (array != null && array.Length > 0)
+            if (hadRequests)
             {
                 RequestReplyCorrelator requestReplyCorrelator = this.correlator as RequestReplyCorrelator;
                 if (requestReplyCorrelator != null)

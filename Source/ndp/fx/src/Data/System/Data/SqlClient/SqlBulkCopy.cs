@@ -1442,15 +1442,15 @@ namespace System.Data.SqlClient {
                         value = SqlParameter.CoerceValue(value, mt, out coercedToDataFeed, out typeChanged, false);
                         
                         // Convert Source Decimal Percision and Scale to Destination Percision and Scale
-                        // Fix 
-
-
-
-
-
-
-
-
+                        // Fix Bug: 385971 sql decimal data could get corrupted on insert if the scale of
+                        // the source and destination weren't the same.  The BCP protocal, specifies the
+                        // scale of the incoming data in the insert statement, we just tell the server we
+                        // are inserting the same scale back. This then created a bug inside the BCP opperation
+                        // if the scales didn't match.  The fix is to do the same thing that SQL Paramater does,
+                        // and adjust the scale before writing.  In Orcas is scale adjustment should be removed from
+                        // SqlParamater and SqlBulkCopy and Isoloated inside SqlParamater.CoerceValue, but becouse of
+                        // where we are in the cycle, the changes must be kept at minimum, so I'm just bringing the
+                        // code over to SqlBulkCopy.
                         
                         SqlDecimal sqlValue;
                         if ((isSqlType) && (!typeChanged)) {

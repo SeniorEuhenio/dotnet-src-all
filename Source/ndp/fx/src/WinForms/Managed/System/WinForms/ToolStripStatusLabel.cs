@@ -25,6 +25,8 @@ namespace System.Windows.Forms {
     [ToolStripItemDesignerAvailability(ToolStripItemDesignerAvailability.StatusStrip)]
     public class ToolStripStatusLabel : ToolStripLabel {
 
+        private static readonly Padding defaultMargin = new Padding(0, 3, 0, 2);
+        private Padding scaledDefaultMargin = defaultMargin;
 
         private Border3DStyle borderStyle = Border3DStyle.Flat;
         private ToolStripStatusLabelBorderSides borderSides = ToolStripStatusLabelBorderSides.None;
@@ -36,16 +38,22 @@ namespace System.Windows.Forms {
         /// A non selectable winbar item
         /// </devdoc>
         public ToolStripStatusLabel() {
+            Initialize();
         }
         public ToolStripStatusLabel(string text):base(text,null,false,null) {
+            Initialize();
         }
         public ToolStripStatusLabel(Image image):base(null,image,false,null) {
+            Initialize();
         }
         public ToolStripStatusLabel(string text, Image image):base(text,image,false,null) {
+            Initialize();
         }
         public ToolStripStatusLabel(string text, Image image, EventHandler onClick):base(text,image,/*isLink=*/false,onClick,null) {
+            Initialize();
         }
         public ToolStripStatusLabel(string text, Image image, EventHandler onClick, string  name) :base(text,image,/*isLink=*/false,onClick, name) {
+            Initialize();
         }
 
         /// <devdoc>
@@ -121,10 +129,20 @@ namespace System.Windows.Forms {
                 }
             }
         }
+
+        /// <devdoc>
+        /// Called by all constructors of ToolStripButton.
+        /// </devdoc>
+        private void Initialize()
+        {
+            if (DpiHelper.EnableToolStripHighDpiImprovements) {
+                scaledDefaultMargin = DpiHelper.LogicalToDeviceUnits(defaultMargin);
+            }
+        }
     
         protected internal override Padding DefaultMargin {
             get {
-                return new Padding(0, 3, 0, 2);
+                return scaledDefaultMargin;
             }
         }
 

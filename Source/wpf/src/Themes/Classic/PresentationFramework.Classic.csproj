@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{0e7f83a1-3bae-4ca8-b2cd-7379f7b3775d}</ProjectGuid>
+    <ProjectGuid>{9b248b02-cc58-4ec5-88ee-ac4175874cc4}</ProjectGuid>
     <OutputPath>.</OutputPath>
     <OutputType>Library</OutputType>
     <AssemblyName>PresentationFramework.Classic</AssemblyName>
@@ -20,23 +20,23 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\ndp\clr\src\bcl\mscorlib.csproj">
-      <Project>{20f34c38-8c60-44e7-b703-0e341d274957}</Project>
+      <Project>{cee2f309-bc3a-4584-8db6-119a4e5ea519}</Project>
       <Name>mscorlib</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\PresentationCore.csproj">
-      <Project>{4983754d-64d8-48fc-ae21-676567936d79}</Project>
+      <Project>{d664c962-3229-4238-9df0-2a8b7521c490}</Project>
       <Name>PresentationCore</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\PresentationFramework.csproj">
-      <Project>{cb83c57e-4d72-433d-be1b-765aa7139a06}</Project>
+      <Project>{10eea8da-ac03-467a-9a0c-c95a3b12d610}</Project>
       <Name>PresentationFramework</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\ndp\fx\src\System.csproj">
-      <Project>{85716da4-9fb2-4f44-9c4d-b7431fdf1b20}</Project>
+      <Project>{93e0d602-f830-478d-b585-6181aeeaf8aa}</Project>
       <Name>System</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\WindowsBase.csproj">
-      <Project>{9568abec-69cd-47db-8bc7-647cd12fea14}</Project>
+      <Project>{27dcbd4b-c862-4c49-92bc-e80840741558}</Project>
       <Name>WindowsBase</Name>
     </ProjectReference>
   </ItemGroup>

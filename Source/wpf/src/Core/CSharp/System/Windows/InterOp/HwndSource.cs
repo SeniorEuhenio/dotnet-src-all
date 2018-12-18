@@ -26,8 +26,8 @@ using System.Security;
 using System.Security.Permissions;
 using System.IO;
 
-using SR=MS.Internal.PresentationCore.SR;
-using SRID=MS.Internal.PresentationCore.SRID;
+using SR = MS.Internal.PresentationCore.SR;
+using SRID = MS.Internal.PresentationCore.SRID;
 
 #pragma warning disable 1634, 1691  // suppressing PreSharp warnings
 
@@ -249,6 +249,7 @@ namespace System.Windows.Interop
         {
             Initialize(parameters);
         }
+
         /// <summary>
         ///    HwndSource Ctor
         /// </summary>
@@ -263,6 +264,7 @@ namespace System.Windows.Interop
         {
             _mouse = new SecurityCriticalDataClass<HwndMouseInputProvider>(new HwndMouseInputProvider(this));
             _keyboard = new SecurityCriticalDataClass<HwndKeyboardInputProvider>(new HwndKeyboardInputProvider(this));
+                       
             _layoutHook = new HwndWrapperHook(LayoutFilterMessage);
             _inputHook = new HwndWrapperHook(InputFilterMessage);
             _hwndTargetHook = new HwndWrapperHook(HwndTargetFilterMessage);
@@ -348,7 +350,24 @@ namespace System.Windows.Interop
             // ourselves if the HWND is destroyed out from underneath us.
             _hwndWrapper.Disposed += new EventHandler(OnHwndDisposed);
 
-            _stylus = new SecurityCriticalDataClass<HwndStylusInputProvider>(new HwndStylusInputProvider(this));
+            // DDVSO:221075
+            // HwndStylusInputProvider must be initialized after _hwndWrapper as the wrapper
+            // is used in setting up PenContexts for the Wisp based Stylus stack.
+            // If stylus and touch are disabled, simply do not instantiate the provider.
+            // This will prevent any HWND from being registered in StylusLogic and therefore
+            // the stack will never receive input.
+            if (StylusLogic.IsStylusAndTouchSupportEnabled)
+            {
+                // Choose between Wisp and Pointer stacks
+                if (StylusLogic.IsPointerStackEnabled)
+                {
+                    _stylus = new SecurityCriticalDataClass<IStylusInputProvider>(new HwndPointerInputProvider(this));
+                }
+                else
+                {
+                    _stylus = new SecurityCriticalDataClass<IStylusInputProvider>(new HwndStylusInputProvider(this));
+                }
+            }
 
             // WM_APPCOMMAND events are handled thru this.
             _appCommand = new SecurityCriticalDataClass<HwndAppCommandInputProvider>(new HwndAppCommandInputProvider(this));
@@ -1699,9 +1718,9 @@ namespace System.Windows.Interop
                 // hamidm - 10/27/2005
                 // 1348020 Window expereience layout issue when SizeToContent is being turned
                 // off by user interaction
-                // This 
-
-
+                // This bug was caused b/c we were giving rootUIElement.DesiredSize as input
+                // to Measure/Arrange below.  That is incorrect since rootUIElement.DesiredSize may not
+                // cover the entire hwnd client area.
 
                 // GetSizeFromHwnd returns either the outside size or the client size of the hwnd based on
                 // _adjustSizeingForNonClientArea flag in logical units.
@@ -1813,8 +1832,12 @@ namespace System.Windows.Interop
 
         /// <summary>
         ///    Called from HwndWrapper on all window messages.
+        ///    Assumes Context.Access() is held.
         /// </summary>
-        // assumes Context.Access() is held.
+        /// <SecurityNote>
+        ///     Critical:  Accesses security critical HwndStylusInputProvider.Dispose
+        /// </SecurityNote>
+        [SecurityCritical]
         private IntPtr PublicHooksFilterMessage(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
             // The default result for messages we handle is 0.
@@ -1837,12 +1860,39 @@ namespace System.Windows.Interop
                     }
                 }
             }
-            if (WindowMessage.WM_NCDESTROY == message)
+
+            switch (message)
             {
-                // We delivered the message to the hooks and the message
-                // is WM_NCDESTROY, so our commitments should be finished
-                // we can do final teardown. (like disposing the _hooks)
-                OnNoMoreWindowMessages();
+                case WindowMessage.WM_NCDESTROY:
+                    {
+                        // We delivered the message to the hooks and the message
+                        // is WM_NCDESTROY, so our commitments should be finished
+                        // we can do final teardown. (like disposing the _hooks)
+                        OnNoMoreWindowMessages();
+                    }
+                    break;
+                case WindowMessage.WM_DESTROY:
+                    {
+                        // DDVSO:174153
+                        // This used to be called under Dispose triggered from WM_NCDESTROY.
+                        // The problem there is that this is the wrong time for WISP to undelegate
+                        // input.  Thus shutting down the stack would lead to an assert since the
+                        // HWND in no longer in a good state.  Move this to WM_DESTROY, the start
+                        // of the HWND destruction, allows us to shut down the stylus stack safely.
+                        // Previously input was never properly undelegated as the COM references were
+                        // not properly clearing from WISP.  Fixes to those issues in WISP and WPF have
+                        // exposed this issue. 
+                        //
+                        // Dispose the HwndStylusInputProvider BEFORE we destroy the HWND.
+                        // This us because the stylus provider has an async channel and
+                        // they don't want to process data after the HWND is destroyed.
+                        if (_stylus != null)
+                        {
+                            _stylus.Value.Dispose();
+                            _stylus = null;
+                        }
+                    }
+                    break;
             }
 
             return result;
@@ -2824,15 +2874,6 @@ namespace System.Windows.Interop
                         SecurityPermission.RevertAssert();
                     }
 
-                    // Dispose the HwndStylusInputProvider BEFORE we destroy the HWND.
-                    // This us because the stylus provider has an async channel and
-                    // they don't want to process data after the HWND is destroyed.
-                    if (_stylus != null)
-                    {
-                        _stylus.Value.Dispose();
-                        _stylus = null;
-                    }
-
                     // Our general shut-down principle is to destroy the window
                     // and let the individual HwndXXX components respons to WM_DESTROY.
                     //
@@ -3119,21 +3160,24 @@ namespace System.Windows.Interop
         private SecurityCriticalDataForSet<Visual>                      _rootVisual;
 
         private event HwndSourceHook _hooks;
+        
         /// <SecurityNote>
         ///     Critical:This reference cannot be given out or assigned to outside of a verified
         ///     elevation. This data is considered critical.
         /// </SecurityNote>
         private SecurityCriticalDataClass<HwndMouseInputProvider>      _mouse;
+        
         /// <SecurityNote>
         ///     Critical:This reference cannot be given out or assigned to outside of a verified
         ///     elevation. This data is considered critical.
         /// </SecurityNote>
         private SecurityCriticalDataClass<HwndKeyboardInputProvider>   _keyboard;
+        
         /// <SecurityNote>
         ///     Critical:This reference cannot be given out or assigned to outside of a verified
         ///     elevation. This data is considered critical.
         /// </SecurityNote>
-        private SecurityCriticalDataClass<HwndStylusInputProvider>     _stylus;
+        private SecurityCriticalDataClass<IStylusInputProvider>        _stylus;
 
         /// <SecurityNote>
         ///     Critical:This reference cannot be given out or assigned to outside of a verified

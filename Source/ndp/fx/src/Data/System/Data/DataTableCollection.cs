@@ -398,7 +398,7 @@ namespace System.Data {
 
                 for (ChildForeignKeyConstraintEnumerator constraints = new ChildForeignKeyConstraintEnumerator(dataSet, table); constraints.GetNext();) {
                     ForeignKeyConstraint constraint = constraints.GetForeignKeyConstraint();
-                    if (constraint.Table == table && constraint.RelatedTable == table) // 
+                    if (constraint.Table == table && constraint.RelatedTable == table) // bug 97670
                         continue;
 
                     if (!fThrowException)

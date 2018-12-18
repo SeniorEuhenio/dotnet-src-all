@@ -1042,8 +1042,8 @@ namespace System.Windows.Documents
             // DataObject data can have the invalid value that throw the Exception.
             // In case of OutOfMemoryException, ExternalException(and Win32Exception),
             // we return null quietly and do nothing for paste.
-            // For example(
-
+            // For example(Bug#1391689) , IE set the invalid Rich Text Format data that bring
+            // CLR OutOfMemoryException.
             catch (OutOfMemoryException)
             {
                 pastedData = null;

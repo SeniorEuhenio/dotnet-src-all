@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{99e9a945-5ef4-456d-ae02-118fce806cd2}</ProjectGuid>
+    <ProjectGuid>{dcb690ca-2272-4698-b33f-7697b5cc9e04}</ProjectGuid>
     <OutputPath>.</OutputPath>
     <OutputType>Library</OutputType>
     <AssemblyName>System.Messaging</AssemblyName>
@@ -20,27 +20,27 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\clr\src\bcl\mscorlib.csproj">
-      <Project>{20f34c38-8c60-44e7-b703-0e341d274957}</Project>
+      <Project>{cee2f309-bc3a-4584-8db6-119a4e5ea519}</Project>
       <Name>mscorlib</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\System.csproj">
-      <Project>{85716da4-9fb2-4f44-9c4d-b7431fdf1b20}</Project>
+      <Project>{93e0d602-f830-478d-b585-6181aeeaf8aa}</Project>
       <Name>System</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\System.Drawing.csproj">
-      <Project>{712ac13c-4586-461b-9626-7c107a6981eb}</Project>
+      <Project>{b4eb50b7-c0c4-43c1-9350-eb2ed0ae2c83}</Project>
       <Name>System.Drawing</Name>
     </ProjectReference>
     <ProjectReference Include="..\System.Transactions\System.Transactions.csproj">
-      <Project>{d2a61b41-ea67-483d-ac54-45f74dcb0dde}</Project>
+      <Project>{434bdce4-cf74-432c-8a80-b3ec5c69efe0}</Project>
       <Name>System.Transactions</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\System.Windows.Forms.csproj">
-      <Project>{ab107739-db44-4e26-891e-3cb12ec52fe8}</Project>
+      <Project>{80ef5c82-9e80-40c7-af99-7edd817becd3}</Project>
       <Name>System.Windows.Forms</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\fx\src\Xml\System.Xml.csproj">
-      <Project>{6f992f82-1c90-4388-ab60-15c653aeeca5}</Project>
+      <Project>{89407287-3a00-4b8e-a685-1d93818e1bbb}</Project>
       <Name>System.Xml</Name>
     </ProjectReference>
   </ItemGroup>

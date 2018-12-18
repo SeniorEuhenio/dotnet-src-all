@@ -17,14 +17,13 @@ using MS.Win32;
 
 namespace System.Windows.Automation.Peers
 {
-    /// 
+    ///
     public class GridViewItemAutomationPeer : ListBoxItemAutomationPeer
     {
         ///
         public GridViewItemAutomationPeer(object owner, ListViewAutomationPeer listviewAP)
             : base(owner, listviewAP)
         {
-            Invariant.Assert(owner != null);
             Invariant.Assert(listviewAP != null);
 
             _item = owner;
@@ -43,7 +42,7 @@ namespace System.Windows.Automation.Peers
             return AutomationControlType.DataItem;
         }
 
-        /// 
+        ///
         protected override List<AutomationPeer> GetChildrenCore()
         {
             ListView listview = _listviewAP.Owner as ListView;

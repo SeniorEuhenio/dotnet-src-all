@@ -285,8 +285,8 @@ namespace System.Windows.Forms
             }
             else
             {
-                // SECREVIEW : Late-binding does not represent a security thread, see 
-
+                // SECREVIEW : Late-binding does not represent a security thread, see bug#411899 for more info..
+                //
                 dataGridViewCell = (DataGridViewImageCell)System.Activator.CreateInstance(thisType);
             }
             base.CloneInternal(dataGridViewCell);
@@ -876,8 +876,8 @@ namespace System.Windows.Forms
                                 {
                                     if (img != null)
                                     {
-                                        // 
-
+                                        // bug 21949: Graphics.DrawImage does not treat well scaled images
+                                        // we have to pass an ImageAttribute
                                         ImageAttributes attr = new ImageAttributes();
 
                                         attr.SetWrapMode(WrapMode.TileFlipXY);

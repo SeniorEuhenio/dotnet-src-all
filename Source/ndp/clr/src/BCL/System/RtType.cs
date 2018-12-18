@@ -589,8 +589,8 @@ namespace System
                                     // Grow the list by exactly one element in this case to avoid null entries at the end.
                                     //
 
-                                    // DevDiv #339308 is fixed, but we are keeping this code here for Dev11 in case there are other instances of this 
-
+                                    // DevDiv #339308 is fixed, but we are keeping this code here for Dev11 in case there are other instances of this bug.
+                                    // Remove for Dev12.
 
                                     Contract.Assert(false);
 

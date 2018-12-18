@@ -1134,7 +1134,7 @@ namespace System.Text
             // Do the work
             int result = GetBytes(arrChar, 0, charCount, arrByte, 0);
 
-            // The only way this could fail is a 
+            // The only way this could fail is a bug in GetBytes
             Contract.Assert(result <= byteCount, "[Encoding.GetBytes]Returned more bytes than we have space for");
 
             // Copy the byte array
@@ -1294,7 +1294,7 @@ namespace System.Text
             // Do the work
             int result = GetChars(arrByte, 0, byteCount, arrChar, 0);
 
-            // The only way this could fail is a 
+            // The only way this could fail is a bug in GetChars
             Contract.Assert(result <= charCount, "[Encoding.GetChars]Returned more chars than we have space for");
 
             // Copy the char array

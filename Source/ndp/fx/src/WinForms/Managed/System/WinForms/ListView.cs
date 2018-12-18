@@ -1714,9 +1714,9 @@ namespace System.Windows.Forms {
                 EnsureVisible(value.Index);
                 ListViewItem topItem = TopItem;
 
-                if ((topItem == null) && (topIndex == Items.Count)) // HACK ALERT! VSWhidbey 
-                {                                                   // There's a 
-                    topItem = value;                                // a single item.  Result of the 
+                if ((topItem == null) && (topIndex == Items.Count)) // HACK ALERT! VSWhidbey bug 154094/Windows OS Bugs bug 872012
+                {                                                   // There's a bug in the common controls when the listview window is too small to fully display
+                    topItem = value;                                // a single item.  Result of the bug is that the return value from a LVM_GETTOPINDEX
                     if (Scrollable)                                 // message is the number of items in the list rather than an index of an item in the list.
                     {                                               // This causes TopItem to return null.  A side issue is that EnsureVisible doesn't do too well
                         EnsureVisible(0);                           // here either, because it causes the listview to go blank rather than displaying anything useful.
@@ -3111,7 +3111,7 @@ namespace System.Windows.Forms {
             // the win32 ListView::FindNearestItem does some pretty weird things to determine the nearest item.
             // simply passing the (x,y) coordinates will cause problems when we call FindNearestItem for a point inside an item.
             // so we have to do some special processing when (x,y) falls inside an item;
-            // take a look at VSWHIDBEY 
+            // take a look at VSWHIDBEY bug 178646 and the attached ListView_IFindNearestItem.c file for a complete story.
             ListViewItem lvi = this.GetItemAt(x,y);
 
             if (lvi != null) {
@@ -4248,10 +4248,10 @@ namespace System.Windows.Forms {
             this.FlipViewToLargeIconAndSmallIcon = false;
 
             base.OnHandleCreated(e);
-            //ComCtl 5 has some 
-
-
-
+            //ComCtl 5 has some bug fixes that, to enable, require us to send the control
+            //a CCM_SETVERSION with 5 as the version. The one we want in particular is
+            //the fix for the node clipping issue when a font is set by means of CDRF_NEWFONT.
+            //The fix is not perfect, but the behavior is better than before.
             int version = unchecked((int)(long)SendMessage(NativeMethods.CCM_GETVERSION, 0, 0));
             if (version < 5) {
                 SendMessage(NativeMethods.CCM_SETVERSION, 5, 0);
@@ -5109,8 +5109,8 @@ namespace System.Windows.Forms {
 
             Debug.Assert(IsHandleCreated, "SetItemText with no handle");
 
-            // 
-
+            // bug 185563 : a listView in list mode will not increase the item width if the length of the item's text increases
+            // We have to make sure that the width of the "column" contains the string
             if (this.View == View.List && subItemIndex == 0) {
                 int colWidth = unchecked( (int) (long)UnsafeNativeMethods.SendMessage(new HandleRef(this, this.Handle), NativeMethods.LVM_GETCOLUMNWIDTH, 0, 0));
 
@@ -6017,7 +6017,7 @@ namespace System.Windows.Forms {
                     if (nmhdr->code == NativeMethods.LVN_GETDISPINFO) {
                         // we use the LVN_GETDISPINFO message only in virtual mode
                         if (this.VirtualMode && m.LParam != IntPtr.Zero) {
-                            // we HAVE to use unsafe code because of a 
+                            // we HAVE to use unsafe code because of a bug in the CLR: WHIDBEY bug 20313
                             NativeMethods.NMLVDISPINFO_NOTEXT dispInfo= (NativeMethods.NMLVDISPINFO_NOTEXT) m.GetLParam(typeof(NativeMethods.NMLVDISPINFO_NOTEXT));
 
                             RetrieveVirtualItemEventArgs rVI = new RetrieveVirtualItemEventArgs(dispInfo.item.iItem);

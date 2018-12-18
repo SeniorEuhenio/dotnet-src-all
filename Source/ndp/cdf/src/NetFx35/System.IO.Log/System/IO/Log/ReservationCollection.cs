@@ -317,9 +317,9 @@ namespace System.IO.Log
 
                 if (reservation < size)
                 {
-                    // An internal consistency check has failed. The indicates a 
-
-
+                    // An internal consistency check has failed. The indicates a bug in IO.Log's internal processing
+                    // Rather than proceeding with non-deterministic execution and risking the loss or corruption of
+                    // log records, we failfast the process.
                     DiagnosticUtility.FailFast("Binary search returned an inappropriate reservation");
                 }
 

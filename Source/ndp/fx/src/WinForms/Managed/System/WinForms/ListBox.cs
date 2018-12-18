@@ -127,6 +127,27 @@ namespace System.Windows.Forms {
         /// </devdoc>
         private IntegerCollection customTabOffsets;
 
+        /// <summary>
+        /// Default start position of items in the checked list box
+        /// </summary>
+        private const int defaultListItemStartPos = 1;
+
+        /// <summary>
+        /// Borders are 1 pixel height.
+        /// </summary>
+        private const int defaultListItemBorderHeight = 1;
+
+        /// <summary>
+        /// Borders are 1 pixel width and a pixel buffer 
+        /// </summary>
+        private const int defaultListItemPaddingBuffer = 3;
+
+
+        internal int scaledListItemStartPosition = defaultListItemStartPos;
+        internal int scaledListItemBordersHeight = 2 * defaultListItemBorderHeight;
+        internal int scaledListItemPaddingBuffer = defaultListItemPaddingBuffer;
+
+
         /// <include file='doc\ListBox.uex' path='docs/doc[@for="ListBox.ListBox"]/*' />
         /// <devdoc>
         ///     Creates a basic win32 list box with default values for everything.
@@ -142,6 +163,25 @@ namespace System.Windows.Forms {
             SetBounds(0, 0, 120, 96);
 
             requestedHeight = Height;
+
+            PrepareForDrawing();
+        }
+
+        protected override void RescaleConstantsForDpi(int deviceDpiOld, int deviceDpiNew) {
+            base.RescaleConstantsForDpi(deviceDpiOld, deviceDpiNew);
+            PrepareForDrawing();
+        }
+
+        private void PrepareForDrawing() {
+            // Scale paddings
+            if (DpiHelper.EnableCheckedListBoxHighDpiImprovements) {
+                scaledListItemStartPosition = LogicalToDeviceUnits(defaultListItemStartPos);
+
+                // height inlude 2 borders ( top and bottom). we are using multiplication by 2 instead of scaling doubled value to get an even number 
+                // that might helps us in positioning control in the center for list items.
+                scaledListItemBordersHeight = 2 * LogicalToDeviceUnits(defaultListItemBorderHeight);
+                scaledListItemPaddingBuffer = LogicalToDeviceUnits(defaultListItemPaddingBuffer);
+            }
         }
 
         /// <include file='doc\ListBox.uex' path='docs/doc[@for="ListBox.BackColor"]/*' />
@@ -429,8 +469,8 @@ namespace System.Windows.Forms {
         /// <include file='doc\ListBox.uex' path='docs/doc[@for="ListBox.Font"]/*' />
         // VSWhidbey 95179: The scroll bars don't display properly when the IntegralHeight == false
         // and the control is resized before the font size is change and the new font size causes
-        // the height of all the items to exceed the new height of the control. This is a 
-
+        // the height of all the items to exceed the new height of the control. This is a bug in
+        // the control, but can be easily worked around by removing and re-adding all the items.
         public override Font Font {
             get {
                 return base.Font;
@@ -508,9 +548,9 @@ namespace System.Windows.Forms {
                 if (value != horizontalScrollbar) {
                     horizontalScrollbar = value;
 
-                    // There seems to be a 
-
-
+                    // There seems to be a bug in the native ListBox in that the addition
+                    // of the horizontal scroll bar does not get reflected in the control
+                    // rightaway. So, we refresh the items here.
                     RefreshItems();
 
                     // Only need to recreate the handle if not MultiColumn
@@ -2052,12 +2092,12 @@ namespace System.Windows.Forms {
                 // it will be provided before changing the list though...
                 if (this.DataManager != null) {
                     if (this.DataSource is ICurrencyManagerProvider) {
-                        // Everett ListControl's had a 
-
-
-
-
-
+                        // Everett ListControl's had a bug where they would not fire
+                        // OnSelectedValueChanged if their list of items were refreshed.
+                        // We fix this post-Everett.
+                        // However, for APPCOMPAT reasons, we only want to fix it when binding to 
+                        // Whidbey components.
+                        // vsw 547279.
                         this.selectedValueChangedFired = false;
                     }
 

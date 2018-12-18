@@ -191,12 +191,12 @@ namespace System.Windows.Media
             // initialization will complete successfully.  In rare cases, function calls
             // earlier in this constructor throw exceptions, resulting in the MediaContext
             // being left in an uninitialized state; however, the Dispatcher could call methods
-            // on the MediaContext, resulting in unpredictable behaviour (see 
-
-
-
-
-
+            // on the MediaContext, resulting in unpredictable behaviour (see bug 1630647).
+            //
+            // NOTE: We must attach to the Dispatcher before creating a TimeManager,
+            // otherwise we will create a circular function loop where TimeManager attempts
+            // to create a Clock, which attempts to locate a MediaContext, which attempts to
+            // create a TimeManager, resulting in a stack overflow.
             dispatcher.Reserved0 = this;
 
             _timeManager = new TimeManager();
@@ -1902,7 +1902,7 @@ namespace System.Windows.Media
                 // Reset current operation so it can be re-queued by layout
                 // This is needed when exception happens in the midst of layout/TemplateExpansion
                 // and it unwinds from the stack. If we don't clean this field here, the subsequent
-                // PostRender won't queue new render operation and the window gets stuck. 
+                // PostRender won't queue new render operation and the window gets stuck. Bug 1355561.
                 if (gotException
                     && _currentRenderOp != null)
                 {

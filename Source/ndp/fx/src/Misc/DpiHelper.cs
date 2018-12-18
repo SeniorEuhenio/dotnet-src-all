@@ -28,24 +28,18 @@ namespace System.Windows.Forms
     /// <summary>
     /// Helper class for scaling coordinates and images according to current DPI scaling set in Windows for the primary screen.
     /// </summary>
-    internal static class DpiHelper
+    internal static partial class DpiHelper
     {
-        private const string EnableHighDpiConfigurationValueName = "EnableWindowsFormsHighDpiAutoResizing";
-        private const double LogicalDpi = 96.0;
+        internal const double LogicalDpi = 96.0;
         private static bool isInitialized = false;
-        /// <summary>
-        /// The primary screen's (device) current horizontal DPI
-        /// </summary>
-        private static double deviceDpiX = LogicalDpi;
 
         /// <summary>
-        /// The primary screen's (device) current vertical DPI
+        /// The primary screen's (device) current DPI
         /// </summary>
-        private static double deviceDpiY = LogicalDpi;
-
-        private static double logicalToDeviceUnitsScalingFactorX = 0.0;
-        private static double logicalToDeviceUnitsScalingFactorY = 0.0;
+        private static double deviceDpi = LogicalDpi;
+        private static double logicalToDeviceUnitsScalingFactor = 0.0;
         private static bool enableHighDpi = false;
+        private static string dpiAwarenessValue = null;
         private static InterpolationMode interpolationMode = InterpolationMode.Invalid;
 
         private static void Initialize()
@@ -54,24 +48,47 @@ namespace System.Windows.Forms
             {
                 return;
             }
-            try
+
+            if (IsDpiAwarenessValueSet())
             {
-                string value = ConfigurationManager.AppSettings.Get(EnableHighDpiConfigurationValueName);
-                if (string.Equals(value, "true", StringComparison.InvariantCultureIgnoreCase))
+                enableHighDpi = true;
+            }
+            else
+            {
+                try
                 {
-                    enableHighDpi = true;
+                    // For legacy users who define this constant in app settings. But we read it only when we do not see a valid dpiawareness value in the Microsoft section
+                    string value = ConfigurationManager.AppSettings.Get(ConfigurationStringConstants.EnableWindowsFormsHighDpiAutoResizingKeyName);
+                    if (!string.IsNullOrEmpty(value) && string.Equals(value, "true", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        enableHighDpi = true;
+                    }
+                }
+                catch
+                {
                 }
             }
-            catch
-            {
-            }
+
             if (enableHighDpi)
             {
+#if Microsoft_NAMESPACE
+                try
+                {
+                    if (!DpiHelper.SetWinformsApplicationDpiAwareness())
+                    {
+                        System.Diagnostics.Debug.WriteLine("Failed to set Application DPI awareness");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine("Failed to set Application DPI awareness " + ex.ToString());
+                }
+#endif
+
                 IntPtr hDC = UnsafeNativeMethods.GetDC(NativeMethods.NullHandleRef);
                 if (hDC != IntPtr.Zero)
                 {
-                    deviceDpiX = UnsafeNativeMethods.GetDeviceCaps(new HandleRef(null, hDC), CAPS.LOGPIXELSX);
-                    deviceDpiY = UnsafeNativeMethods.GetDeviceCaps(new HandleRef(null, hDC), CAPS.LOGPIXELSY);
+                    deviceDpi = UnsafeNativeMethods.GetDeviceCaps(new HandleRef(null, hDC), CAPS.LOGPIXELSX);
 
                     UnsafeNativeMethods.ReleaseDC(NativeMethods.NullHandleRef, new HandleRef(null, hDC));
                 }
@@ -79,29 +96,59 @@ namespace System.Windows.Forms
             isInitialized = true;
         }
 
-        private static double LogicalToDeviceUnitsScalingFactorX
+        internal static bool IsDpiAwarenessValueSet()
         {
-            get
+            bool dpiAwarenessValueSet = false;
+            try
             {
-                if (logicalToDeviceUnitsScalingFactorX == 0.0)
+                if (string.IsNullOrEmpty(dpiAwarenessValue))
                 {
-                    Initialize();
-                    logicalToDeviceUnitsScalingFactorX = deviceDpiX / LogicalDpi;
+                    dpiAwarenessValue = ConfigurationOptions.GetConfigSettingValue(ConfigurationStringConstants.DpiAwarenessKeyName);
                 }
-                return logicalToDeviceUnitsScalingFactorX;
+            }
+            catch
+            {
+            }
+
+            string dpiAwareness = (dpiAwarenessValue?? string.Empty).ToLowerInvariant();
+            switch (dpiAwareness)
+            {
+                case "true":
+                case "system":
+                case "true/pm":
+                case "permonitor":
+                case "permonitorv2":
+                    dpiAwarenessValueSet = true;
+                    break;
+                case "false":
+                    System.Diagnostics.Debug.WriteLine(" 'DpiAwarenessValue' is set to 'false', value =  " + dpiAwareness.ToString());
+                    break;
+                default:
+                    System.Diagnostics.Debug.WriteLine("Either 'DpiAwarenessValue' is not set or 'DpiAwarenessValue' set is invalid in app.config, value set =  " + dpiAwareness.ToString());
+                break;
+            }
+            return dpiAwarenessValueSet;
+        }
+
+        internal static int DeviceDpi 
+        {
+            get 
+            {
+                Initialize();
+                return (int)deviceDpi; 
             }
         }
 
-        private static double LogicalToDeviceUnitsScalingFactorY
+        private static double LogicalToDeviceUnitsScalingFactor
         {
             get
             {
-                if (logicalToDeviceUnitsScalingFactorY == 0.0)
+                if (logicalToDeviceUnitsScalingFactor == 0.0)
                 {
                     Initialize();
-                    logicalToDeviceUnitsScalingFactorY = deviceDpiY / LogicalDpi;
+                    logicalToDeviceUnitsScalingFactor = deviceDpi / LogicalDpi;
                 }
-                return logicalToDeviceUnitsScalingFactorY;
+                return logicalToDeviceUnitsScalingFactor;
             }
         }
 
@@ -111,7 +158,7 @@ namespace System.Windows.Forms
             {
                 if (interpolationMode == InterpolationMode.Invalid) 
                 {
-                    int dpiScalePercent = (int)Math.Round(LogicalToDeviceUnitsScalingFactorX * 100);
+                    int dpiScalePercent = (int)Math.Round(LogicalToDeviceUnitsScalingFactor * 100);
 
                     // We will prefer NearestNeighbor algorithm for 200, 300, 400, etc zoom factors, in which each pixel become a 2x2, 3x3, 4x4, etc rectangle. 
                     // This produces sharp edges in the scaled image and doesn't cause distorsions of the original image.
@@ -161,9 +208,9 @@ namespace System.Windows.Forms
             return deviceImage;
         }
 
-        private static Bitmap CreateScaledBitmap(Bitmap logicalImage) 
+        private static Bitmap CreateScaledBitmap(Bitmap logicalImage, int deviceDpi = 0) 
         {
-            Size deviceImageSize = DpiHelper.LogicalToDeviceUnits(logicalImage.Size);
+            Size deviceImageSize = DpiHelper.LogicalToDeviceUnits(logicalImage.Size, deviceDpi);
             return ScaleBitmapToSize(logicalImage, deviceImageSize);
         }
 
@@ -176,48 +223,62 @@ namespace System.Windows.Forms
             get
             {
                 Initialize();
-                return deviceDpiX != LogicalDpi || deviceDpiY != LogicalDpi;
+                return deviceDpi != LogicalDpi;
             }
+        }
+
+        /// <summary>
+        /// Transforms a horizontal or vertical integer coordinate from logical to device units
+        /// by scaling it up  for current DPI and rounding to nearest integer value
+        /// </summary>
+        /// <param name="value">value in logical units</param>
+        /// <returns>value in device units</returns>
+        public static int LogicalToDeviceUnits(int value, int devicePixels = 0) 
+        {
+            if (devicePixels == 0) 
+            {
+                return (int)Math.Round(LogicalToDeviceUnitsScalingFactor * (double)value);
+            }
+            double scalingFactor = devicePixels / LogicalDpi;
+            return (int)Math.Round(scalingFactor * (double)value);
         }
 
         /// <summary>
         /// Transforms a horizontal integer coordinate from logical to device units
         /// by scaling it up  for current DPI and rounding to nearest integer value
-        /// Note: this method should be called only inside an if (DpiHelper.IsScalingRequired) clause
         /// </summary>
         /// <param name="value">The horizontal value in logical units</param>
         /// <returns>The horizontal value in device units</returns>
-        public static int LogicalToDeviceUnitsX(int value) {
-            return (int)Math.Round(LogicalToDeviceUnitsScalingFactorX * (double)value);
+        public static int LogicalToDeviceUnitsX(int value) 
+        {
+            return LogicalToDeviceUnits(value, 0);
         }
 
         /// <summary>
         /// Transforms a vertical integer coordinate from logical to device units
         /// by scaling it up  for current DPI and rounding to nearest integer value
-        /// Note: this method should be called only inside an if (DpiHelper.IsScalingRequired) clause
         /// </summary>
         /// <param name="value">The vertical value in logical units</param>
         /// <returns>The vertical value in device units</returns>
-        public static int LogicalToDeviceUnitsY(int value) {
-            return (int)Math.Round(LogicalToDeviceUnitsScalingFactorY * (double)value);
+        public static int LogicalToDeviceUnitsY(int value) 
+        {
+            return LogicalToDeviceUnits(value, 0);
         }
-
+        
         /// <summary>
         /// Returns a new Size with the input's
         /// dimensions converted from logical units to device units.
-        /// Note: this method should be called only inside an if (DpiHelper.IsScalingRequired) clause
         /// </summary>
         /// <param name="logicalSize">Size in logical units</param>
         /// <returns>Size in device units</returns>
-        public static Size LogicalToDeviceUnits(Size logicalSize)
+        public static Size LogicalToDeviceUnits(Size logicalSize, int deviceDpi = 0)
         {
-            return new Size(LogicalToDeviceUnitsX(logicalSize.Width),
-                            LogicalToDeviceUnitsY(logicalSize.Height));
+            return new Size(LogicalToDeviceUnits(logicalSize.Width, deviceDpi),
+                            LogicalToDeviceUnits(logicalSize.Height, deviceDpi));
         }
 
         /// <summary>
         /// Create and return a new bitmap scaled to the specified size.
-        /// Note: this method should be called only inside an if (DpiHelper.IsScalingRequired) clause
         /// </summary>
         /// <param name="logicalImage">The image to scale from logical units to device units</param>
         /// <param name="targetImageSize">The size to scale image to</param>
@@ -234,16 +295,15 @@ namespace System.Windows.Forms
         /// <summary>
         /// Create a new bitmap scaled for the device units.
         /// When displayed on the device, the scaled image will have same size as the original image would have when displayed at 96dpi.
-        /// Note: this method should be called only inside an if (DpiHelper.IsScalingRequired) clause
         /// </summary>
         /// <param name="logicalBitmap">The image to scale from logical units to device units</param>
-        public static void ScaleBitmapLogicalToDevice(ref Bitmap logicalBitmap)
+        public static void ScaleBitmapLogicalToDevice(ref Bitmap logicalBitmap, int deviceDpi = 0)
         {
             if (logicalBitmap == null) 
             {
                 return;
             }
-            Bitmap deviceBitmap = CreateScaledBitmap(logicalBitmap);
+            Bitmap deviceBitmap = CreateScaledBitmap(logicalBitmap, deviceDpi);
             if (deviceBitmap != null)
             {
                 logicalBitmap.Dispose();
@@ -258,7 +318,6 @@ namespace System.Windows.Forms
         /// <summary>
         /// Create a new button bitmap scaled for the device units. 
         /// Note: original image might be disposed.
-        /// Note: this method should be called only inside an if (DpiHelper.IsScalingRequired) clause
         /// </summary>
         /// <param name="button">button with an image, image size is defined in logical units</param>
         public static void ScaleButtonImageLogicalToDevice(Button button)
@@ -277,5 +336,7 @@ namespace System.Windows.Forms
             button.Image = deviceBitmap;
         }
 #endif
+
     }
+
 }

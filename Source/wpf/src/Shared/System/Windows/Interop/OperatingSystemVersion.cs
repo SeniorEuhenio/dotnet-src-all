@@ -85,5 +85,17 @@ namespace Microsoft.Internal.Interop
         /// New font fallbacks
         /// </summary>
         Windows10,
+
+        /// <summary>
+        /// Added for completeness
+        /// </summary>
+        Windows10RS1,
+
+        /// <summary>
+        /// DDVSO:197685
+        /// 
+        /// WM_POINTER touch stack
+        /// </summary>
+        Windows10RS2,
     }
 }

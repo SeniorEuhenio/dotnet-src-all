@@ -11,6 +11,7 @@ using System.Security;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Automation.Peers;
+using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using MS.Internal.WindowsRuntime.Windows.UI.ViewManagement;
@@ -37,7 +38,7 @@ namespace MS.Internal.Interop
     internal static class TipTsfHelper
     {
         /// <summary>
-        /// Cache if the API call is supported on the current platform
+        /// Cache if the API call is supported on the current platform.
         /// </summary>
         private static bool s_PlatformSupported = true;
 
@@ -57,8 +58,15 @@ namespace MS.Internal.Interop
         {
             // DDVSO:222625
             // We need to only show if applicable to this focused object
-            // so guard the calls to TryShow here.
-            if (s_PlatformSupported && ShouldShow(focusedObject))
+            // so guard the calls to TryShow here.           
+            // DDVSO:197685
+            // If the touch stack is disabled or the WM_POINTER touch stack 
+            // is enabled, we get touch KB support for free.  So don't 
+            // attempt any calls into InputPane for these scenarios. 
+            if (s_PlatformSupported
+                && StylusLogic.IsStylusAndTouchSupportEnabled
+                && !StylusLogic.IsPointerStackEnabled
+                && ShouldShow(focusedObject))
             {
                 InputPane ip;
 
@@ -88,7 +96,13 @@ namespace MS.Internal.Interop
         [SecuritySafeCritical]
         internal static void Hide(DependencyObject focusedObject)
         {
-            if (s_PlatformSupported)
+            // DDVSO:197685
+            // If the touch stack is disabled or the WM_POINTER touch stack 
+            // is enabled, we get touch KB support for free.  So don't 
+            // attempt any calls into InputPane for these scenarios. 
+            if (s_PlatformSupported
+                && StylusLogic.IsStylusAndTouchSupportEnabled
+                && !StylusLogic.IsPointerStackEnabled)
             {
                 InputPane ip;
 

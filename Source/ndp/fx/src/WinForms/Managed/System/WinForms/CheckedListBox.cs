@@ -119,8 +119,8 @@ namespace System.Windows.Forms {
 
             // If a long item is drawn with ellipsis, we must redraw the ellipsed part
             // as well as the newly uncovered region.
-            SetStyle(ControlStyles.ResizeRedraw, true);
-
+            SetStyle(ControlStyles.ResizeRedraw, true); 
+          
         }
 
         /// <include file='doc\CheckedListBox.uex' path='docs/doc[@for="CheckedListBox.CheckOnClick"]/*' />
@@ -253,7 +253,7 @@ namespace System.Windows.Forms {
         public override int ItemHeight {
             get {
                 // this should take FontHeight + buffer into Consideration.
-                return Font.Height + 2;
+                return Font.Height + scaledListItemBordersHeight;
             }
             set {
             }
@@ -283,7 +283,7 @@ namespace System.Windows.Forms {
                 // Overridden to include the size of the checkbox
                 // Allows for one pixel either side of the checkbox, plus another 1 pixel buffer = 3 pixels
                 //
-                return base.MaxItemWidth + idealCheckSize + 3;
+                return base.MaxItemWidth + idealCheckSize + scaledListItemPaddingBuffer;
             }
         }
 
@@ -650,8 +650,7 @@ namespace System.Windows.Forms {
                 }
 
                 Rectangle bounds = e.Bounds;
-                int border = 1;
-                int height = Font.Height + 2 * border;
+                int height = this.ItemHeight;
 
                 // set up the appearance of the checkbox
                 //
@@ -674,7 +673,7 @@ namespace System.Windows.Forms {
                 // the Renderer might return a different size in different DPI modes..
                 if (Application.RenderWithVisualStyles) {
                    VisualStyles.CheckBoxState cbState = CheckBoxRenderer.ConvertFromButtonState(state, false, ((e.State & DrawItemState.HotLight) == DrawItemState.HotLight));
-                   idealCheckSize = (int)(CheckBoxRenderer.GetGlyphSize(e.Graphics, cbState)).Width;
+                   idealCheckSize = (int)(CheckBoxRenderer.GetGlyphSize(e.Graphics, cbState, HandleInternal)).Width;
                 }
 
                 // Determine bounds for the checkbox
@@ -686,7 +685,7 @@ namespace System.Windows.Forms {
                     centeringFactor = bounds.Height - idealCheckSize;
                 }
 
-                Rectangle box = new Rectangle(bounds.X + border,
+                Rectangle box = new Rectangle(bounds.X + scaledListItemStartPosition,
                                               bounds.Y + centeringFactor,
                                               idealCheckSize,
                                               idealCheckSize);
@@ -695,7 +694,7 @@ namespace System.Windows.Forms {
                     // For a RightToLeft checked list box, we want the checkbox
                     // to be drawn at the right.
                     // So we override the X position.
-                    box.X = bounds.X + bounds.Width - idealCheckSize - border;
+                    box.X = bounds.X + bounds.Width - idealCheckSize - scaledListItemStartPosition;
                 }
 
                 
@@ -704,7 +703,7 @@ namespace System.Windows.Forms {
                 //
                 if (Application.RenderWithVisualStyles) {
                     VisualStyles.CheckBoxState cbState = CheckBoxRenderer.ConvertFromButtonState(state, false, ((e.State & DrawItemState.HotLight) == DrawItemState.HotLight));
-                    CheckBoxRenderer.DrawCheckBox(e.Graphics, new Point(box.X, box.Y), cbState);
+                    CheckBoxRenderer.DrawCheckBox(e.Graphics, new Point(box.X, box.Y), cbState, HandleInternal);
                 }
                 else {
                     ControlPaint.DrawCheckBox(e.Graphics, box, state);
@@ -713,9 +712,9 @@ namespace System.Windows.Forms {
                 // Determine bounds for the text portion of the item
                 //
                 Rectangle textBounds = new Rectangle(
-                                                    bounds.X + idealCheckSize + (border * 2),
+                                                    bounds.X + idealCheckSize + (scaledListItemStartPosition * 2),
                                                     bounds.Y,
-                                                    bounds.Width - (idealCheckSize + (border * 2)) ,
+                                                    bounds.Width - (idealCheckSize + (scaledListItemStartPosition * 2)),
                                                     bounds.Height);
                 if (RightToLeft == RightToLeft.Yes) {
                     // For a RightToLeft checked list box, we want the text
@@ -762,7 +761,7 @@ namespace System.Windows.Forms {
                                                       textBounds.X + 1,
                                                       textBounds.Y,
                                                       textBounds.Width - 1,
-                                                      textBounds.Height - border * 2);
+                                                      textBounds.Height - 2); // minus borders
 
                 if( UseCompatibleTextRendering ){
                     using (StringFormat format = new StringFormat()) {
@@ -770,11 +769,11 @@ namespace System.Windows.Forms {
                             //  Set tab stops so it looks similar to a ListBox, at least with the default font size.
                             float tabDistance = 3.6f * Font.Height; // about 7 characters
                             float[] tabStops = new float[15];
-                            float tabOffset = -(idealCheckSize + (border * 2));
+                            float tabOffset = -(idealCheckSize + (scaledListItemStartPosition  * 2));
                             for (int i = 1; i < tabStops.Length; i++)
                                 tabStops[i] = tabDistance;
 
-                            //(
+                            //(bug 111825)
                             if (Math.Abs(tabOffset) < tabDistance) {
                                 tabStops[0] =  tabDistance +tabOffset;
                             }

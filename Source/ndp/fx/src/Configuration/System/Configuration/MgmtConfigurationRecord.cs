@@ -1212,8 +1212,8 @@ namespace System.Configuration {
                                 reader.Read();
                             }
 
-                            // Dev10 
-
+                            // Dev10 bug 687017 - Handle only UTF-16 explicitly, so that handling of other 
+                            // encodings are not affected.
                             if (reader.CurrentEncoding is UnicodeEncoding) {
                                 encoding = reader.CurrentEncoding;
                             }
@@ -1743,8 +1743,17 @@ namespace System.Configuration {
                                         saveMode == ConfigurationSaveMode.Full) {
                                     // Note: we won't use RawXml if saveMode == Full because Full means we want to
                                     // write all properties, and RawXml may not have all properties.
-                                    ConfigurationSection parentConfigSection = FindImmediateParentSection(configSection);
-                                    updatedXml = configSection.SerializeSection(parentConfigSection, configSection.SectionInformation.Name, saveMode);
+
+                                    // 'System.Windows.Forms.ApplicationConfiguration' is declared as an implicit section. Saving this section definition without declaration in machine .config file is causing IIS 
+                                    // and "wcfservice' project creation failed. See bug #297811 for more details. Following fix exclude this section empty definition in the machine.config while saving it.
+                                    if (String.Equals(configSection.SectionInformation.Name, ConfigurationStringConstants.WinformsApplicationConfigurationSectionName, StringComparison.Ordinal) &&
+                                        String.Equals(configSection._configRecord.ConfigPath, ClientConfigurationHost.MachineConfigName, StringComparison.Ordinal)) {
+                                        updatedXml = null;
+                                    }
+                                    else {
+                                        ConfigurationSection parentConfigSection = FindImmediateParentSection(configSection);
+                                        updatedXml = configSection.SerializeSection(parentConfigSection, configSection.SectionInformation.Name, saveMode);
+                                    }
                                     ValidateSectionXml(updatedXml, configKey);
                                 }
                                 else {
@@ -1776,7 +1785,7 @@ namespace System.Configuration {
                                         // VSWhidbey 580658: When a section is to be removed, its corresponding file
                                         // input should be cleared as well so this section will be indicated as "moved"
                                         // next time something is added back to the section.  Without marking it as "moved",
-                                        // adding new content to a removed section fails as the 
+                                        // adding new content to a removed section fails as the bug describes.
                                         sectionRecord.RemoveFileInput();
                                     }
                                 }

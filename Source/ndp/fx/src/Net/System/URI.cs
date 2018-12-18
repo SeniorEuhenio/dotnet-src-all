@@ -2593,7 +2593,7 @@ namespace System {
                     host = string.Empty;
                     break;
 
-                default: //it's a 
+                default: //it's a bug
                     throw GetException(ParsingError.BadHostName);
             }
 
@@ -3269,7 +3269,7 @@ namespace System {
                             cF |= Flags.SchemeNotCanonical;
                     }
                     // For an authority Uri only // after the scheme would be canonical
-                    // (compatibility 
+                    // (compatibility bug http:\\host)
                     if (((m_Flags & Flags.AuthorityFound) != 0) && (idx + i + 3 >= length || str[idx + i + 1] != '/' || 
                         str[idx + i + 2] != '/')) 
                     {
@@ -4145,8 +4145,8 @@ namespace System {
             {
                 //No user info for a Basic hostname
                 flags &= ~Flags.HasUserInfo;
-                // Some schemes do not allow HostType = Basic (plus V1 almost never understands this cause of a 
-
+                // Some schemes do not allow HostType = Basic (plus V1 almost never understands this cause of a bug)
+                //
                 if(syntax.InFact(UriSyntaxFlags.AllowAnyOtherHost))
                 {
                     flags |= Flags.BasicHostType;
@@ -4546,8 +4546,8 @@ namespace System {
             int dosPathIdx = SecuredPathIndex;
 
             // Note that unescaping and then escapig back is not transitive hence not safe.
-            // We are vulnerable due to the way the UserEscaped flag is processed (see NDPWhidbey#10612 
-
+            // We are vulnerable due to the way the UserEscaped flag is processed (see NDPWhidbey#10612 bug).
+            // Try to unescape only needed chars.
             if (formatAs == UriFormat.UriEscaped)
             {
                 if (InFact(Flags.ShouldBeCompressed))

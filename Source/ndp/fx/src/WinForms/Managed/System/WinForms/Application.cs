@@ -3308,7 +3308,7 @@ namespace System.Windows.Forms {
                 finally {
                     UnsafeNativeMethods.ThemingScope.Deactivate(userCookie);
                 }
-            }
+            }    
 
             private void RunMessageLoopInner(int reason, ApplicationContext context) {
 
@@ -3347,6 +3347,8 @@ namespace System.Windows.Forms {
                     if (applicationContext.MainForm != null) {
                         applicationContext.MainForm.Visible = true;
                     }
+
+                    DpiHelper.InitializeDpiHelperForWinforms();
                 }
 
                 Form oldForm = currentForm;

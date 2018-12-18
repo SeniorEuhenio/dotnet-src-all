@@ -30,10 +30,20 @@ namespace System.Windows.Forms {
         internal static readonly object EventMultilineChanged                                     = new object();
         internal static readonly object EventModifiedChanged                                      = new object();
         
+        private static readonly Padding defaultMargin = new Padding(1, 0, 1, 0);
+        private static readonly Padding defaultDropDownMargin = new Padding(1);
+        private Padding scaledDefaultMargin = defaultMargin;
+        private Padding scaledDefaultDropDownMargin = defaultDropDownMargin;
+
         /// <include file='doc\ToolStripTextBox.uex' path='docs/doc[@for="ToolStripTextBox.ToolStripTextBox"]/*' />
         public ToolStripTextBox() : base(CreateControlInstance()) {
             ToolStripTextBoxControl textBox = Control as ToolStripTextBoxControl;
             textBox.Owner = this;
+
+            if (DpiHelper.EnableToolStripHighDpiImprovements) {
+                scaledDefaultMargin = DpiHelper.LogicalToDeviceUnits(defaultMargin);
+                scaledDefaultDropDownMargin = DpiHelper.LogicalToDeviceUnits(defaultDropDownMargin);
+            }
         }
 
         public ToolStripTextBox(string name) : this() {
@@ -82,10 +92,10 @@ namespace System.Windows.Forms {
         protected internal override Padding DefaultMargin {
             get {
                 if (IsOnDropDown) {
-                    return new Padding(1);
+                    return scaledDefaultDropDownMargin;
                 }
                 else {
-                    return new Padding(1, 0, 1, 0);
+                    return scaledDefaultMargin;
                 }
             }
         }
@@ -588,8 +598,8 @@ namespace System.Windows.Forms {
                     get {
                         NativeMethods.RECT rect = new NativeMethods.RECT();
                         CreateParams cp = CreateParams;
-                        
-                        SafeNativeMethods.AdjustWindowRectEx(ref rect, cp.Style, HasMenu, cp.ExStyle);
+
+                        AdjustWindowRectEx(ref rect, cp.Style, HasMenu, cp.ExStyle);
 
                         // the coordinates we get back are negative, we need to translate this back to positive.
                         int offsetX = -rect.left; // one to get back to 0,0, another to translate

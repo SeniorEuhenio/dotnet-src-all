@@ -770,10 +770,10 @@ namespace System.Windows.Controls
             }
 
             // See FrameworkElement.BringIntoView() comments
-            //dmitryt, 
-
-
-
+            //dmitryt, bug 1126518. On new/updated elements RenderSize isn't yet computed
+            //so we need to postpone the rect computation until layout is done.
+            //this is accomplished by passing Empty rect here and then asking for RenderSize
+            //in IScrollInfo when it actually executes an async MakeVisible command.
             if (e.TargetRect.IsEmpty)
             {
                 FrameworkElement header = HeaderElement;

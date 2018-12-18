@@ -736,8 +736,8 @@ namespace System.Windows.Media
                 // released. Because of this, we can just always delete. In the future if that
                 // changes, the isSynchronous check here will cause a problem. *** DANGER ***
                 //
-                // The 
-
+                // The bug representing the outstanding cyle leak issue is 1981551
+                //
 
                 if (   !CheckFlagsOr(VisualFlags.NodeIsCyclicBrushRoot)
                             // If we aren't a root of a CyclicBrush, then we aren't referenced

@@ -149,6 +149,7 @@ namespace System.Windows.Forms.ButtonInternal {
                 }
 
                 fullSize.Width++;
+
                 fullSize.Height++;
                 Bitmap checkImage = null;
                 if (controlCheckState == CheckState.Checked) {
@@ -213,12 +214,12 @@ namespace System.Windows.Forms.ButtonInternal {
         
         protected void DrawCheckBox(PaintEventArgs e, LayoutData layout) {
             Graphics g = e.Graphics;
-
+            
             ButtonState style = GetState();
 
             if (Control.CheckState == CheckState.Indeterminate) {
                 if (Application.RenderWithVisualStyles) {
-                    CheckBoxRenderer.DrawCheckBox(g, new Point(layout.checkBounds.Left, layout.checkBounds.Top), CheckBoxRenderer.ConvertFromButtonState(style, true, Control.MouseIsOver));
+                    CheckBoxRenderer.DrawCheckBox(g, new Point(layout.checkBounds.Left, layout.checkBounds.Top), CheckBoxRenderer.ConvertFromButtonState(style, true, Control.MouseIsOver), Control.HandleInternal);
                 }
                 else {
                     ControlPaint.DrawMixedCheckBox(g, layout.checkBounds, style);
@@ -226,7 +227,7 @@ namespace System.Windows.Forms.ButtonInternal {
             }
             else {
                 if (Application.RenderWithVisualStyles) {
-                    CheckBoxRenderer.DrawCheckBox(g, new Point(layout.checkBounds.Left, layout.checkBounds.Top), CheckBoxRenderer.ConvertFromButtonState(style, false, Control.MouseIsOver));
+                    CheckBoxRenderer.DrawCheckBox(g, new Point(layout.checkBounds.Left, layout.checkBounds.Top), CheckBoxRenderer.ConvertFromButtonState(style, false, Control.MouseIsOver), Control.HandleInternal);
                 }
                 else {
                     ControlPaint.DrawCheckBox(g, layout.checkBounds, style);

@@ -279,9 +279,12 @@ namespace System.Web {
                 {
                     cookie = _cookies[c];
                     if (cookie.Added) {
-                        // if a cookie was added, we generate a Set-Cookie header for it
-                        cookieHeader = cookie.GetSetCookieHeader(_context);
-                        headers.SetHeader(cookieHeader.Name, cookieHeader.Value, false);
+                        if (!cookie.IsInResponseHeader) {
+                            // if a cookie was added, we generate a Set-Cookie header for it
+                            cookieHeader = cookie.GetSetCookieHeader(_context);
+                            headers.SetHeader(cookieHeader.Name, cookieHeader.Value, false);
+                            cookie.IsInResponseHeader = true;
+                        }
                         cookie.Added = false;
                         cookie.Changed = false;
                     }
@@ -308,6 +311,7 @@ namespace System.Web {
                     cookie = _cookies[c];
                     cookieHeader = cookie.GetSetCookieHeader(_context);
                     headers.SetHeader(cookieHeader.Name, cookieHeader.Value, false);
+                    cookie.IsInResponseHeader = true;
                     cookie.Added = false;
                     cookie.Changed = false;
                 }
@@ -1377,7 +1381,7 @@ namespace System.Web {
                             // the <customErrors> element to control this behavior.
 
                             if (customErrorsSetting.AllowNestedErrors) {
-                                // The user has set the compat switch to use the original (pre-
+                                // The user has set the compat switch to use the original (pre-bug fix) behavior.
                                 goto case RedirectToErrorPageStatus.NotAttempted;
                             }
 
@@ -1446,7 +1450,7 @@ namespace System.Web {
                     if (value != null) {
                         HttpCookie cookie = HttpRequest.CreateCookieFromString(value);
                         // do not write this cookie back to IIS
-                        cookie.FromHeader = true;
+                        cookie.IsInResponseHeader = true;
                         Cookies.Set(cookie);
                         cookie.Changed = false;
                         cookie.Added = false;
@@ -3293,10 +3297,10 @@ namespace System.Web {
         }
 
         private String UrlEncodeIDNSafe(String url) {
-            // 
-
-
-
+            // Bug 86594: Should not encode the domain part of the url. For example,
+            // http://Übersite/Überpage.aspx should only encode the 2nd Ü.
+            // To accomplish this we must separate the scheme+host+port portion of the url from the path portion,
+            // encode the path portion, then reconstruct the url.
             Debug.Assert(!url.Contains("?"), "Querystring should have been stripped off.");
 
             string schemeAndAuthority;

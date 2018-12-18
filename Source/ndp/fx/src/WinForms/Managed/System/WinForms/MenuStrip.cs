@@ -75,6 +75,7 @@ namespace System.Windows.Forms {
         }
         protected override Padding DefaultGripMargin {
             get {
+                // MenuStrip control is scaled by Control::ScaleControl()
                 // VSWhidbey 448134 - ensure grip aligns properly when set visible.
                 return new Padding(2, 2, 0, 2);
             }
@@ -89,6 +90,7 @@ namespace System.Windows.Forms {
 
         protected override Padding DefaultPadding {
             get {
+                // MenuStrip control is scaled by Control::ScaleControl()
                 // VSWhidbey 448134: scoot the grip over when present
                 if (GripStyle == ToolStripGripStyle.Visible) {
                     return new Padding(3, 2, 0, 2);

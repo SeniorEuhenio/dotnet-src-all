@@ -30,6 +30,11 @@ namespace System
                             LocalAppContext.DefineSwitchDefault(CoreAppContextSwitches.DoNotScaleForDpiChangesSwitchName, true);
                         }
 
+                        if (targetFrameworkVersion <= 40602)
+                        {
+                            LocalAppContext.DefineSwitchDefault(CoreAppContextSwitches.OverrideExceptionWithNullReferenceExceptionName, true);
+                        }
+
                         break;
                     }
             }

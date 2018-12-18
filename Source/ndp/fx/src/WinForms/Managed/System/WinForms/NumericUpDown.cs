@@ -841,9 +841,9 @@ namespace System.Windows.Forms {
             }
 
             if (maxDigitsReached) {
-                // Prevent 
-
-
+                // Prevent bug VSWhidbey 555288.
+                // decimal.MaxValue is 79228162514264337593543950335
+                //                 but 99999999999999999999999999999 is not a valid value for testNumber.
                 numDigits = maxDigits - 1;
             }
 

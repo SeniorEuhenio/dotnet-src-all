@@ -5,6 +5,10 @@ DWORD GetProtocolList( __inout ProtList * pProtList,
 							   const WCHAR * wszServer,
 							   const WCHAR * wszOriginalServer );
 
+DWORD GetProtocolList( 	ProtList * pProtList, 
+							const WCHAR * wszServer,
+							const WCHAR * wszOriginalServer,
+							TCHAR * pszProt);
 
 DWORD GetProtocolDefaults( 	__out ProtElem * pProtElem,
 									const WCHAR * pwszProtocol,
@@ -25,7 +29,6 @@ namespace LastConnectCache
 	void SetEntry( const WCHAR * wszAlias, __in ProtElem * pProtElem );
 
 	void RemoveEntry( const WCHAR * wszAlias );
-
 }
 
 #endif

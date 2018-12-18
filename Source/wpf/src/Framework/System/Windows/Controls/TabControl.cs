@@ -18,6 +18,7 @@ using System.Windows.Media;
 using System.Windows.Controls.Primitives;
 using System.Windows.Markup;
 using MS.Utility;
+using MS.Internal.Telemetry.PresentationFramework;
 
 using System;
 
@@ -48,6 +49,8 @@ namespace System.Windows.Controls
             KeyboardNavigation.DirectionalNavigationProperty.OverrideMetadata(typeof(TabControl), new FrameworkPropertyMetadata(KeyboardNavigationMode.Contained));
 
             IsEnabledProperty.OverrideMetadata(typeof(TabControl), new UIPropertyMetadata(new PropertyChangedCallback(OnVisualStatePropertyChanged)));
+
+            ControlsTraceLogger.AddControl(TelemetryControls.TabControl);
         }
 
         /// <summary>

@@ -215,14 +215,14 @@ namespace System.Windows.Input
             if (_cursorHandle == null || _cursorHandle.IsInvalid)
             {
                 // Note: chandras 02/02/2005
-                // 
-
-
-
-
-
-
-
+                // Bug # 1016022: LoadImage returns a null handle but does not set 
+                // the error condition when icon file is of an incorrect type (e.g., .bmp)
+                //
+                // LoadImage has a bug where it doesn't set the correct error code
+                // when a file is given that is not an ico file.  Icon load fails 
+                // but win32 error code is still zero (success).  Thus, we need to 
+                // special case this scenario.              
+                //
                 if (errorCode != 0)
                 {
                     if ((errorCode == NativeMethods.ERROR_FILE_NOT_FOUND) || (errorCode == NativeMethods.ERROR_PATH_NOT_FOUND))
@@ -300,7 +300,15 @@ namespace System.Windows.Input
             }
             finally
             {
-                File.Delete(filePath);
+                try
+                {
+                    File.Delete(filePath);
+                }
+                catch(System.IO.IOException)
+                {
+                    // DDVSO 227517: We may not be able to delete the file if it's being used by some other process (e.g. Anti-virus check).
+                    // There's nothing we can do in that case, so just eat the exception and leave the file behind
+                }
             }
         }
 

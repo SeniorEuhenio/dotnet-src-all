@@ -89,7 +89,7 @@ namespace System.Windows.Forms {
         private Object[]   currentObjects;
         
         private int                                 paintFrozen;
-        private Color                               lineColor = SystemColors.InactiveBorder;
+        private Color                               lineColor = SystemColors.ControlDark;
         internal Brush                              lineBrush = null;
         private Color                               categoryForeColor = SystemColors.ControlText;
         private Color                               categorySplitterColor = SystemColors.Control;
@@ -2738,8 +2738,8 @@ namespace System.Windows.Forms {
                         object[] newObjects = new object[currentObjects.Length - 1];
                         Array.Copy(currentObjects, 0, newObjects, 0, i);
                         if (i < newObjects.Length) {
-                            // Dev10 
-
+                            // Dev10 Bug 462203: Array.Copy throws Argument Exception when deleting
+                            //                   multiple controls with PropertyTabs in designer.
                             Array.Copy(currentObjects, i + 1, newObjects, i, newObjects.Length - i);
                         }
 

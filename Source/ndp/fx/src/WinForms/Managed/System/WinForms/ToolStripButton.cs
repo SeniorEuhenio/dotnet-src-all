@@ -20,7 +20,9 @@ namespace System.Windows.Forms {
 
         private CheckState                 checkState                                   = CheckState.Unchecked;
         private bool                       checkOnClick                                 = false;
-        private const int StandardButtonWidth = 23;
+        private const int STANDARD_BUTTON_WIDTH = 23;
+        private int standardButtonWidth = STANDARD_BUTTON_WIDTH;
+
         private static readonly object EventCheckedChanged      = new object();
         private static readonly object EventCheckStateChanged   = new object();
 
@@ -190,7 +192,7 @@ namespace System.Windows.Forms {
 
         public override Size GetPreferredSize(Size constrainingSize) {
            Size prefSize = base.GetPreferredSize(constrainingSize);
-           prefSize.Width = Math.Max(prefSize.Width, StandardButtonWidth);
+           prefSize.Width = Math.Max(prefSize.Width, standardButtonWidth);
            return prefSize;
         }
 
@@ -199,6 +201,9 @@ namespace System.Windows.Forms {
         /// </devdoc>
         private void Initialize() {
             SupportsSpaceKey = true;            
+            if (DpiHelper.EnableToolStripHighDpiImprovements) {
+                standardButtonWidth = DpiHelper.LogicalToDeviceUnitsX(STANDARD_BUTTON_WIDTH);
+            }
         }
         
         /// <include file='doc\ToolStripButton.uex' path='docs/doc[@for="ToolStripButton.OnCheckedChanged"]/*' />

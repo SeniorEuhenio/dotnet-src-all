@@ -1168,8 +1168,8 @@ namespace System.Windows.Forms
         /// <include file='doc\DataGridViewCell.uex' path='docs/doc[@for="DataGridViewCell.Clone"]/*' />
         public virtual object Clone()
         {
-            // SECREVIEW : Late-binding does not represent a security thread, see 
-
+            // SECREVIEW : Late-binding does not represent a security thread, see bug#411899 for more info..
+            //
             DataGridViewCell dataGridViewCell = (DataGridViewCell) System.Activator.CreateInstance(this.GetType());
             CloneInternal(dataGridViewCell);
             return dataGridViewCell;
@@ -3351,8 +3351,8 @@ namespace System.Windows.Forms
                     OnCellErrorAreaMouseLeaveInternal();
                     break;
                 case DATAGRIDVIEWCELL_flagAreaNotSet:
-                    // Microsoft: there seems to be a 
-
+                    // Microsoft: there seems to be a bug in setting the HorizontalOffset when scrolling
+                    // Debug.Assert(false, "if we leave the cell we should already have set the CurrentMouseLocation to Data Area or Error Area");
                     break;
                 default:
                     Debug.Assert(false, "there are only three possible choices for the CurrentMouseLocation");

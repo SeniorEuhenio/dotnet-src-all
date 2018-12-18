@@ -2209,8 +2209,8 @@ typedef enum _DEVICEDUMP_COLLECTION_TYPE {
 #define DDUMP_FLAG_DATA_READ_FROM_DEVICE        0x0001
 
 //
-// Firmware issue IDs (similar to 
-
+// Firmware issue IDs (similar to bug check reasons)
+//
 #define FW_ISSUEID_NO_ISSUE     0x00000000
 #define FW_ISSUEID_UNKNOWN      0xFFFFFFFF
 

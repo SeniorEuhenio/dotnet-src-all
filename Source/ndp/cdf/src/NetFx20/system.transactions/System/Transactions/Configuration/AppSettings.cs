@@ -15,12 +15,12 @@ namespace System.Transactions.Configuration
         private static volatile bool settingsInitalized = false;
         private static object appSettingsLock = new object();
 
-        // 
-
+        // Bug 954268 Extend Default TransactionException to include the Distributed Transaction ID in error message
+        // When the appsetting "Transactions:IncludeDistributedTransactionIdInExceptionMessage" is "true", we display the distributed transaction ID in TransactionException message if the distributed transaction ID is availble.
         private static bool includeDistributedTxIdInExceptionMessage;
 
-        // 
-
+        // Bug 954268 Extend Default TransactionException to include the Distributed Transaction ID in error message
+        // When the appsetting "Transactions:IncludeDistributedTransactionIdInExceptionMessage" is "true", we display the distributed transaction ID in TransactionException message if the distributed transaction ID is availble.
         internal static bool IncludeDistributedTxIdInExceptionMessage
         {
             get

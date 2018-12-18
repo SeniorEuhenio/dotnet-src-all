@@ -2621,8 +2621,8 @@ namespace System.Net.Sockets {
             // 
             // Negative microsecond values that weren't exactly (-1) were originally successfully 
             // converted to a timeval struct containing unsigned non-zero integers.  This code 
-            // retains that behavior so that any app working around the original 
-
+            // retains that behavior so that any app working around the original bug with, 
+            // for example, (-2) specified for microseconds, will continue to get the same behavior.
 
             int socketCount;
 
@@ -6851,9 +6851,9 @@ namespace System.Net.Sockets {
             catch
             {
                 //
-                // 
-
-
+                // Bug 152350: If ConnectEx throws we need to unpin the socketAddress buffer.
+                // m_RightEndPoint will always equal oldEndPoint anyways...
+                //
                 asyncResult.InternalCleanup();
                 m_RightEndPoint = oldEndPoint;
                 throw;

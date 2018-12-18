@@ -109,6 +109,7 @@ namespace System.Windows.Forms {
         private const int   MaxScrollChange = 20000;
 
         private const int   ExtraPadding = 2;
+        private int         scaledExtraPadding = ExtraPadding;
 
         private IntPtr         mdsBuffer = IntPtr.Zero;
         private int         mdsBufferSize = 0;
@@ -174,6 +175,8 @@ namespace System.Windows.Forms {
         public MonthCalendar()
         : base() {
 
+            PrepareForDrawing();
+
             selectionStart = todayDate;
             selectionEnd = todayDate;
             SetStyle(ControlStyles.UserPaint, false);
@@ -224,6 +227,17 @@ namespace System.Windows.Forms {
                         System.Security.CodeAccessPermission.RevertAssert();
                     }
                 }
+            }
+        }
+
+        protected override void RescaleConstantsForDpi(int deviceDpiOld, int deviceDpiNew) {
+            base.RescaleConstantsForDpi(deviceDpiOld, deviceDpiNew);
+            PrepareForDrawing();
+        }
+
+        private void PrepareForDrawing() {
+            if (DpiHelper.EnableMonthCalendarHighDpiImprovements) {
+                scaledExtraPadding = LogicalToDeviceUnits(ExtraPadding);
             }
         }
 
@@ -1463,7 +1477,7 @@ namespace System.Windows.Forms {
 
             if (updateCols) {
                 Debug.Assert(minSize.Width > INSERT_WIDTH_SIZE, "Divide by 0");
-                int nCols = (newDimensionLength - ExtraPadding)/minSize.Width;
+                int nCols = (newDimensionLength - scaledExtraPadding) /minSize.Width;
                 this.dimensions.Width = (nCols < 1) ? 1 : nCols;
             }
 
@@ -1481,8 +1495,8 @@ namespace System.Windows.Forms {
 
             // Fudge factor
             //
-            minSize.Width += ExtraPadding;
-            minSize.Height += ExtraPadding;
+            minSize.Width += scaledExtraPadding;
+            minSize.Height += scaledExtraPadding;
             return minSize;
         }
 
@@ -1923,15 +1937,19 @@ namespace System.Windows.Forms {
             Rectangle oldBounds = Bounds;
             Size max = SystemInformation.MaxWindowTrackSize;
 
+            // Second argument to GetPreferredWidth and GetPreferredHeight is a boolean specifying if we should update the number of rows/columns.
+            // We only want to update the number of rows/columns if we are not currently being scaled or if MonthCalendarHighDpiImprovements are off.
+            bool updateRowsAndColumns = !DpiHelper.EnableMonthCalendarHighDpiImprovements || !IsCurrentlyBeingScaled;
+
             if (width != oldBounds.Width) {
                 if (width > max.Width)
                     width = max.Width;
-                width = GetPreferredWidth(width, true);
+                width = GetPreferredWidth(width, updateRowsAndColumns);
             }
             if (height != oldBounds.Height) {
                 if (height > max.Height)
                     height = max.Height;
-                height = GetPreferredHeight(height, true);
+                height = GetPreferredHeight(height, updateRowsAndColumns);
             }
             base.SetBoundsCore(x, y, width, height, specified);
         }

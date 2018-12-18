@@ -5638,8 +5638,8 @@ namespace System.Data.SqlClient {
                         }
                     }
 
-                    // 
-
+                    // bug 49497, if the user specifies a 0-sized parameter for a variable len field
+                    // pass over max size (8000 bytes or 4000 characters for wide types)
                     if (0 == size)
                         size = mt.IsSizeInCharacters ? (TdsEnums.MAXSIZE >> 1) : TdsEnums.MAXSIZE;
 

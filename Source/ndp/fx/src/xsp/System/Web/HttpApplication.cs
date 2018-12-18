@@ -179,7 +179,7 @@ namespace System.Web {
         // this is the per instance list that contains the events for each module
         private PipelineModuleStepContainer[] _moduleContainers;
 
-        // Byte array to be used by HttpRequest.GetEntireRawContent. Windows OS 
+        // Byte array to be used by HttpRequest.GetEntireRawContent. Windows OS Bug 1632921
         private byte[] _entityBuffer;
 
         // Counts the number of code paths consuming this HttpApplication instance. When the counter hits zero,
@@ -304,7 +304,7 @@ namespace System.Web {
 
         }
 
-        // Used by HttpRequest.GetEntireRawContent. Windows OS 
+        // Used by HttpRequest.GetEntireRawContent. Windows OS Bug 1632921
         internal byte[] EntityBuffer
         {
             get
@@ -4029,10 +4029,10 @@ namespace System.Web {
                             // a SendResponse, at which point it blocks until the SendResponse notification completes.
 
                             if (!isReEntry) { // currently we only re-enter for SendResponse
-                                // DevDiv 482614 (Sharepoint 
-
-
-
+                                // DevDiv 482614 (Sharepoint Bug 3137123)
+                                // Async completion or SendResponse can happen on a background thread while the thread that called IndicateCompletion has not unwound yet
+                                // Therefore (InIndicateCompletion == true) is not a sufficient evidence that we can use the ThreadContext stored in IndicateCompletionContext
+                                // To avoid using other thread's ThreadContext we use IndicateCompletionContext only if ThreadInsideIndicateCompletion is indeed our thread
                                 if (context.InIndicateCompletion && context.ThreadInsideIndicateCompletion == Thread.CurrentThread) {
                                     // we already have a ThreadContext
                                     threadContext = context.IndicateCompletionContext;

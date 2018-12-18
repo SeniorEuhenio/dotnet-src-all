@@ -1309,7 +1309,7 @@ namespace System.Globalization
 #if !FEATURE_CORECLR
                         if (IsIncorrectNativeLanguageForSinhala())
                         {
-                            // work around 
+                            // work around bug in Windows 7 for native name of Sinhala
                             this.sNativeDisplayName ="\x0dc3\x0dd2\x0d82\x0dc4\x0dbd (\x0DC1\x0DCA\x200D\x0DBB\x0DD3\x0020\x0DBD\x0D82\x0D9A\x0DCF)";
                         }
                         else
@@ -1438,7 +1438,7 @@ namespace System.Globalization
 #if !FEATURE_CORECLR
                     if (IsIncorrectNativeLanguageForSinhala())
                     {
-                        // work around 
+                        // work around bug in Windows 7 for native language of Sinhala
                         this.sNativeLanguage = "\x0dc3\x0dd2\x0d82\x0dc4\x0dbd";
                     }
                     else

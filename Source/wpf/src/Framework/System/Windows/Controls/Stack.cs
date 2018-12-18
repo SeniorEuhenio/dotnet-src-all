@@ -16,6 +16,7 @@
 //#define Profiling
 
 using MS.Internal;
+using MS.Internal.Telemetry.PresentationFramework;
 using MS.Utility;
 
 using System;
@@ -67,6 +68,11 @@ namespace System.Windows.Controls
         //-------------------------------------------------------------------
 
         #region Constructors
+
+        static StackPanel()
+        {
+            ControlsTraceLogger.AddControl(TelemetryControls.StackPanel);
+        }
 
         /// <summary>
         /// Default constructor.

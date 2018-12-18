@@ -131,7 +131,7 @@ namespace System.Text.RegularExpressions {
 #else
         // desktop build still uses non-generic collections for AppCompat with .NET Framework 3.5 pre-compiled assemblies
         protected internal Hashtable caps;
-        protected internal Hashtable capnames;        
+        protected internal Hashtable capnames;
 #endif
         protected internal String[]  capslist;               // if captures are sparse or named captures are used, this is the sorted list of names
         protected internal int       capsize;                // the size of the capture array

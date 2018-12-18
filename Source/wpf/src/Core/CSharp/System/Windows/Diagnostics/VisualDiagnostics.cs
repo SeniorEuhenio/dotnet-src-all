@@ -16,7 +16,14 @@ namespace System.Windows.Diagnostics
 {
     public static class VisualDiagnostics
     {
-        private static bool s_isDebuggerCheckDisabledForTestPurposes; // for test purposes
+#pragma warning disable 649
+        // Warning CS0649: The Field 'VisualDiagnostics.s_isDebuggerCheckDisabledForTestPurposes' is never 
+        // assigned to, and will always have its default value false 
+        //
+        // This field exists for test purposes
+        private static bool s_isDebuggerCheckDisabledForTestPurposes; 
+#pragma warning restore 649
+
         private static event EventHandler<VisualTreeChangeEventArgs> s_visualTreeChanged;
 
         #region Public

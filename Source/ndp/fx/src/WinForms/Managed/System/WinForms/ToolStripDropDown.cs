@@ -56,6 +56,9 @@ namespace System.Windows.Forms {
 
         private static readonly object ToolStripParkingWindowKey                = new object();
 
+        private static readonly Padding defaultPadding                          = new Padding(1, 2, 1, 2);
+        private Padding scaledDefaultPadding                                    = defaultPadding;
+
 #if DEBUG 
      	internal static TraceSwitch DropDownActivateDebug = new TraceSwitch("DropDownActivateDebug", "Debug activation code for dropDown controls");
         internal static TraceSwitch DropDownDebugBounds = new TraceSwitch("DropDownDebugBounds", "Debug GetDropDownBounds");
@@ -97,6 +100,10 @@ namespace System.Windows.Forms {
         /// Summary of ToolStripDropDown.
         /// </devdoc>
         public ToolStripDropDown() {
+            if (DpiHelper.EnableToolStripHighDpiImprovements) {
+                scaledDefaultPadding = DpiHelper.LogicalToDeviceUnits(defaultPadding);
+            }
+
             // SECURITY NOTE: The IsRestrictedWindow check is done once and cached. We force it to happen here
             // since we want to ensure the check is done on the code that constructs the ToolStripDropDown.
             bool temp = IsRestrictedWindow;
@@ -353,7 +360,7 @@ namespace System.Windows.Forms {
 
         /// <include file='doc\Control.uex' path='docs/doc[@for="Control.DefaultPadding"]/*' />
         protected override Padding DefaultPadding {
-            get { return new Padding(1, 2, 1, 2); }
+            get { return scaledDefaultPadding; }
         }
 
 

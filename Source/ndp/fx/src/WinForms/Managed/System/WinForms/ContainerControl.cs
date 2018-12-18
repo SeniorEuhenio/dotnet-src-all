@@ -320,7 +320,13 @@ namespace System.Windows.Forms {
 
                         case AutoScaleMode.Dpi:
                             // Screen Dpi
-                            currentAutoScaleDimensions = WindowsGraphicsCacheManager.MeasurementGraphics.DeviceContext.Dpi;
+                            if (DpiHelper.EnableDpiChangedMessageHandling) {
+                                currentAutoScaleDimensions = new SizeF((float)deviceDpi, (float)deviceDpi);
+                            } 
+                            else {
+                                // this DPI value comes from the primary monitor.
+                                currentAutoScaleDimensions = WindowsGraphicsCacheManager.MeasurementGraphics.DeviceContext.Dpi;
+                            }
                             break;
 
                         default:
@@ -475,10 +481,10 @@ namespace System.Windows.Forms {
                 }
                 if (selected && this.activeControl != control)
                 {
-                    // 
-
-
-
+                    // Bug 847648.
+                    // Add the check. If it is set to true, do not call into FocusActiveControlInternal().
+                    // The TOP MDI window could be gone and CreateHandle method will fail 
+                    // because it try to create a parking window Parent for the MDI children 
                     if (!this.activeControl.Parent.IsTopMdiWindowClosing) 
                     {                 
                         FocusActiveControlInternal();
@@ -820,6 +826,11 @@ namespace System.Windows.Forms {
         internal override void OnChildLayoutResuming(Control child, bool performLayout) {
             base.OnChildLayoutResuming(child, performLayout);
 
+            // do not scale children if AutoScaleMode is set to Dpi
+            if (DpiHelper.EnableSinglePassScalingOfDpiForms && (AutoScaleMode == AutoScaleMode.Dpi)) {
+                return;
+            }
+            
             // We need to scale children before their layout engines get to them.
             // We don't have a lot of opportunity for that because the code
             // generator always generates a PerformLayout() right after a
@@ -874,6 +885,25 @@ namespace System.Windows.Forms {
             }
 
             base.OnFontChanged(e);
+        }
+
+        /// <include file='doc\ContainerControl.uex' path='docs/doc[@for="ContainerControl.FormDpiChanged"]/*' />
+        /// <devdoc>
+        ///   This is called by the top level form to clear the current autoscale cache.
+        /// </devdoc>
+        internal void FormDpiChanged(float factor) {
+            Debug.Assert(this is Form);
+
+            currentAutoScaleDimensions = SizeF.Empty;
+
+            SuspendAllLayout(this);
+            SizeF factorSize = new SizeF(factor, factor);
+            try {
+                ScaleChildControls(factorSize, factorSize, this);
+            }
+            finally {
+                ResumeAllLayout(this, false);
+            }
         }
 
         /// <devdoc>

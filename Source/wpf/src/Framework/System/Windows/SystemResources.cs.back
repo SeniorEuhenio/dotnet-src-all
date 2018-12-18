@@ -57,7 +57,7 @@ namespace System.Windows
         /// </summary>
         /// <param name="key">The resource id to search for.</param>
         /// <returns>The resource if it exists, null otherwise.</returns>
-        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking 
+        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking Bug: 29647
         internal static object FindThemeStyle(DependencyObjectType key)
         {
             // Find a cached theme style
@@ -102,7 +102,7 @@ namespace System.Windows
         /// </summary>
         /// <param name="key">The resource id to search for.</param>
         /// <returns>The resource if it exists, null otherwise.</returns>
-        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking 
+        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking Bug: 29647
         internal static object FindResourceInternal(object key)
         {
             // Call Forwarded
@@ -269,7 +269,7 @@ namespace System.Windows
 
         #region Implementation
 
-        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking 
+        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking Bug: 29647
         internal static void CacheResource(object key, object resource, bool isTraceEnabled)
         {
             // Thread safety handled by FindResourceInternal. Be sure to have locked _resourceCache.SyncRoot.
@@ -1175,12 +1175,18 @@ namespace System.Windows
         [SecurityCritical]
         private static void InvalidateTabletDevices(WindowMessage msg, IntPtr wParam, IntPtr lParam)
         {
-            if ( _hwndNotify != null )
+            // DDVSO:221075
+            // Don't forward messages to tablets if the stack is turned off.
+            if (StylusLogic.IsStylusAndTouchSupportEnabled
+                && _hwndNotify != null)
             {
                 Dispatcher dispatcher = _hwndNotify.Value.Dispatcher;
-                if ( dispatcher != null && dispatcher.InputManager != null )
+                if (dispatcher?.InputManager != null)
                 {
-                    ((InputManager)dispatcher.InputManager).StylusLogic.HandleMessage(msg, wParam, lParam);
+                    // DDVSO:221075
+                    // Switch to using CurrentStylusLogic mechanism and guard against the stack
+                    // not being enabled.
+                    StylusLogic.CurrentStylusLogic?.HandleMessage(msg, wParam, lParam);
                 }
             }
         }

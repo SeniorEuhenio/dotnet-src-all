@@ -55,8 +55,8 @@ namespace System.Drawing {
         private GraphicsContext previousContext;
 
         /// <devdoc>
-        ///     Object to lock on for static methods - DO NOT use the Type, see 
-
+        ///     Object to lock on for static methods - DO NOT use the Type, see bug#464117.
+        /// </devdoc>
         private static readonly object syncObject = new Object();
 
         /// <devdoc>

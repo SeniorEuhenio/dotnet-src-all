@@ -1344,15 +1344,15 @@ Semantics::DefAsgEvalBlock
             // Consider control variable initialized, set the slot.
 
 
-            // Dev11 
-
+            // Dev11 Bug 150829, if ControlVariableReference is NULL, it should 
+            // skip DefAsgSet. Also assert if ControlVariableReference is NULL.
             if (NULL != ControlVariableReference)
             {
                 DefAsgSet(ControlVariableReference, ClosureDepth);
             }
             else
             {
-                // Reactivate  Dev11 
+                // Reactivate  Dev11 Bug 150829, if this assert is hit.          
                 VSFAIL("Why ControlVariableReference is NULL?");
             }
 
@@ -2502,8 +2502,8 @@ void Semantics::DefAsgCheckUse
             if (ptree->AsCallExpression().ptreeThis)
             {
                 // Make definite assignment handle the special case of initializing structures for the
-                // scenario in 
-
+                // scenario in bug VSWhidbey 270278.
+                //
                 if (ptree->AsCallExpression().ptreeThis->bilop == SX_ADR &&
                     ptree->AsCallExpression().ptreeThis->AsExpressionWithChildren().Left->bilop == SX_SYM &&
                     ptree->AsCallExpression().Left->bilop == SX_SYM &&
@@ -2528,8 +2528,8 @@ void Semantics::DefAsgCheckUse
             } // while ptreeList
 
             // Make definite assignment handle the special case of initializing structures for the
-            // scenario in 
-
+            // scenario in bug VSWhidbey 270278.
+            //
             if (pinitializedStruct)
             {
                 DefAsgSet(pinitializedStruct, ClosureDepth);

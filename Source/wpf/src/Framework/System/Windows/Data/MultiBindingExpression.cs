@@ -640,7 +640,7 @@ public sealed class MultiBindingExpression: BindingExpressionBase, IDataBindEngi
                 _tempTypes[i] = TargetProperty.PropertyType;
         }
 
-        // MultiValueConverters are always user-defined, so don't catch exceptions (
+        // MultiValueConverters are always user-defined, so don't catch exceptions (bug 992237)
         return Converter.ConvertBack(rawValue, _tempTypes, ParentMultiBinding.ConverterParameter, culture);
     }
 
@@ -722,7 +722,7 @@ public sealed class MultiBindingExpression: BindingExpressionBase, IDataBindEngi
 
         if (!updateActuallyHappened)
         {
-            IsInUpdate = false;     // inhibit the "$10 
+            IsInUpdate = false;     // inhibit the "$10 bug" re-fetch if nothing actually updated
         }
 
         EndSourceUpdate();
@@ -1180,7 +1180,7 @@ public sealed class MultiBindingExpression: BindingExpressionBase, IDataBindEngi
         // apply the converter
         if (Converter != null)
         {
-            // MultiValueConverters are always user-defined, so don't catch exceptions (
+            // MultiValueConverters are always user-defined, so don't catch exceptions (bug 992237)
             preFormattedValue = Converter.Convert(_tempValues, TargetProperty.PropertyType, ParentMultiBinding.ConverterParameter, culture);
 
             if (IsDetached)
@@ -1370,7 +1370,7 @@ public sealed class MultiBindingExpression: BindingExpressionBase, IDataBindEngi
                 // while attaching a normal (not style-defined) BindingExpression,
                 // we must defer raising the event until after the
                 // property has been invalidated, so that the event handler
-                // gets the right value if it asks (
+                // gets the right value if it asks (bug 1036862)
                 if (IsAttaching && this == target.ReadLocalValue(TargetProperty))
                 {
                     Engine.AddTask(this, TaskOps.RaiseTargetUpdatedEvent);

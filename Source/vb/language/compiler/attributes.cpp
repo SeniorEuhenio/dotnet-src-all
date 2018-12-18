@@ -2707,7 +2707,7 @@ void Attribute::_----AllAttributesOnToken
                     (StrCmp(strName, NONSERIALIZEDATTRIBUTE) == 0 ||
                     StrCmp(strName, COMSOURCEINTERFACES) == 0)))
                 {
-                // NetCF 
+                // NetCF Bug: 18559
                     if (m_pcompilerhost->IsStarliteHost() && StrCmp(strName, COMSOURCEINTERFACES) == 0)
                     {
                     }
@@ -3028,7 +3028,7 @@ void Attribute::----ArgBlob
         // This also indicates 0 number of arguments for the constructors.
         // So if expected number of arguments for the constructor of this
         // well known attribute type is non-zero, don't treat the attribute
-        // as a well known attribute.  VS Everett Security 
+        // as a well known attribute.  VS Everett Security Bug #
         if (((BYTE *)pAttribute->m_sig)[1] != 0)
         {
             goto Error;
@@ -7132,7 +7132,7 @@ void Attribute::VerifyNonSerializedAttributeUsage(BCSYM_NamedRoot *ProcField, Er
 
     //Verify that non-serialized attribute can not be applied on custom event or any event in interfaces
     // The assumption is that if the backing field does not exist then the event is either a custom event or in an interface.
-    // 
+    // Bug 674331
     if (ProcField->IsEventDecl() && ProcField->PEventDecl()->GetDelegateVariable() == NULL)
     { 
         pErrorTable->CreateError(

@@ -2108,7 +2108,7 @@ namespace System.Windows.Data
         {
             if (oldIndex == CurrentPosition)
             {
-                // moving the current item - currency moves with the item (
+                // moving the current item - currency moves with the item (bug 1942184)
                 SetCurrent(GetItemAt(newIndex), newIndex);
             }
             else if (oldIndex < CurrentPosition && CurrentPosition <= newIndex)

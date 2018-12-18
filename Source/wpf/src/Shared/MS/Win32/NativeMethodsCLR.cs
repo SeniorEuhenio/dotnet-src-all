@@ -277,7 +277,7 @@ namespace MS.Win32 {
                 // Note: ADVF_ONLYONCE and ADVF_PRIMEFIRST values now conform with objidl.dll but are backwards from
                 // Platform SDK documentation as of 07/21/2003.
         // http://msdn.microsoft.com/library/default.asp?url=/library/en-us/com/htm/oen_a2z_8jxi.asp.
-        // See VSWhidbey 
+        // See VSWhidbey bug#96162.
 
         public const int BCM_GETIDEALSIZE = 0x1601;
 #endif

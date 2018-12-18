@@ -1039,8 +1039,8 @@ namespace System.Windows.Baml2006
             return true;
         }
 
-        // Need to write just a text node out but the V3 markup compiler has a 
-
+        // Need to write just a text node out but the V3 markup compiler has a bug where it will occasionally output
+        // text even though it shouldn't.  The checks are to get around that.
         private void Process_Text()
         {
             Read_RecordSize();

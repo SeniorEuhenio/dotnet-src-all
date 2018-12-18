@@ -346,15 +346,15 @@ private :
 void CleanUp();
 
 /// <summary>
-/// This method is a workaround to an ugly 
-
-
-
-
-
-
-
-
+/// This method is a workaround to an ugly bug in the compiler that caused Jitting.
+/// The compiler generates a static unsafe method to initialize cmiStartupRunner
+/// which is not properly annotated with security tags.
+/// To work around this issue we create our own static method that is properly annotated.
+/// </summary>
+/// <SecurityNote>
+/// Critical: Contains unverifiable native code.
+/// Safe    : The code is safe and only returns a new object.
+/// </SecurityNote>
 [SecuritySafeCritical]
 __declspec(noinline) static System::IntPtr CreateCModuleInitialize()
 {

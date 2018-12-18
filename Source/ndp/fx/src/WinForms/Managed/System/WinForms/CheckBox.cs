@@ -588,8 +588,8 @@ namespace System.Windows.Forms {
         /// </devdoc>
         /// <internalonly/>
         protected override void OnKeyDown(KeyEventArgs e) {
-            //this fixes 
-
+            //this fixes bug 235019, but it will be a breaking change from Everett
+            //see the comments attached to bug 235019
             /*
             if (Enabled) {
                 if (e.KeyCode == Keys.Oemplus || e.KeyCode == Keys.Add) {

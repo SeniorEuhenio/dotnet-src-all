@@ -1676,7 +1676,7 @@ namespace System.Windows.Controls.Primitives
             if (_selectedItems.Count > 0)
             {
                 // an item has been selected, so turn off the delayed
-                // selection by SelectedValue (
+                // selection by SelectedValue (bug 452619)
                 _cacheValid[(int)CacheBits.SelectedValueWaitsForItems] = false;
             }
 
@@ -2241,7 +2241,7 @@ namespace System.Windows.Controls.Primitives
                 // only raise the event if there were actually any changes applied
                 if (unselected.Count > 0 || selected.Count > 0)
                 {
-                    // see 
+                    // see bug 1459509: update Current AFTER selection change and before raising event
                     if (_owner.IsSynchronizedWithCurrentItemPrivate)
                         _owner.SetCurrentToSelected();
                     _owner.InvokeSelectionChanged(unselected, selected);
@@ -2786,7 +2786,7 @@ namespace System.Windows.Controls.Primitives
             // If the underlying items don't implement GetHashCode according to
             // guidelines (i.e. if an item's hashcode can change during the item's
             // lifetime) we can't use any hash-based data structures like Dictionary,
-            // Hashtable, etc.  The principal offender is DataRowView.  (
+            // Hashtable, etc.  The principal offender is DataRowView.  (bug 1583080)
             public bool UsesItemHashCodes
             {
                 get { return _set != null; }

@@ -163,8 +163,8 @@ namespace System.Windows.Forms
             }
             else
             {
-                // SECREVIEW : Late-binding does not represent a security thread, see 
-
+                // SECREVIEW : Late-binding does not represent a security thread, see bug#411899 for more info..
+                //
                 dataGridViewCell = (DataGridViewRowHeaderCell) System.Activator.CreateInstance(thisType);
             }
             base.CloneInternal(dataGridViewCell);

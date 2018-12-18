@@ -246,7 +246,8 @@ namespace System.Windows
             ref ChildRecord                      childRecord,
             bool                                 isChildRecordValid,
             bool                                 hasStyleChanged,
-            bool                                 isSelfInheritanceParent)
+            bool                                 isSelfInheritanceParent,
+            bool                                 wasSelfInheritanceParent)
         {
             Debug.Assert(fe != null || fce != null, "Must have non-null current node");
             DependencyObject d = fe != null ? (DependencyObject)fe : (DependencyObject)fce;
@@ -282,7 +283,7 @@ namespace System.Windows
                     FrameworkPropertyMetadata fMetadata = (FrameworkPropertyMetadata)metadata;
 
                     bool changed = InvalidateTreeDependentProperty(info, d, ref fo, inheritableProperty, fMetadata,
-                        selfStyle, selfThemeStyle, ref childRecord, isChildRecordValid, hasStyleChanged, isSelfInheritanceParent);
+                        selfStyle, selfThemeStyle, ref childRecord, isChildRecordValid, hasStyleChanged, isSelfInheritanceParent, wasSelfInheritanceParent);
 
                     // If a change is detected then add the inheritable property to
                     // the current list so that it can be used to invalidate further children
@@ -320,12 +321,16 @@ namespace System.Windows
             ref ChildRecord             childRecord,
             bool                        isChildRecordValid,
             bool                        hasStyleChanged,
-            bool                        isSelfInheritanceParent)
+            bool                        isSelfInheritanceParent,
+            bool                        wasSelfInheritanceParent)
         {
             Debug.Assert(d != null, "Must have non-null current node");
 
             // This must be an inherited dependency property
             Debug.Assert(fMetadata.IsInherited == true, "This must be an inherited dependency property");
+
+            // IsSelfInheritanceParent can only change from false to true
+            Debug.Assert(!wasSelfInheritanceParent || isSelfInheritanceParent, "IsSelfInheritanceParent changed from true to false");
 
             // Children do not need to inherit properties across a tree boundary
             // unless the property is set to override this behavior.
@@ -341,13 +346,38 @@ namespace System.Windows
 
                 if (d != info.Root)
                 {
-                    if (isSelfInheritanceParent)
+                    if (wasSelfInheritanceParent)
                     {
                         oldEntry = d.GetValueEntry(
                                 d.LookupEntry(dp.GlobalIndex),
                                 dp,
                                 fMetadata,
                                 RequestFlags.DeferredReferences);
+                    }
+                    else if (isSelfInheritanceParent)
+                    {
+                        // IsSelfInheritanceParent can change from false to true during
+                        // a visual tree change if the change induces a style change
+                        // (from a DynamicResource or implicit style that now resolves)
+                        // where the new style sets an inheritable property.  In this
+                        // case, we should not invalidate the current property if it
+                        // was set by the new style (DDVSO 221837), but allow other
+                        // properties to propagate as if the style change and
+                        // IsSelfInheritanceParent change hadn't happened (DDVSO 290021)
+                        EffectiveValueEntry currentEntry = d.GetValueEntry(
+                                d.LookupEntry(dp.GlobalIndex),
+                                dp,
+                                fMetadata,
+                                RequestFlags.DeferredReferences);
+                        if (currentEntry.BaseValueSourceInternal <= BaseValueSourceInternal.Inherited)
+                        {
+                            oldEntry = oldEntry.GetFlattenedEntry(RequestFlags.FullyResolved);
+                            oldEntry.BaseValueSourceInternal = BaseValueSourceInternal.Inherited;
+                        }
+                        else
+                        {
+                            oldEntry = currentEntry;
+                        }
                     }
                     else
                     {

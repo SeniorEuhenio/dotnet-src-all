@@ -653,7 +653,7 @@ namespace System.Management
                 this.isLocal = true;
             }
             
-            if(MTAHelper.IsNoContextMTA())  // 
+            if(MTAHelper.IsNoContextMTA())  // Bug#110141 - Checking for MTA is not enough.  We need to make sure we are not in a COM+ Context
                 HackToCreateStubInMTA(this);
             else
             {

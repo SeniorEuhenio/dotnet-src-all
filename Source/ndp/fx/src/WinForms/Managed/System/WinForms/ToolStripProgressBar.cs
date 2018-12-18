@@ -19,9 +19,20 @@ namespace System.Windows.Forms {
 
         internal static readonly object EventRightToLeftLayoutChanged = new object();
 
+        private static readonly Padding defaultMargin = new Padding(1, 2, 1, 1);
+        private static readonly Padding defaultStatusStripMargin = new Padding(1, 3, 1, 3);
+        private Padding scaledDefaultMargin = defaultMargin;
+        private Padding scaledDefaultStatusStripMargin = defaultStatusStripMargin;
+
+
         /// <include file='doc\ToolStripProgressBar.uex' path='docs/doc[@for="ToolStripProgressBar.ToolStripProgressBar"]/*' />
         public ToolStripProgressBar()
             : base(CreateControlInstance()) {
+
+            if (DpiHelper.EnableToolStripHighDpiImprovements) {
+                scaledDefaultMargin = DpiHelper.LogicalToDeviceUnits(defaultMargin);
+                scaledDefaultStatusStripMargin = DpiHelper.LogicalToDeviceUnits(defaultStatusStripMargin);
+            }
         }
 
         public ToolStripProgressBar(string name) : this() {
@@ -87,10 +98,10 @@ namespace System.Windows.Forms {
         protected internal override Padding DefaultMargin {
             get {
                 if (this.Owner != null && this.Owner is StatusStrip) {
-                    return new Padding(1, 3, 1, 3);
+                    return scaledDefaultStatusStripMargin;
                 }
                 else {
-                    return new Padding(1, 2, 1, 1);
+                    return scaledDefaultMargin;
                 }
             }
         }

@@ -2511,7 +2511,7 @@ inline ULONG CorSigUncompressPointer(   // return number of bytes of that compre
     PCCOR_SIGNATURE pData,              // [IN] compressed data
     void **         ppvPointer)         // [OUT] the expanded *pData
 {
-    *ppvPointer = *(void * UNALIGNED *)pData;
+    *ppvPointer = *(void * const UNALIGNED *)pData;
     return sizeof(void *);
 }
 

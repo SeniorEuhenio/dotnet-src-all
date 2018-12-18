@@ -709,7 +709,7 @@ namespace System.Windows.Forms {
                     // out the CLR will sometimes pump messages while we're waiting on the lock.  If
                     // a message comes through (say a WM_ACTIVATE for the parent) which causes the 
                     // handle to be created, we can try to create the handle twice for the same 
-                    // NativeWindow object. See 
+                    // NativeWindow object. See bug for more details.
 
                     if (this.handle != IntPtr.Zero) {
                         return;
@@ -725,10 +725,10 @@ namespace System.Windows.Forms {
                     //
                     try {
 
-                        //(
-
-
-
+                        //(bug 109840)
+                        //CreateWindowEx() is throwing because we're passing the WindowText arg with a string of length  > 32767.  
+                        //It looks like the Windows call (CreateWindowEx) will only work 
+                        //for string lengths no greater than the max length of a 16 bit int (32767).
 
                         //We need to check the length of the string we're passing into CreateWindowEx().  
                         //If it exceeds the max, we should take the substring....

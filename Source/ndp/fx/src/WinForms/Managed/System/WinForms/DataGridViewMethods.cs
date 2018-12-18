@@ -3138,22 +3138,22 @@ namespace System.Windows.Forms
 
             if (this.IsCurrentCellInEditMode)
             {
-                /* Do not push original value back into the cell - VS Whidbey 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
+                /* Do not push original value back into the cell - VS Whidbey bug 328624
+                Exception exception;
+                if (!PushFormattedValue(ref dataGridViewCurrentCell, this.uneditedFormattedValue, out exception))
+                {
+                    Debug.Assert(dataGridViewCurrentCell.RowIndex > -1);
+                    DataGridViewDataErrorEventArgs dgvdee = new DataGridViewDataErrorEventArgs(exception, 
+                                                                                dataGridViewCurrentCell.ColumnIndex, 
+                                                                                dataGridViewCurrentCell.RowIndex, 
+                                                                                // dataGridViewCurrentCell.Value,
+                                                                                // this.uneditedFormattedValue,
+                                                                                context);
+                    dgvdee.Cancel = true;
+                    OnDataErrorInternal(dgvdee);
+                    return dgvdee;
+                }
+                */
                 if (this.editingControl != null)
                 {
                     ((IDataGridViewEditingControl)this.editingControl).EditingControlValueChanged = false;
@@ -4676,11 +4676,11 @@ namespace System.Windows.Forms
             int rowIndex;
 
             // when minimizing the dataGridView window, we will get negative values for the
-            // layout.Data.Width and layout.Data.Height ( is this a 
-
-
-
-
+            // layout.Data.Width and layout.Data.Height ( is this a bug or not? if layout.Data.Height == 0 in that case,
+            // the old code would have worked )
+            //
+            // if this is the case, set numTotallyDisplayedFrozenRows = numDisplayedScrollingRows = numTotallyDisplayedScrollingRows = 0;
+            //
             if (displayHeight <= 0 || nRows == 0)
             {
                 this.displayedBandsInfo.NumDisplayedFrozenRows = this.displayedBandsInfo.NumTotallyDisplayedFrozenRows =
@@ -9403,9 +9403,9 @@ namespace System.Windows.Forms
                 {
                     //hti.edge = DataGridViewHitTestTypeCloseEdge.Left;
                     DataGridViewColumn dataGridViewColumn = null;
-                    // VS Whidbey 
-
-
+                    // VS Whidbey bug 317105 - Condition unnecessary
+                    //if (hti.col != this.displayedBandsInfo.FirstDisplayedScrollingCol || this.displayedBandsInfo.LastTotallyDisplayedScrollingCol >= 0)
+                    //{
                     dataGridViewColumn = this.Columns.GetPreviousColumn(this.Columns[hti.col],
                                                                                  DataGridViewElementStates.Visible,
                                                                                  DataGridViewElementStates.None);
@@ -16580,23 +16580,23 @@ namespace System.Windows.Forms
                 this.CursorInternal = Cursors.SizeNS;
                 return;
             }
-            /* Whidbey 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
+            /* Whidbey bug 156884 - no longer show hand cursor
+            if (this.dataGridViewOper[DATAGRIDVIEWOPER_trackColRelocation] &&
+                (hti.typeInternal == DataGridViewHitTestTypeInternal.ColumnResizeLeft ||
+                hti.typeInternal == DataGridViewHitTestTypeInternal.ColumnResizeRight ||
+                hti.typeInternal == DataGridViewHitTestTypeInternal.ColumnHeaderLeft ||
+                hti.typeInternal == DataGridViewHitTestTypeInternal.ColumnHeaderRight ||
+                hti.typeInternal == DataGridViewHitTestTypeInternal.FirstColumnHeaderLeft ||
+                hti.typeInternal == DataGridViewHitTestTypeInternal.TopLeftHeaderResizeRight))
+            {
+                if (!this.dataGridViewState1[DATAGRIDVIEWSTATE1_customCursorSet])
+                {
+                    this.dataGridViewState1[DATAGRIDVIEWSTATE1_customCursorSet] = true;
+                    this.oldCursor = this.Cursor;
+                }
+                this.CursorInternal = Cursors.Hand;
+                return;
+            }*/
             else if (this.dataGridViewState1[DATAGRIDVIEWSTATE1_customCursorSet])
             {
                 this.dataGridViewState1[DATAGRIDVIEWSTATE1_customCursorSet] = false;
@@ -16733,7 +16733,7 @@ namespace System.Windows.Forms
                     }
                     else if (hti.Type == DataGridViewHitTestType.None)
                     {
-                        // VS Whidbey 
+                        // VS Whidbey bug 469429
                         CorrectFocus(true /*onlyIfGridHasFocus*/);
                     }
                 }
@@ -16764,7 +16764,7 @@ namespace System.Windows.Forms
                         EndRowHeadersResize(e);
                     }
 
-                    // VS Whidbey 
+                    // VS Whidbey bug 256893
                     CorrectFocus(true /*onlyIfGridHasFocus*/);
 
                     // Updating the hit test info since the EndXXX operation above may have invalidated the previously
@@ -19895,9 +19895,9 @@ namespace System.Windows.Forms
             {
                 rowBounds = boundingRect;
 
-                // Dev 10 
-
-
+                // Dev 10 Bug #434494 - DataGridView AutoSizeRowsMode does not work properly after column sort
+                // Should unshared the row and set the thickness to a perfect value 
+                // every time user scroll to display the specific row.
                 DataGridViewAutoSizeRowsModeInternal autoSizeRowsModeInternal = (DataGridViewAutoSizeRowsModeInternal)this.autoSizeRowsMode;
                 // Auto size row if needed
                 if (autoSizeRowsModeInternal != DataGridViewAutoSizeRowsModeInternal.None)
@@ -19947,9 +19947,9 @@ namespace System.Windows.Forms
                 {
                     rowBounds = boundingRect;
 
-                    // Dev 10 
-
-
+                    // Dev 10 Bug #434494 - DataGridView AutoSizeRowsMode does not work properly after column sort
+                    // Should unshared the row and set the thickness to a perfect value 
+                    // every time user scroll to display the specific row.
                     DataGridViewAutoSizeRowsModeInternal autoSizeRowsModeInternal = (DataGridViewAutoSizeRowsModeInternal)this.autoSizeRowsMode;
                     // Auto size row if needed
                     if (autoSizeRowsModeInternal != DataGridViewAutoSizeRowsModeInternal.None)
@@ -21619,10 +21619,10 @@ namespace System.Windows.Forms
         ]
         protected bool ProcessEnterKey(Keys keyData)
         {
-            // commitRow is commented out for Dev10 
-
-
-
+            // commitRow is commented out for Dev10 bug 473789.
+            // When Enter is pressed, no matter Ctrl is also pressed or not,
+            // changes in a cell should be commited.
+            // Therefore, commitRow should be always true, and useless here.
             bool moved = false, ret = true;//, commitRow = true;
             if ((keyData & Keys.Control) == 0)
             {
@@ -26624,10 +26624,10 @@ namespace System.Windows.Forms
                         {
                             if (oldCurrentCellY != rowIndex)
                             {
-                                //Tentatively commenting out for 
-
-
-
+                                //Tentatively commenting out for bug #321924
+                                //this.ptCurrentCell.X = -1;
+                                //this.ptCurrentCell.Y = -1;
+                                //OnCurrentCellChanged(EventArgs.Empty);
                                 if (!IsInnerCellOutOfBounds(columnIndex, rowIndex))
                                 {
                                     OnRowEnter(ref dataGridViewCellTmp, columnIndex, rowIndex, true /*canCreateNewRow*/, false /*validationFailureOccurred*/);
@@ -28055,38 +28055,38 @@ namespace System.Windows.Forms
                 return;
             }
 
-            /* VS Whidbey 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
+            /* VS Whidbey bug 262445 - no more commit on scroll
+            if (this.ptCurrentCell.X >= 0)
+            {
+                if (this.dataGridViewOper[DATAGRIDVIEWOPER_cancelCommitWithinHScroll])
+                {
+                    this.dataGridViewOper[DATAGRIDVIEWOPER_cancelCommitWithinHScroll] = (se.Type == ScrollEventType.ThumbTrack || se.Type == ScrollEventType.ThumbPosition);
+                    se.NewValue = this.HorizontalOffset;
+                    return;
+                }
+                this.dataGridViewOper[DATAGRIDVIEWOPER_cancelCommitWithinHScroll] = (se.Type == ScrollEventType.ThumbTrack || se.Type == ScrollEventType.ThumbPosition);
+                this.horizScrollBar.Invalidate();
+                if (!CommitEdit(DataGridViewDataErrorContexts.Parsing | DataGridViewDataErrorContexts.Commit | DataGridViewDataErrorContexts.Scroll,
+                                false /*forCurrentCellChange-/, false /*forCurrentRowChange-/))
+                {
+                    se.NewValue = this.HorizontalOffset;
+                    if (se.Type == ScrollEventType.SmallIncrement || se.Type == ScrollEventType.SmallDecrement)
+                    {
+                        // Workaround for a pbm where the scrollbar ends up in a bad state after a validation failure dialog is displayed.
+                        this.horizScrollBar.RecreateScrollBarHandle();
+                    }
+                    else
+                    {
+                        this.horizScrollBar.Invalidate();
+                    }
+                    return;
+                }
+                else
+                {
+                    this.dataGridViewOper[DATAGRIDVIEWOPER_cancelCommitWithinHScroll] = false;
+                }
+            }
+            */
 
             if (se.Type == ScrollEventType.SmallIncrement ||
                 se.Type == ScrollEventType.SmallDecrement)
@@ -28108,38 +28108,38 @@ namespace System.Windows.Forms
                 return;
             }
 
-            /* VS Whidbey 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
+            /* VS Whidbey bug 262445 - no more commit on scroll
+            if (this.ptCurrentCell.X >= 0)
+            {
+                if (this.dataGridViewOper[DATAGRIDVIEWOPER_cancelCommitWithinVScroll])
+                {
+                    this.dataGridViewOper[DATAGRIDVIEWOPER_cancelCommitWithinVScroll] = (se.Type == ScrollEventType.ThumbTrack || se.Type == ScrollEventType.ThumbPosition);
+                    se.NewValue = this.VerticalOffset;
+                    return;
+                }
+                this.dataGridViewOper[DATAGRIDVIEWOPER_cancelCommitWithinVScroll] = (se.Type == ScrollEventType.ThumbTrack || se.Type == ScrollEventType.ThumbPosition);
+                this.vertScrollBar.Invalidate();
+                if (!CommitEdit(DataGridViewDataErrorContexts.Parsing | DataGridViewDataErrorContexts.Commit | DataGridViewDataErrorContexts.Scroll, 
+                                false /*forCurrentCellChange-/, false /*forCurrentRowChange-/))
+                {
+                    se.NewValue = this.VerticalOffset;
+                    if (se.Type == ScrollEventType.SmallIncrement || se.Type == ScrollEventType.SmallDecrement)
+                    {
+                        // Workaround for a pbm where the scrollbar ends up in a bad state after a validation failure dialog is displayed.
+                        this.vertScrollBar.RecreateScrollBarHandle();
+                    }
+                    else
+                    {
+                        this.vertScrollBar.Invalidate();
+                    }
+                    return;
+                }
+                else
+                {
+                    this.dataGridViewOper[DATAGRIDVIEWOPER_cancelCommitWithinVScroll] = false;
+                }
+            }
+            */
 
             int totalVisibleFrozenHeight = this.Rows.GetRowsHeight(DataGridViewElementStates.Visible | DataGridViewElementStates.Frozen);
             switch (se.Type)

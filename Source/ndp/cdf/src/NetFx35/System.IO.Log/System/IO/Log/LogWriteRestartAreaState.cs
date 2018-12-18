@@ -102,9 +102,9 @@ namespace System.IO.Log
         {
             if (this.currentState != State.Unprepared)
             {
-                // An internal consistency check has failed. The indicates a 
-
-
+                // An internal consistency check has failed. The indicates a bug in IO.Log's internal processing
+                // Rather than proceeding with non-deterministic execution and risking the loss or corruption of
+                // log records, we failfast the process.
                 DiagnosticUtility.FailFast("Calling Start twice (write restart area)");
             }
             Prepare();
@@ -164,9 +164,9 @@ namespace System.IO.Log
             {
                 if (this.asyncResult == null)
                 {
-                    // An internal consistency check has failed. The indicates a 
-
-
+                    // An internal consistency check has failed. The indicates a bug in IO.Log's internal processing
+                    // Rather than proceeding with non-deterministic execution and risking the loss or corruption of
+                    // log records, we failfast the process.
                     DiagnosticUtility.FailFast("What am I doing returning early without an AsyncResult?");
                 }
             }
@@ -176,9 +176,9 @@ namespace System.IO.Log
         {
             if (this.asyncResult == null)
             {
-                // An internal consistency check has failed. The indicates a 
-
-
+                // An internal consistency check has failed. The indicates a bug in IO.Log's internal processing
+                // Rather than proceeding with non-deterministic execution and risking the loss or corruption of
+                // log records, we failfast the process.
                 DiagnosticUtility.FailFast("What am I doing in IO completion without an AsyncResult?");
             }
 
@@ -207,9 +207,9 @@ namespace System.IO.Log
 
                         default:
 
-                            // An internal consistency check has failed. The indicates a 
-
-
+                            // An internal consistency check has failed. The indicates a bug in IO.Log's internal processing
+                            // Rather than proceeding with non-deterministic execution and risking the loss or corruption of
+                            // log records, we failfast the process.
                             DiagnosticUtility.FailFast("Invalid state for IO completion");
                             break;
                     }
@@ -304,9 +304,9 @@ namespace System.IO.Log
         {
             if (this.currentState != State.Unprepared)
             {
-                // An internal consistency check has failed. The indicates a 
-
-
+                // An internal consistency check has failed. The indicates a bug in IO.Log's internal processing
+                // Rather than proceeding with non-deterministic execution and risking the loss or corruption of
+                // log records, we failfast the process.
                 DiagnosticUtility.FailFast("Calling Prepare Twice");
             }
 
@@ -325,16 +325,16 @@ namespace System.IO.Log
                 this.reservationSize = this.reservationCollection.GetMatchingReservation(this.totalRecordSize);
                 if (this.reservationSize < this.totalRecordSize)
                 {
-                    // An internal consistency check has failed. The indicates a 
-
-
+                    // An internal consistency check has failed. The indicates a bug in IO.Log's internal processing
+                    // Rather than proceeding with non-deterministic execution and risking the loss or corruption of
+                    // log records, we failfast the process.
                     DiagnosticUtility.FailFast("Somehow got a smaller reservation");
                 }
                 if (this.reservationSize <= 0)
                 {
-                    // An internal consistency check has failed. The indicates a 
-
-
+                    // An internal consistency check has failed. The indicates a bug in IO.Log's internal processing
+                    // Rather than proceeding with non-deterministic execution and risking the loss or corruption of
+                    // log records, we failfast the process.
                     DiagnosticUtility.FailFast("Reservation size must be bigger than zero");
                 }
 
@@ -389,9 +389,9 @@ namespace System.IO.Log
 
             if (restartAreaSize != this.restartArea.Length)
             {
-                // An internal consistency check has failed. The indicates a 
-
-
+                // An internal consistency check has failed. The indicates a bug in IO.Log's internal processing
+                // Rather than proceeding with non-deterministic execution and risking the loss or corruption of
+                // log records, we failfast the process.
                 DiagnosticUtility.FailFast("Did not do restartArea gather correctly");
             }
 
@@ -402,9 +402,9 @@ namespace System.IO.Log
         {
             if (this.pinnedResultHandle.IsAllocated)
             {
-                // An internal consistency check has failed. The indicates a 
-
-
+                // An internal consistency check has failed. The indicates a bug in IO.Log's internal processing
+                // Rather than proceeding with non-deterministic execution and risking the loss or corruption of
+                // log records, we failfast the process.
                 DiagnosticUtility.FailFast("Already pinned");
             }
 
@@ -416,9 +416,9 @@ namespace System.IO.Log
         {
             if (!this.pinnedResultHandle.IsAllocated)
             {
-                // An internal consistency check has failed. The indicates a 
-
-
+                // An internal consistency check has failed. The indicates a bug in IO.Log's internal processing
+                // Rather than proceeding with non-deterministic execution and risking the loss or corruption of
+                // log records, we failfast the process.
                 DiagnosticUtility.FailFast("Already unpinned");
             }
 
@@ -433,9 +433,9 @@ namespace System.IO.Log
         {
             if (this.pinnedResultHandle.IsAllocated)
             {
-                // An internal consistency check has failed. The indicates a 
-
-
+                // An internal consistency check has failed. The indicates a bug in IO.Log's internal processing
+                // Rather than proceeding with non-deterministic execution and risking the loss or corruption of
+                // log records, we failfast the process.
                 DiagnosticUtility.FailFast("Must unpin before completing");
             }
 
@@ -476,9 +476,9 @@ namespace System.IO.Log
                         overlapped = this.asyncResult.NativeOverlapped;
                         if (overlapped == null)
                         {
-                            // An internal consistency check has failed. The indicates a 
-
-
+                            // An internal consistency check has failed. The indicates a bug in IO.Log's internal processing
+                            // Rather than proceeding with non-deterministic execution and risking the loss or corruption of
+                            // log records, we failfast the process.
                             DiagnosticUtility.FailFast("Should have packed the async result already");
                         }
                     }

@@ -25,6 +25,7 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using MS.Internal;
 using MS.Internal.KnownBoxes;
+using MS.Internal.Telemetry.PresentationFramework;
 using System.Security.Permissions;
 using System.Windows.Controls.Primitives;
 
@@ -91,6 +92,8 @@ namespace System.Windows.Controls
                 new FrameworkPropertyMetadata(new PropertyChangedCallback(UpdateCaretElement)));
             TextBoxBase.CaretBrushProperty.OverrideMetadata(typeof(PasswordBox),
                 new FrameworkPropertyMetadata(new PropertyChangedCallback(UpdateCaretElement)));
+
+            ControlsTraceLogger.AddControl(TelemetryControls.PasswordBox);
         }
 
         /// <summary>

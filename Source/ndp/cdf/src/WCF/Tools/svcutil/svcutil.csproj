@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{7e56c267-f8c4-47e0-be1c-93829eda2820}</ProjectGuid>
+    <ProjectGuid>{6c6d351c-9e0a-4863-8479-80eb2a06e2ae}</ProjectGuid>
     <OutputPath>.</OutputPath>
     <OutputType>Library</OutputType>
     <AssemblyName>svcutil</AssemblyName>
@@ -20,39 +20,39 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\clr\src\bcl\mscorlib.csproj">
-      <Project>{20f34c38-8c60-44e7-b703-0e341d274957}</Project>
+      <Project>{cee2f309-bc3a-4584-8db6-119a4e5ea519}</Project>
       <Name>mscorlib</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\fx\src\System.csproj">
-      <Project>{85716da4-9fb2-4f44-9c4d-b7431fdf1b20}</Project>
+      <Project>{93e0d602-f830-478d-b585-6181aeeaf8aa}</Project>
       <Name>System</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\fx\src\Configuration\System.Configuration.csproj">
-      <Project>{a4d7a44f-817d-4fad-ba6a-076580aadfbe}</Project>
+      <Project>{bdaea912-68ca-45da-948e-7e503cb326b4}</Project>
       <Name>System.Configuration</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\fx\src\Core\System.Core.csproj">
-      <Project>{1d8f39aa-9297-49e4-8f18-cea8f165d7c4}</Project>
+      <Project>{568b5820-7218-4652-9abf-6141140c45b1}</Project>
       <Name>System.Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\fx\src\data\System.Data.csproj">
-      <Project>{6c5dd4f8-ed35-4f22-b8dc-4489d2c3dfaa}</Project>
+      <Project>{7875f5f8-9a58-462e-9c9b-1508e82bfb7a}</Project>
       <Name>System.Data</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Serialization\System.Runtime.Serialization.csproj">
-      <Project>{8406a9a0-29c6-469d-b31f-ad24fdd85828}</Project>
+      <Project>{bd901c9d-f103-4a54-9f31-2219abe428d0}</Project>
       <Name>System.Runtime.Serialization</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ServiceModel\System.ServiceModel.csproj">
-      <Project>{7f4a1386-22dd-4df2-b362-15e502a4a6b5}</Project>
+      <Project>{e075699a-ae95-41c1-b75c-e520f7da52a2}</Project>
       <Name>System.ServiceModel</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\NetFx20\System.Web.Services\System.Web.Services.csproj">
-      <Project>{3feea9f2-cadc-4682-8545-d121e47e6ed6}</Project>
+      <Project>{51525479-3333-4904-81af-373841bcd8a4}</Project>
       <Name>System.Web.Services</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\fx\src\Xml\System.Xml.csproj">
-      <Project>{6f992f82-1c90-4388-ab60-15c653aeeca5}</Project>
+      <Project>{89407287-3a00-4b8e-a685-1d93818e1bbb}</Project>
       <Name>System.Xml</Name>
     </ProjectReference>
   </ItemGroup>

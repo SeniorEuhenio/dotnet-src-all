@@ -136,9 +136,9 @@ namespace System.IO.Log
         {
             if (!((this.readContext == null || this.readContext.IsInvalid) && (this.current == null)))
             {
-                // An internal consistency check has failed. The indicates a 
-
-
+                // An internal consistency check has failed. The indicates a bug in IO.Log's internal processing
+                // Rather than proceeding with non-deterministic execution and risking the loss or corruption of
+                // log records, we failfast the process.
                 DiagnosticUtility.FailFast("Should only call this for first record!");
             }
             unsafe
@@ -187,9 +187,9 @@ namespace System.IO.Log
         {
             if (this.readContext == null || this.readContext.IsInvalid)
             {
-                // An internal consistency check has failed. The indicates a 
-
-
+                // An internal consistency check has failed. The indicates a bug in IO.Log's internal processing
+                // Rather than proceeding with non-deterministic execution and risking the loss or corruption of
+                // log records, we failfast the process.
                 DiagnosticUtility.FailFast("Should only be called for records after the first!");
             }
             unsafe

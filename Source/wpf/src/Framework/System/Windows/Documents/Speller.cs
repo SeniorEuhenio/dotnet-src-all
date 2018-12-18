@@ -909,7 +909,7 @@ namespace System.Windows.Documents
                             // otherwise we'll never finish checking the document.
                             if (status.TimeoutPosition.CompareTo(start) <= 0)
                             {
-                                // Diagnostic info for 
+                                // Diagnostic info for bug 1577085.
                                 string debugMessage = "Speller is not advancing! \n" +
                                                       "Culture = " + culture + "\n" +
                                                       "Start offset = " + start.Offset + " parent = " + start.ParentType.Name + "\n" +

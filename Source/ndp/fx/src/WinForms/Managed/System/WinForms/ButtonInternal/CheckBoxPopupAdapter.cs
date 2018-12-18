@@ -109,15 +109,16 @@ namespace System.Windows.Forms.ButtonInternal {
 
         [SuppressMessage("Microsoft.Performance", "CA1801:AvoidUnusedParameters")]  // removed graphics, may have to put it back
         internal static LayoutOptions PaintPopupLayout(Graphics g, bool show3D, int checkSize, Rectangle clientRectangle, Padding padding,
-                                                       bool isDefault, Font font, string text, bool enabled, ContentAlignment textAlign, RightToLeft rtl)
+                                                       bool isDefault, Font font, string text, bool enabled, ContentAlignment textAlign, RightToLeft rtl,
+                                                       Control control = null)
         {
             LayoutOptions layout = CommonLayout(clientRectangle, padding, isDefault, font, text, enabled, textAlign, rtl);
             layout.shadowedText = false;
             if (show3D) {
-                layout.checkSize = (int)(checkSize * GetDpiScaleRatio(g) + 1);
+                layout.checkSize = (int)(checkSize * GetDpiScaleRatio(g, control) + 1);
             }
             else {
-                layout.checkSize = (int)(checkSize * GetDpiScaleRatio(g));
+                layout.checkSize = (int)(checkSize * GetDpiScaleRatio(g, control));
                 layout.checkPaddingSize = 1;
             }
             return layout;

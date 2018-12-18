@@ -11,7 +11,7 @@ using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.ComponentModel;
 using MS.Internal.KnownBoxes;
-
+using MS.Internal.Telemetry.PresentationFramework;
 
 namespace System.Windows.Controls
 {
@@ -63,6 +63,8 @@ namespace System.Windows.Controls
 
             IsMouseOverPropertyKey.OverrideMetadata(typeof(Expander), new UIPropertyMetadata(new PropertyChangedCallback(OnVisualStatePropertyChanged)));
             IsEnabledProperty.OverrideMetadata(typeof(Expander), new UIPropertyMetadata(new PropertyChangedCallback(OnVisualStatePropertyChanged)));
+
+            ControlsTraceLogger.AddControl(TelemetryControls.Expander);
         }
 
         #endregion

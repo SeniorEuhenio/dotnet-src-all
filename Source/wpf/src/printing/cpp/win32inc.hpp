@@ -4,20 +4,20 @@
 #define __WIN32INC_HPP__
 
 /*++
-                                                                              
-    Copyright (C) 2002 - 2003 Microsoft Corporation                                   
-    All rights reserved.                                                        
-                                                                              
-    Module Name:                                                                
-        Win32Inc.hpp                                                             
-                                                                              
-    Abstract:
-        
-    Author:                                                                     
-        Adina Trufinescu (AdinaTru) 24-April-2003                                        
-                                                                             
-    Revision History:  
-        Khaled Sedky (KhaledS) 30-April-2003
+
+Copyright (C) 2002 - 2003 Microsoft Corporation
+All rights reserved.
+
+Module Name:
+Win32Inc.hpp
+
+Abstract:
+
+Author:
+Adina Trufinescu (AdinaTru) 24-April-2003
+
+Revision History:
+Khaled Sedky (KhaledS) 30-April-2003
 --*/
 
 #include <wpfsdl.h>
@@ -27,7 +27,9 @@
 #include <winspool.h>
 #include "winddiui.h"
 #include <assert.h>
+#include <xpsobjectmodel_1.h>
 #include <xpsprint.h>
+#include <DocumentTarget.h>
 #include <..\..\Native\XpsPrintHelper\xpsprinthelper.h>
 
 #define DOWNLEVEL_BAD_ALLOC

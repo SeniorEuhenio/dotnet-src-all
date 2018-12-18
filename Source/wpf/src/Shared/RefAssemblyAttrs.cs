@@ -68,6 +68,8 @@ namespace Microsoft.Internal
         internal const string Mscms = "mscms.dll";
         internal const string PrntvPt = "prntvpt.dll";
         internal const string Ole32 = "ole32.dll";
+        internal const string User32 = "user32.dll";
+        internal const string NInput = "ninput.dll";
     }
 }
 

@@ -913,8 +913,8 @@ namespace Microsoft.Windows.Shell
                     _windowPosAtStartOfUserMove = new Point(_window.Left, _window.Top);
                 }
                 // Realistically we also don't want to update the start position when moving from one docked state to another (or to and from maximized),
-                // but it's tricky to detect and this is already a workaround for a 
-
+                // but it's tricky to detect and this is already a workaround for a bug that's fixed in newer versions of the framework.
+                // Not going to try to handle all cases.
             }
 
             handled = false;
@@ -1507,7 +1507,7 @@ namespace Microsoft.Windows.Shell
             rootElement.Margin = new Thickness();
 
             // This margin is only necessary if the client rect is going to be calculated incorrectly by WPF.
-            // This 
+            // This bug was fixed in V4 of the framework.
             if (Utility.IsPresentationFrameworkVersionLessThan4)
             {
                 Assert.IsTrue(_isFixedUp);

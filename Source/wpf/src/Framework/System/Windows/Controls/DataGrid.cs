@@ -75,7 +75,7 @@ namespace System.Windows.Controls
 
             EventManager.RegisterClassHandler(typeof(DataGrid), MouseUpEvent, new MouseButtonEventHandler(OnAnyMouseUpThunk), true);
 
-            DataGridTraceLogger.LogUsageDetails();
+            ControlsTraceLogger.AddControl(TelemetryControls.DataGrid);
         }
 
         /// <summary>
@@ -3197,7 +3197,7 @@ namespace System.Windows.Controls
                         // When editing the NewItemPlaceHolder row the place holder row gets
                         // replaced with a real row and thus causes a new cellContainer to be
                         // generated. So we should be checking the new cellContainer to decide
-                        // if this operation succeeded. Please see Dev11 
+                        // if this operation succeeded. Please see Dev11 bug 329417 for details.
 
                         cellContainer = CurrentCellContainer;
 
@@ -4840,13 +4840,13 @@ namespace System.Windows.Controls
         ///     - Extending selection to the row
         /// </summary>
         /// <remarks>
-        ///     ADO.Net has a 
-
-
-
-
-
-
+        ///     ADO.Net has a bug (#524977) where if the row is in edit mode
+        ///     and atleast one of the cells are edited and committed without
+        ///     commiting the row itself, DataView.IndexOf for that row returns -1
+        ///     and DataView.Contains returns false. The Workaround to this problem
+        ///     is to try to use the previously computed row index if the operations
+        ///     are in the same row scope.
+        /// </remarks>
         private void MakeFullRowSelection(ItemInfo info, bool allowsExtendSelect, bool allowsMinimalSelect)
         {
             bool extendSelection = allowsExtendSelect && ShouldExtendSelection;
@@ -5004,7 +5004,7 @@ namespace System.Windows.Controls
 
                             if (_editingRowInfo == info)
                             {
-                                // ADO.Net 
+                                // ADO.Net bug workaround, see remarks.
                                 int numColumns = _columns.Count;
                                 if (numColumns > 0)
                                 {
@@ -5042,13 +5042,13 @@ namespace System.Windows.Controls
         ///     - Extending selection to the cell
         /// </summary>
         /// <remarks>
-        ///     ADO.Net has a 
-
-
-
-
-
-
+        ///     ADO.Net has a bug (#524977) where if the row is in edit mode
+        ///     and atleast one of the cells are edited and committed without
+        ///     commiting the row itself, DataView.IndexOf for that row returns -1
+        ///     and DataView.Contains returns false. The Workaround to this problem
+        ///     is to try to use the previously computed row index if the operations
+        ///     are in the same row scope.
+        /// </remarks>
         private void MakeCellSelection(DataGridCellInfo cellInfo, bool allowsExtendSelect, bool allowsMinimalSelect)
         {
             bool extendSelection = allowsExtendSelect && ShouldExtendSelection;
@@ -5147,7 +5147,7 @@ namespace System.Windows.Controls
                     if (!selectedCellsContainsCellInfo &&
                         singleRowOperation)
                     {
-                        // ADO.Net 
+                        // ADO.Net bug workaround, see remarks.
                         selectedCellsContainsCellInfo = _selectedCells.Contains(_editingRowInfo.Index, cellInfoColumnIndex);
                     }
 
@@ -5156,7 +5156,7 @@ namespace System.Windows.Controls
                         // Unselect the one cell
                         if (singleRowOperation)
                         {
-                            // ADO.Net 
+                            // ADO.Net bug workaround, see remarks.
                             _selectedCells.RemoveRegion(_editingRowInfo.Index, cellInfoColumnIndex, 1, 1);
                         }
                         else
@@ -5187,7 +5187,7 @@ namespace System.Windows.Controls
 
                         if (singleRowOperation)
                         {
-                            // ADO.Net 
+                            // ADO.Net bug workaround, see remarks.
                             _selectedCells.AddRegion(_editingRowInfo.Index, cellInfoColumnIndex, 1, 1);
                         }
                         else
@@ -5574,13 +5574,13 @@ namespace System.Windows.Controls
         ///     Helper method which handles the arrow key down
         /// </summary>
         /// <remarks>
-        ///     ADO.Net has a 
-
-
-
-
-
-
+        ///     ADO.Net has a bug (#524977) where if the row is in edit mode
+        ///     and atleast one of the cells are edited and committed without
+        ///     commiting the row itself, DataView.IndexOf for that row returns -1
+        ///     and DataView.Contains returns false. The Workaround to this problem
+        ///     is to try to use the previously computed row index if the operations
+        ///     are in the same row scope.
+        /// </remarks>
         private void OnArrowKeyDown(KeyEventArgs e)
         {
             DataGridCell currentCellContainer = CurrentCellContainer;

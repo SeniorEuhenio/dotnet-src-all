@@ -883,7 +883,7 @@ namespace System.Windows.Forms {
                     // This will return UTF-8 strings as an array of ANSI characters, which makes it the wrong behavior.
                     // Since there are enough samples online how to workaround that, we will continue to return the
                     // incorrect value to applications targeting netfx 4.0
-                    // DevDiv2 
+                    // DevDiv2 bug 862524
                     hr = SaveStringToHandle(medium.unionmember, data.ToString(), false);
                 }
             }
@@ -1463,7 +1463,7 @@ namespace System.Windows.Forms {
                             // This will return UTF-8 strings as an array of ANSI characters, which makes it the wrong behavior.
                             // Since there are enough samples online how to workaround that, we will continue to return the
                             // incorrect value to applications targeting netfx 4.0
-                            // DevDiv2 
+                            // DevDiv2 bug 862524
                             data = ReadStringFromHandle(hglobal, false);
                         }
                     }

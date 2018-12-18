@@ -1116,14 +1116,14 @@ namespace System.Windows.Controls
                 // when the panel (this) is offset from the viewportElement (typically
                 // a ScrollContentPresenter), say by a margin or border on some
                 // element between the viewportElement and the panel.   For example,
-                // in 
-
-
-
-
-
-
-
+                // in bug Dev11 631012, the ItemPresenter immediately above the panel
+                // has a margin.
+                //
+                // In this case, the method returns an offset describing the distance
+                // from the first container to the viewportElement, whereas other
+                // methods (like FindScrollOffset) describe the distance from the
+                // container to the top-level panel.  This difference leads to
+                // incorrect decisions in OnAnchorOperation, causing infinite loops.
                 viewportElement = this;
             }
 
@@ -1496,6 +1496,7 @@ namespace System.Windows.Controls
                 {
                     ScrollTracer.Trace(this, ScrollTraceOp.MakeVisible,
                         _scrollData._offset,
+                        rectangle,
                         _scrollData._bringIntoViewLeafContainer);
                 }
 
@@ -2157,9 +2158,10 @@ namespace System.Windows.Controls
                     UIElement firstContainerInViewport = null;
 
                     //
-                    // Offset of the top of the first item relative to the top of the viewport.
+                    // Offset and span of the first item that extends beyond the top of the viewport.
                     //
                     double firstItemInViewportOffset = 0.0, firstItemInExtendedViewportOffset = 0.0;
+                    double firstItemInViewportContainerSpan, firstItemInExtendedViewportContainerSpan;
 
                     //
                     // Says if the first and last items in the viewport has been encountered this far
@@ -2209,6 +2211,7 @@ namespace System.Windows.Controls
                     ComputeFirstItemInViewportIndexAndOffset(items, itemCount, itemStorageProvider, viewport, cacheSize,
                         isHorizontal, areContainersUniformlySized, uniformOrAverageContainerSize,
                         out firstItemInViewportOffset,
+                        out firstItemInViewportContainerSpan,
                         out firstItemInViewportIndex,
                         out foundFirstItemInViewport);
 
@@ -2218,6 +2221,7 @@ namespace System.Windows.Controls
                     ComputeFirstItemInViewportIndexAndOffset(items, itemCount, itemStorageProvider, extendedViewport, new VirtualizationCacheLength(0.0),
                         isHorizontal, areContainersUniformlySized, uniformOrAverageContainerSize,
                         out firstItemInExtendedViewportOffset,
+                        out firstItemInExtendedViewportContainerSpan,
                         out firstItemInExtendedViewportIndex,
                         out foundFirstItemInExtendedViewport);
 
@@ -2450,6 +2454,7 @@ namespace System.Windows.Controls
                                                 ComputeFirstItemInViewportIndexAndOffset(items, itemCount, itemStorageProvider, viewport, cacheSize,
                                                     isHorizontal, areContainersUniformlySized, uniformOrAverageContainerSize,
                                                     out firstItemInViewportOffset,
+                                                    out firstItemInViewportContainerSpan,
                                                     out firstItemInViewportIndex,
                                                     out foundFirstItemInViewport);
 
@@ -2533,6 +2538,60 @@ namespace System.Windows.Controls
                                                     firstItemInViewportChildIndex < children.Count)
                                                 {
                                                     firstContainerInViewport = children[firstItemInViewportChildIndex] as UIElement;
+
+                                                    // avoid problems with size changes during an anchored scroll
+                                                    if (IsScrolling && _scrollData._firstContainerInViewport != null)
+                                                    {
+                                                        // when the firstItemInViewport was found, it was true that either
+                                                        //   a. the viewport is at the beginning, or
+                                                        //   b. firstItemInViewportOffset + containerSize(item) > viewport.origin
+                                                        // In case (b), this may no longer be true if the containerSize decreased
+                                                        // during MeasureChild - because its size changed while the
+                                                        // item was virtualized.  During an anchored scroll this can
+                                                        // be a problem:  all the children can get arranged before
+                                                        // the viewport, and OnAnchor crashes (DDVSO 273803).
+                                                        // So if the inequality is no longer true, remeasure and try again.
+                                                        Size newContainerSize;
+                                                        GetContainerSizeForItem(itemStorageProvider,
+                                                            item,
+                                                            isHorizontal,
+                                                            areContainersUniformlySized, uniformOrAverageContainerSize,
+                                                            out newContainerSize);
+
+                                                        double spanBeforeViewport = Math.Max(isHorizontal ? viewport.X : viewport.Y, 0.0);
+                                                        double newContainerSpan = isHorizontal ? newContainerSize.Width : newContainerSize.Height;
+                                                        bool endsAfterViewport = DoubleUtil.AreClose(spanBeforeViewport, 0) ||
+                                                            LayoutDoubleUtil.LessThan(spanBeforeViewport, firstItemInViewportOffset + newContainerSpan);
+
+                                                        if (!endsAfterViewport)
+                                                        {
+                                                            // adjust the offset by the same amount that the container size changed,
+                                                            // to get an equivalent measure using the new size
+                                                            double delta = newContainerSpan - firstItemInViewportContainerSpan;
+                                                            if (isHorizontal)
+                                                            {
+                                                                _scrollData._offset.X += delta;
+                                                            }
+                                                            else
+                                                            {
+                                                                _scrollData._offset.Y += delta;
+                                                            }
+
+                                                            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+                                                            {
+                                                                ScrollTracer.Trace(this, ScrollTraceOp.SizeChangeDuringAnchorScroll,
+                                                                    "fivOffset:", firstItemInViewportOffset,
+                                                                    "vpSpan:", spanBeforeViewport,
+                                                                    "oldCSpan:", firstItemInViewportContainerSpan,
+                                                                    "newCSpan:", newContainerSpan,
+                                                                    "delta:", delta,
+                                                                    "newVpOff:", _scrollData._offset);
+                                                            }
+
+                                                            remeasure = true;
+                                                            goto EscapeMeasure;
+                                                        }
+                                                    }
                                                 }
                                             }
 
@@ -2722,8 +2781,8 @@ namespace System.Windows.Controls
                             // and the current Measure then it is possible that the item for the
                             // _bringIntoViewContainer has been removed from the collection and so
                             // has the container. We need to guard against this scenario. See Dev11
-                            // 
-
+                            // bug# 172296.
+                            //
                             _bringIntoViewContainer = null;
                         }
                         else
@@ -3384,11 +3443,11 @@ namespace System.Windows.Controls
                 // of linking the container to its item has a side-effect of adding
                 // or removing items to the underlying collection.
 
-                // In Dev11 
-
-
-
-
+                // In Dev11 bug 204054 this occurs in VS SolutionNavigator, when
+                // VirtualizingTreeView.PrepareContainerForItemOverride binds a
+                // PivotTreeViewItem to the HasItems property of a VirtualizingTreeView+TreeNode.
+                // The property-getter for HasItems can invoke an inline task that
+                // adds/removes items.
 
                 ItemsChangedDuringMeasure = true;
             }
@@ -5222,10 +5281,12 @@ namespace System.Windows.Controls
             bool areContainersUniformlySized,
             double uniformOrAverageContainerSize,
             out double firstItemInViewportOffset,
+            out double firstItemInViewportContainerSpan,
             out int firstItemInViewportIndex,
             out bool foundFirstItemInViewport)
         {
             firstItemInViewportOffset = 0.0;
+            firstItemInViewportContainerSpan = 0.0;
             firstItemInViewportIndex = 0;
             foundFirstItemInViewport = false;
 
@@ -5270,6 +5331,7 @@ namespace System.Windows.Controls
                         firstItemInViewportOffset = firstItemInViewportIndex * childSize;
                     }
 
+                    firstItemInViewportContainerSpan = uniformOrAverageContainerSize;
                     foundFirstItemInViewport = (firstItemInViewportIndex < itemCount);
                     if (!foundFirstItemInViewport)
                     {
@@ -5317,6 +5379,7 @@ namespace System.Windows.Controls
                                 //
                                 firstItemInViewportIndex = i;
                                 firstItemInViewportOffset = totalSpan - containerSpan;
+                                firstItemInViewportContainerSpan = containerSpan;
                                 break;
                             }
                         }
@@ -5982,13 +6045,42 @@ namespace System.Windows.Controls
             //
             if (!areContainersUniformlySized)
             {
+                bool isTracing = (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this));
+
                 if (IsPixelBased)
                 {
+                    if (isTracing)
+                    {
+                        object oldValue = itemStorageProvider.ReadItemValue(item, ContainerSizeProperty);
+                        Size oldSize = (oldValue == null) ? Size.Empty : (Size)oldValue;
+                        if (containerSize != oldSize)
+                        {
+                            ItemContainerGenerator generator = (ItemContainerGenerator)Generator;
+                            ScrollTracer.Trace(this, ScrollTraceOp.SetContainerSize,
+                                generator.IndexFromContainer(generator.ContainerFromItem(item)),
+                                oldSize, containerSize);
+                        }
+                    }
+
                     // for pixel-scrolling the two values are the same - store only one
                     itemStorageProvider.StoreItemValue(item, ContainerSizeProperty, containerSize);
                 }
                 else
                 {
+                    if (isTracing)
+                    {
+                        object oldValue = itemStorageProvider.ReadItemValue(item, ContainerSizeDualProperty);
+                        ContainerSizeDual oldCSD = (oldValue == null) ? new ContainerSizeDual(Size.Empty, Size.Empty) : (ContainerSizeDual)oldValue;
+                        if (containerSize != oldCSD.ItemSize || containerPixelSize != oldCSD.PixelSize)
+                        {
+                            ItemContainerGenerator generator = (ItemContainerGenerator)Generator;
+                            ScrollTracer.Trace(this, ScrollTraceOp.SetContainerSize,
+                                generator.IndexFromContainer(generator.ContainerFromItem(item)),
+                                oldCSD.ItemSize, containerSize,
+                                oldCSD.PixelSize, containerPixelSize);
+                        }
+                    }
+
                     // for item-scrolling, store both values
                     ContainerSizeDual value =
                             new ContainerSizeDual(containerPixelSize, containerSize);
@@ -7222,6 +7314,8 @@ namespace System.Windows.Controls
             bool evaluateAreContainersUniformlySized)
         {
             Debug.Assert(!IsVSP45Compat, "this method should not be called in VSP45Compat mode");
+            bool isTracing = (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this));
+            ItemContainerGenerator generator = (ItemContainerGenerator)Generator;
 
             if (evaluateAreContainersUniformlySized || areContainersUniformlySized != computedAreContainersUniformlySized)
             {
@@ -7315,15 +7409,27 @@ namespace System.Windows.Controls
                         {
                             if (IsPixelBased)
                             {
+                                if (isTracing)
+                                {
+                                    ScrollTracer.Trace(this, ScrollTraceOp.SetContainerSize,
+                                        generator.IndexFromContainer(child), childSize);
+                                }
+
                                 // for pixel-scrolling the two values are the same - store only one
-                                itemStorageProvider.StoreItemValue(((ItemContainerGenerator)Generator).ItemFromContainer(child), ContainerSizeProperty, childSize);
+                                itemStorageProvider.StoreItemValue(generator.ItemFromContainer(child), ContainerSizeProperty, childSize);
                             }
                             else
                             {
+                                if (isTracing)
+                                {
+                                    ScrollTracer.Trace(this, ScrollTraceOp.SetContainerSize,
+                                        generator.IndexFromContainer(child), childSize, childPixelSize);
+                                }
+
                                 // for item-scrolling, store both values
                                 ContainerSizeDual value =
                                         new ContainerSizeDual(childPixelSize, childSize);
-                                itemStorageProvider.StoreItemValue(((ItemContainerGenerator)Generator).ItemFromContainer(child), ContainerSizeDualProperty, value);
+                                itemStorageProvider.StoreItemValue(generator.ItemFromContainer(child), ContainerSizeDualProperty, value);
                             }
                         }
                     }
@@ -7411,7 +7517,7 @@ namespace System.Windows.Controls
                 uniformOrAverageContainerPixelSize = computedUniformOrAverageContainerPixelSize;
             }
 
-            if (ScrollTracer.IsEnabled && ScrollTracer.IsTracing(this))
+            if (isTracing)
             {
                 ScrollTracer.Trace(this, ScrollTraceOp.SyncAveSize,
                     uniformOrAverageContainerSize, uniformOrAverageContainerPixelSize, areContainersUniformlySized, hasAverageContainerSizeChanged);
@@ -9225,8 +9331,8 @@ namespace System.Windows.Controls
                     //
                     // We do not want the cache measure pass to affect the visibility
                     // of the scrollbars because this makes bad user experience and
-                    // is also the source of scrolling bugs. See Dev11 
-
+                    // is also the source of scrolling bugs. See Dev11 bug 245561.
+                    //
 
                     stackPixelSize.Height = _scrollData._extent.Height;
                 }
@@ -9252,8 +9358,8 @@ namespace System.Windows.Controls
                     //
                     // We do not want the cache measure pass to affect the visibility
                     // of the scrollbars because this makes bad user experience and
-                    // is also the source of scrolling bugs. See Dev11 
-
+                    // is also the source of scrolling bugs. See Dev11 bug 245561.
+                    //
 
                     stackPixelSize.Width = _scrollData._extent.Width;
                 }
@@ -10107,8 +10213,8 @@ namespace System.Windows.Controls
                     //
                     // We do not want the cache measure pass to affect the visibility
                     // of the scrollbars because this makes bad user experience and
-                    // is also the source of scrolling bugs. See Dev11 
-
+                    // is also the source of scrolling bugs. See Dev11 bug 245561.
+                    //
 
                     stackPixelSize.Height = _scrollData._extent.Height;
                 }
@@ -10134,8 +10240,8 @@ namespace System.Windows.Controls
                     //
                     // We do not want the cache measure pass to affect the visibility
                     // of the scrollbars because this makes bad user experience and
-                    // is also the source of scrolling bugs. See Dev11 
-
+                    // is also the source of scrolling bugs. See Dev11 bug 245561.
+                    //
 
                     stackPixelSize.Width = _scrollData._extent.Width;
                 }
@@ -11583,49 +11689,58 @@ namespace System.Windows.Controls
         {
             #region static members
 
-            const int s_StfFormatVersion = 0;   // Format of output file
-            const int s_MaxTraceRecords = 50000;    // max length of in-memory _traceList
-            const int s_MinTraceRecords = 10000;    // keep this many records after flushing
+            const int s_StfFormatVersion = 1;   // Format of output file
+            const int s_MaxTraceRecords = 30000;    // max length of in-memory _traceList
+            const int s_MinTraceRecords = 5000;     // keep this many records after flushing
+            const int s_DefaultLayoutUpdatedThreshold = 20; // see _luThreshold
 
             static string _targetName;
             static ScrollTracer()
             {
                 _targetName = FrameworkCompatibilityPreferences.GetScrollingTraceTarget();
+                _flushDepth = 0;
+                _luThreshold = s_DefaultLayoutUpdatedThreshold;
 
                 string s = FrameworkCompatibilityPreferences.GetScrollingTraceFile();
-                int flushDepth = 0;
                 if (!String.IsNullOrEmpty(s))
                 {
-                    int i = s.IndexOf(';');
-                    if (i >= 0)
+                    string[] a = s.Split(';');
+                    _fileName = a[0];
+
+                    if (a.Length > 1)
                     {
-                        bool b = Int32.TryParse(s.Substring(i+1), NumberStyles.Integer, CultureInfo.InvariantCulture, out flushDepth);
-                        s = s.Substring(0, i);
+                        int flushDepth;
+                        if (Int32.TryParse(a[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out flushDepth))
+                        {
+                            _flushDepth = flushDepth;
+                        }
+                    }
+
+                    if (a.Length > 2)
+                    {
+                        int luThreshold;
+                        if (Int32.TryParse(a[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out luThreshold))
+                        {
+                            _luThreshold = (luThreshold <= 0) ? Int32.MaxValue : luThreshold;
+                        }
                     }
                 }
 
-                _fileName = s;
-                _flushDepth = flushDepth;
-
                 _isEnabled = (_targetName != null);
+
+                if (IsEnabled)
+                {
+                    Application app = Application.Current;
+                    if (app != null)
+                    {
+                        app.Exit += OnApplicationExit;
+                        app.DispatcherUnhandledException += OnUnhandledException;
+                    }
+                }
             }
 
             static bool _isEnabled;
             internal static bool IsEnabled { get { return _isEnabled; } }
-
-            static ItemsControl _target;
-            static void SetTarget(ItemsControl target, bool overwriteExistingTarget)
-            {
-                if (overwriteExistingTarget)
-                {
-                    System.Threading.Interlocked.Exchange<ItemsControl>(ref _target, target);
-                }
-                else
-                {
-                    System.Threading.Interlocked.CompareExchange<ItemsControl>(ref _target, target, null);
-                }
-                _isEnabled = (_target != null);
-            }
 
             // for use from VS Immediate window
             internal static bool SetTarget(object o)
@@ -11633,96 +11748,53 @@ namespace System.Windows.Controls
                 ItemsControl target = o as ItemsControl;
                 if (target != null || o == null)
                 {
-                    SetTarget(target, overwriteExistingTarget:true);
-                }
-                return (_target == o);
-            }
+                    lock (s_TargetToTraceListMap)
+                    {
+                        CloseAllTraceLists();
 
-            static ScrollTracer GetActiveTracer()
-            {
-                ScrollTracer tracer = null;
-                if (_target != null)
-                {
-                    Panel itemsHost = _target.ItemsHost;
-                    ScrollTracingInfo sti = ScrollTracingInfoField.GetValue(itemsHost);
-                    tracer = (sti != null) ? sti.ScrollTracer : null;
+                        if (target != null)
+                        {
+                            AddToMap(target);
+                        }
+                    }
                 }
-                return tracer;
+                return (target == o);
             }
 
             static string _fileName;
             static int _flushDepth;
-            static BinaryWriter _writer;
+            static int _luThreshold;    // go inactive after this many consecutive LayoutUpdated
 
             // for use from VS Immediate window
             internal static void SetFileAndDepth(string filename, int flushDepth)
             {
-                _fileName = filename;
-                _flushDepth = flushDepth;
-
-                // get active tracer (if any)
-                ScrollTracer tracer = GetActiveTracer();
-
-                // flush and close existing file
-                if (_writer != null)
-                {
-                    if (tracer != null)
-                    {
-                        tracer.Flush(-1);
-                    }
-
-                    _writer.Close();
-                    _writer = null;
-                }
-
-                // open a new file
-                OpenTraceFile();
-
-                // restart active tracer
-                if (tracer != null)
-                {
-                    tracer._flushIndex = 0;
-                }
-            }
-
-            // open a trace file, if not already open
-            static void OpenTraceFile()
-            {
-                if (_writer == null)
-                {
-                    string filename = _fileName;
-
-                    if (String.IsNullOrEmpty(filename) || filename == "default")
-                    {
-                        filename = "ScrollTrace.stf";
-                    }
-
-                    if (filename != "none")
-                    {
-                        _writer = new BinaryWriter(File.Open(filename, FileMode.Create));
-                        _writer.Write((int)s_StfFormatVersion);
-                    }
-                }
+                // never really used this, and it's difficult to do with multiple
+                // files.   So no longer supported - but keep method for compat.
+                throw new NotSupportedException();
             }
 
             // for use from VS Immediate window
             static void Flush()
             {
-                ScrollTracer tracer = GetActiveTracer();
-                if (tracer != null)
+                lock (s_TargetToTraceListMap)
                 {
-                    tracer.Flush(-1);
+                    for (int i=0, n=s_TargetToTraceListMap.Count; i<n; ++i)
+                    {
+                        s_TargetToTraceListMap[i].Item2.Flush(-1);
+                    }
                 }
             }
 
             // for use from VS Immediate window
             static void Mark(params object[] args)
             {
-                ScrollTracer tracer = GetActiveTracer();
-                if (tracer != null)
+                ScrollTraceRecord record = new ScrollTraceRecord(ScrollTraceOp.Mark, null, -1, 0, 0, BuildDetail(args));
+                lock (s_TargetToTraceListMap)
                 {
-                    tracer.AddTrace(null, ScrollTraceOp.Mark, _nullInfo,
-                        args);
+                    for (int i=0, n=s_TargetToTraceListMap.Count; i<n; ++i)
+                    {
+                        s_TargetToTraceListMap[i].Item2.Add(record);
+                    }
                 }
             }
 
@@ -11742,20 +11814,18 @@ namespace System.Windows.Controls
                 Debug.Assert(!IsConfigured(vsp));
 
                 ScrollTracer tracer = null;
-
-                if (itemsControl.Name == _targetName)
-                {
-                    SetTarget(itemsControl, overwriteExistingTarget:false);
-                }
-
                 ScrollTracingInfo sti = _nullInfo;  // default - do nothing
 
                 if (parentItem == vsp)
                 {
                     // top level VSP
-                    if (itemsOwner == _target)
+                    if (itemsOwner == itemsControl)
                     {
-                        tracer = new ScrollTracer(itemsControl, vsp);
+                        TraceList traceList = TraceListForItemsControl(itemsControl);
+                        if (traceList != null)
+                        {
+                            tracer = new ScrollTracer(itemsControl, vsp, traceList);
+                        }
                     }
 
                     if (tracer != null)
@@ -11869,37 +11939,27 @@ namespace System.Windows.Controls
             #region instance members
 
             private int _depth=0;       // depth of op stack
-            private int _flushIndex=0;  // where last flush ended
+            private TraceList _traceList;
+            private WeakReference<ItemsControl> _wrIC;
+            private int _luCount = -1;  // count of LayoutUpdated events, or -1 if inactive
 
             private void Push()     { ++_depth; }
             private void Pop()      { --_depth; }
             private void Pop(ScrollTraceRecord record)  { --_depth; record.ChangeOpDepth(-1); }
 
-            private List<ScrollTraceRecord> _traceList = new List<ScrollTraceRecord>();
-
-            private ScrollTracer(ItemsControl itemsControl, VirtualizingStackPanel vsp)
+            private ScrollTracer(ItemsControl itemsControl, VirtualizingStackPanel vsp, TraceList traceList)
             {
-                itemsControl.LayoutUpdated += new EventHandler(OnLayoutUpdated);
-
-                Application app = Application.Current;
-                if (app != null)
-                {
-                    app.Exit -= OnApplicationExit;
-                    app.Exit += OnApplicationExit;
-
-                    app.DispatcherUnhandledException -= OnUnhandledException;
-                    app.DispatcherUnhandledException += OnUnhandledException;
-                }
+                _wrIC = new WeakReference<ItemsControl>(itemsControl);
 
                 // set up file output
-                OpenTraceFile();
+                _traceList = traceList;
 
                 // write identifying information to the file
                 IdentifyTrace(itemsControl, vsp);
             }
 
             // when app shuts down, flush pending info to the file
-            void OnApplicationExit(object sender, ExitEventArgs e)
+            static void OnApplicationExit(object sender, ExitEventArgs e)
             {
                 Application app = sender as Application;
                 if (app != null)
@@ -11907,11 +11967,11 @@ namespace System.Windows.Controls
                     app.Exit -= OnApplicationExit;   // avoid re-entrancy
                 }
 
-                FlushAndClose();
+                CloseAllTraceLists();
             }
 
             // in case of unhandled exception, flush pending info to the file
-            void OnUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+            static void OnUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
             {
                 Application app = sender as Application;
                 if (app != null)
@@ -11919,17 +11979,7 @@ namespace System.Windows.Controls
                     app.DispatcherUnhandledException -= OnUnhandledException;   // avoid re-entrancy
                 }
 
-                FlushAndClose();
-            }
-
-            void FlushAndClose()
-            {
-                if (_writer != null)
-                {
-                    Flush(_flushDepth);
-                    _writer.Close();
-                    _writer = null;
-                }
+                CloseAllTraceLists();
             }
 
             private void IdentifyTrace(ItemsControl ic, VirtualizingStackPanel vsp)
@@ -11937,7 +11987,8 @@ namespace System.Windows.Controls
                 AddTrace(null, ScrollTraceOp.ID, _nullInfo,
                     DisplayType(ic),
                     "Items:", ic.Items.Count,
-                    "Panel:", DisplayType(vsp));
+                    "Panel:", DisplayType(vsp),
+                    "Time:", DateTime.Now);
 
                 AddTrace(null, ScrollTraceOp.ID, _nullInfo,
                     "IsVirt:", VirtualizingPanel.GetIsVirtualizing(ic),
@@ -11966,6 +12017,43 @@ namespace System.Windows.Controls
 
             private void AddTrace(VirtualizingStackPanel vsp, ScrollTraceOp op, ScrollTracingInfo sti, params object[] args)
             {
+                // the trace list contains references back into the VSP that can lead
+                // to memory leaks if the app removes the VSP.  To avoid this, treat
+                // a long sequence of LayoutUpdated events as a signal that the VSP might
+                // have been removed, and release references.   Bring them back if
+                // some other activity occurs.
+                if (op == ScrollTraceOp.LayoutUpdated)
+                {
+                    if (++_luCount > _luThreshold)
+                    {
+                        AddTrace(null, ScrollTraceOp.ID, _nullInfo,
+                            "Inactive at", DateTime.Now);
+                        ItemsControl ic;
+                        if (_wrIC.TryGetTarget(out ic))
+                        {
+                            ic.LayoutUpdated -= OnLayoutUpdated;
+                        }
+                        _traceList.FlushAndClear();
+                        _luCount = -1;  // meaning "inactive"
+                    }
+                }
+                else
+                {
+                    int luCount = _luCount;
+                    _luCount = 0;
+
+                    if (luCount < 0)
+                    {
+                        AddTrace(null, ScrollTraceOp.ID, _nullInfo,
+                            "Reactivate at", DateTime.Now);
+                        ItemsControl ic;
+                        if (_wrIC.TryGetTarget(out ic))
+                        {
+                            ic.LayoutUpdated += OnLayoutUpdated;
+                        }
+                    }
+                }
+
                 ScrollTraceRecord record = new ScrollTraceRecord(op, vsp, sti.Depth, sti.ItemIndex, _depth, BuildDetail(args));
                 _traceList.Add(record);
 
@@ -11981,7 +12069,7 @@ namespace System.Windows.Controls
                     case ScrollTraceOp.EndMeasure:
                         Pop(record);
                         record.Snapshot = vsp.TakeSnapshot();
-                        Flush(sti.Depth);
+                        _traceList.Flush(sti.Depth);
                         break;
 
                     case ScrollTraceOp.BeginArrange:
@@ -11991,7 +12079,7 @@ namespace System.Windows.Controls
                     case ScrollTraceOp.EndArrange:
                         Pop(record);
                         record.Snapshot = vsp.TakeSnapshot();
-                        Flush(sti.Depth);
+                        _traceList.Flush(sti.Depth);
                         break;
 
                     case ScrollTraceOp.BSetAnchor:
@@ -12026,7 +12114,7 @@ namespace System.Windows.Controls
 
                 if (_flushDepth < 0)
                 {
-                    Flush(_flushDepth);
+                    _traceList.Flush(_flushDepth);
                 }
             }
 
@@ -12035,29 +12123,172 @@ namespace System.Windows.Controls
                 AddTrace(null, ScrollTraceOp.LayoutUpdated, _nullInfo, null);
             }
 
-            private void Flush(int depth)
+            #endregion instance members
+
+            private static List<Tuple<WeakReference<ItemsControl>,TraceList>> s_TargetToTraceListMap
+                = new List<Tuple<WeakReference<ItemsControl>,TraceList>>();
+            private static int s_seqno;
+
+            static TraceList TraceListForItemsControl(ItemsControl target)
             {
-                if (_writer != null && depth <= _flushDepth)
+                TraceList traceList = null;
+
+                lock (s_TargetToTraceListMap)
                 {
-                    for (; _flushIndex < _traceList.Count; ++_flushIndex)
+                    // if target is already in the map, use its tracelist
+                    for (int i=0, n=s_TargetToTraceListMap.Count; i<n; ++i)
                     {
-                        _traceList[_flushIndex].Write(_writer);
+                        WeakReference<ItemsControl> wr = s_TargetToTraceListMap[i].Item1;
+                        ItemsControl itemsControl;
+                        if (wr.TryGetTarget(out itemsControl) && itemsControl == target)
+                        {
+                            traceList = s_TargetToTraceListMap[i].Item2;
+                            break;
+                        }
                     }
 
-                    _writer.Flush();
-
-                    // don't let _traceList exhaust memory
-                    if (_flushIndex > s_MaxTraceRecords)
+                    // otherwise, if target's name matches, add a new entry to the map
+                    if (traceList == null && target.Name == _targetName)
                     {
-                        // but keep recent history in memory, for live debugging
-                        int purgeCount = _flushIndex - s_MinTraceRecords;
-                        _traceList.RemoveRange(0, purgeCount);
-                        _flushIndex = _traceList.Count;
+                        traceList = AddToMap(target);
+                    }
+                }
+
+                return traceList;
+            }
+
+            private static TraceList AddToMap(ItemsControl target)
+            {
+                TraceList traceList = null;
+
+                lock (s_TargetToTraceListMap)
+                {
+                    PurgeMap();
+                    ++ s_seqno;
+
+                    // get a name for the trace file
+                    string filename = _fileName;
+                    if (String.IsNullOrEmpty(filename) || filename == "default")
+                    {
+                        filename = "ScrollTrace.stf";
+                    }
+                    if (filename != "none" && s_seqno > 1)
+                    {
+                        int dotIndex = filename.LastIndexOf(".", StringComparison.Ordinal);
+                        if (dotIndex < 0) dotIndex = filename.Length;
+                        filename = filename.Substring(0, dotIndex) +
+                            s_seqno.ToString() +
+                            filename.Substring(dotIndex);
+                    }
+
+                    // create the TraceList
+                    traceList = new TraceList(filename);
+
+                    // add it to the map
+                    s_TargetToTraceListMap.Add(
+                        new Tuple<WeakReference<ItemsControl>,TraceList>(
+                            new WeakReference<ItemsControl>(target),
+                            traceList));
+                }
+
+                return traceList;
+            }
+
+            // Must be called under "lock (s_TargetToTraceListMap)"
+            static void CloseAllTraceLists()
+            {
+                for (int i=0, n=s_TargetToTraceListMap.Count; i<n; ++i)
+                {
+                    TraceList traceList = s_TargetToTraceListMap[i].Item2;
+                    traceList.FlushAndClose();
+                }
+                s_TargetToTraceListMap.Clear();
+            }
+
+            // remove entries whose targets are no longer active (closing their output files)
+            // Must be called under "lock (s_TargetToTraceListMap)"
+            private static void PurgeMap()
+            {
+                for (int i=0; i<s_TargetToTraceListMap.Count; ++i)
+                {
+                    WeakReference<ItemsControl> wr = s_TargetToTraceListMap[i].Item1;
+                    ItemsControl unused;
+                    if (!wr.TryGetTarget(out unused))
+                    {
+                        TraceList traceList = s_TargetToTraceListMap[i].Item2;
+                        traceList.FlushAndClose();
+                        s_TargetToTraceListMap.RemoveAt(i);
+                        --i;
                     }
                 }
             }
 
-            #endregion instance members
+            #region TraceList
+
+            private class TraceList
+            {
+                private List<ScrollTraceRecord> _traceList = new List<ScrollTraceRecord>();
+                private BinaryWriter _writer;
+                private int _flushIndex=0;  // where last flush ended
+
+                internal TraceList(string filename)
+                {
+                    if (filename != "none")
+                    {
+                        _writer = new BinaryWriter(File.Open(filename, FileMode.Create));
+                        _writer.Write((int)s_StfFormatVersion);
+                    }
+                }
+
+                internal void Add(ScrollTraceRecord record)
+                {
+                    _traceList.Add(record);
+                }
+
+                internal void Flush(int depth)
+                {
+                    if (_writer != null && depth <= _flushDepth)
+                    {
+                        for (; _flushIndex < _traceList.Count; ++_flushIndex)
+                        {
+                            _traceList[_flushIndex].Write(_writer);
+                        }
+
+                        _writer.Flush();
+
+                        // don't let _traceList exhaust memory
+                        if (_flushIndex > s_MaxTraceRecords)
+                        {
+                            // but keep recent history in memory, for live debugging
+                            int purgeCount = _flushIndex - s_MinTraceRecords;
+                            _traceList.RemoveRange(0, purgeCount);
+                            _flushIndex = _traceList.Count;
+                        }
+                    }
+                }
+
+                internal void FlushAndClose()
+                {
+                    if (_writer != null)
+                    {
+                        Flush(_flushDepth);
+                        _writer.Close();
+                        _writer = null;
+                    }
+                }
+
+                internal void FlushAndClear()
+                {
+                    if (_writer != null)
+                    {
+                        Flush(_flushDepth);
+                        _traceList.Clear();
+                        _flushIndex = 0;
+                    }
+                }
+            }
+
+            #endregion TraceList
         }
 
         #endregion ScrollTracer
@@ -12154,6 +12385,10 @@ namespace System.Windows.Controls
             RecomputeFirstOffset,       // recalculate _firstItemInExtendedViewportOffset
             LastPageSizeChange,         // pixel size for last page changed
             SVSDEnd,                // End - report new offset, extent, compoff, vp
+
+            /****** Added in Version 1 ******/
+            SetContainerSize,
+            SizeChangeDuringAnchorScroll,
         }
 
         private class ScrollTraceRecord

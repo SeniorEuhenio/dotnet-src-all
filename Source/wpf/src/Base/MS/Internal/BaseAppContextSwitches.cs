@@ -10,6 +10,15 @@ using System.Runtime.CompilerServices;
 
 namespace MS.Internal
 {
+
+    // There are cases where we have multiple assemblies that are going to import this file and 
+    // if they are going to also have InternalsVisibleTo between them, there will be a compiler warning
+    // that the type is found both in the source and in a referenced assembly. The compiler will prefer 
+    // the version of the type defined in the source
+    //
+    // In order to disable the warning for this type we are disabling this warning for this entire file.
+    #pragma warning disable 436
+
     /// <summary>
     /// Appcompat switches used by WindowsBase. See comments at the start of each switch. 
     /// Also see AppContextDefaultValues which initializes default values for each of 
@@ -25,8 +34,8 @@ namespace MS.Internal
         /// To work around the new ExecutionContext behavior, we introduce CulturePreservingExecutionContext for use within 
         /// Dispatcher and DispatcherOperation. WPF in .NET 4.6 & 4.6.1 shipped with buggy behavior - each DispatcherOperation 
         /// ends with all modificaitons to culture infos being reverted.Though unlikely, if some applications targeting 4.6 or 
-        /// above might have taken a dependence on this 
-
+        /// above might have taken a dependence on this bug, we provide this compatiblity switch that can be enabled by the application.
+        /// </summary>
         #region UseCulturePreservingDispatcherOperations
 
         internal const string SwitchDoNotUseCulturePreservingDispatcherOperations = "Switch.MS.Internal.DoNotUseCulturePreservingDispatcherOperations";
@@ -43,4 +52,6 @@ namespace MS.Internal
 
         #endregion
     }
+
+    #pragma warning restore 436
 }

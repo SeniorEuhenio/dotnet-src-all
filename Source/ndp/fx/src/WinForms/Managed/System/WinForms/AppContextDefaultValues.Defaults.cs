@@ -22,6 +22,9 @@ namespace System {
                         LocalAppContext.DefineSwitchDefault(LocalAppContextSwitches.DontSupportReentrantFilterMessageSwitchName, true);
                         LocalAppContext.DefineSwitchDefault(LocalAppContextSwitches.DoNotSupportSelectAllShortcutInMultilineTextBoxSwitchName, true);
                     }
+                    if (version <= 40602) {
+                        LocalAppContext.DefineSwitchDefault(LocalAppContextSwitches.DoNotLoadLatestRichEditControlSwitchName, true);
+                    }                   
                     break;
                 }
             }

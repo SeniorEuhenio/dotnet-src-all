@@ -64,6 +64,10 @@ namespace System.Windows.Forms {
         private ToolStripItemImageScaling imageScaling = ToolStripItemImageScaling.SizeToFit;
         private Size                           cachedTextSize                      = Size.Empty;
               
+        private static readonly Padding        defaultMargin                       = new Padding(0, 1, 0, 2);
+        private static readonly Padding        defaultStatusStripMargin            = new Padding(0, 2, 0, 0);
+        private Padding                        scaledDefaultMargin                 = defaultMargin;
+        private Padding                        scaledDefaultStatusStripMargin      = defaultStatusStripMargin;
 
         private ToolStripItemDisplayStyle      displayStyle                        = ToolStripItemDisplayStyle.ImageAndText;
 
@@ -175,6 +179,11 @@ namespace System.Windows.Forms {
         /// </devdoc>
         [SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         protected ToolStripItem() {
+            if (DpiHelper.EnableToolStripHighDpiImprovements) {
+                scaledDefaultMargin = DpiHelper.LogicalToDeviceUnits(defaultMargin);
+                scaledDefaultStatusStripMargin = DpiHelper.LogicalToDeviceUnits(defaultStatusStripMargin);
+            }
+
             state[stateEnabled | stateAutoSize | stateVisible | stateContstructing | stateSupportsItemClick | stateInvalidMirroredImage | stateMouseDownAndUpMustBeInSameItem | stateUseAmbientMargin] = true;  
             state[stateAllowDrop | stateMouseDownAndNoDrag | stateSupportsRightClick | statePressed | stateSelected | stateDisposed | stateDoubleClickEnabled | stateRightToLeftAutoMirrorImage | stateSupportsSpaceKey] = false;
             SetAmbientMargin();
@@ -681,10 +690,10 @@ namespace System.Windows.Forms {
         protected internal virtual Padding DefaultMargin {
             get {
                 if (this.Owner != null && this.Owner is StatusStrip) {
-                    return new Padding(0, 2, 0, 0);
+                    return scaledDefaultStatusStripMargin;
                 }
                 else {
-                    return new Padding(0, 1, 0, 2);
+                    return scaledDefaultMargin;
                 }
             }
         }

@@ -894,7 +894,7 @@ namespace System.Windows.Controls
             strongReference = weakReference.Target;
             if (strongReference != null && !(strongReference is PasswordTextPointer))
             {
-                // Diagnostics for 
+                // Diagnostics for bug 1267261.
                 Invariant.Assert(false, "Unexpected type: " + strongReference.GetType());
             }
 

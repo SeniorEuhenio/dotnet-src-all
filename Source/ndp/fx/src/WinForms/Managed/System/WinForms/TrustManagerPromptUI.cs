@@ -746,7 +746,7 @@ namespace System.Security.Policy
             {
                 UpdateFonts();
             }
-            Invalidate(); // Workaround a 
+            Invalidate(); // Workaround a bug where the form's background does not repaint properly
         }
 
         private void UpdateFonts()

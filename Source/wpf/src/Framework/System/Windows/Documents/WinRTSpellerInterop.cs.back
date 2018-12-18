@@ -29,6 +29,7 @@ namespace System.Windows.Documents
     using System.Threading;
     using System.Windows;
     using System.Windows.Controls;
+    using System.Windows.Documents.Tracing;
     using System.Windows.Input;
 
     using System.Windows.Documents.MsSpellCheckLib;
@@ -78,7 +79,7 @@ namespace System.Windows.Documents
             }
 
             _spellCheckers = new Dictionary<CultureInfo, Tuple<WordsSegmenter, SpellChecker>>();
-            _customDictionaryFiles = new Dictionary<CultureInfo, List<string>>();
+            _customDictionaryFiles = new Dictionary<string, List<string>>();
 
             _defaultCulture = InputLanguageManager.Current?.CurrentInputLanguage ?? Thread.CurrentThread.CurrentCulture;
             _culture = null;
@@ -235,8 +236,8 @@ namespace System.Windows.Documents
         {
             if (_isDisposed) return;
 
-            var data = (Tuple<CultureInfo, String>)token;
-            CultureInfo culture = data.Item1;
+            var data = (Tuple<string, string>)token;
+            string ietfLanguageTag = data.Item1;
             string filePath = data.Item2;
 
             new FileIOPermission(FileIOPermissionAccess.AllAccess, filePath).Demand();
@@ -244,14 +245,17 @@ namespace System.Windows.Documents
             _customDictionaryFilesLock.WaitOne();
             try
             {
-                _customDictionaryFiles[culture].RemoveAll((str) => str == filePath);
+                _customDictionaryFiles[ietfLanguageTag].RemoveAll((str) => str == filePath);
             }
             finally
             {
                 _customDictionaryFilesLock.Release();
             }
 
-            SpellCheckerFactory.UnregisterUserDictionary(filePath, culture.IetfLanguageTag);
+            using (new SpellerCOMActionTraceLogger(this, SpellerCOMActionTraceLogger.Actions.UnregisterUserDictionary))
+            {
+                SpellCheckerFactory.UnregisterUserDictionary(filePath, ietfLanguageTag);
+            }
 
             File.Delete(filePath);
         }
@@ -364,7 +368,10 @@ namespace System.Windows.Documents
 
                 try
                 {
-                    spellChecker = new SpellChecker(culture.Name);
+                    using (new SpellerCOMActionTraceLogger(this, SpellerCOMActionTraceLogger.Actions.SpellCheckerCreation))
+                    {
+                        spellChecker = new SpellChecker(culture.Name);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -436,7 +443,7 @@ namespace System.Windows.Documents
             // Treat the whole text as a single segment for now. 
             foreach(string strSentence in new string[]{string.Join(string.Empty, text)})
             {
-                SpellerSentence sentence = new SpellerSentence(strSentence, wordBreaker, CurrentSpellChecker);
+                SpellerSentence sentence = new SpellerSentence(strSentence, wordBreaker, CurrentSpellChecker, this);
                 segmentCount += sentence.Segments.Count;
 
                 if (segmentCallback != null)
@@ -483,11 +490,11 @@ namespace System.Windows.Documents
         ///     Does not expose any Critical resources to the caller. 
         /// </SecurityNote>
         [SecuritySafeCritical]
-        private Tuple<CultureInfo, String> LoadDictionaryImpl(string lexiconFilePath)
+        private Tuple<string, string> LoadDictionaryImpl(string lexiconFilePath)
         {
             if (_isDisposed)
             {
-                return new Tuple<CultureInfo, string>(null, null);
+                return new Tuple<string, string>(null, null);
             }
 
             try
@@ -522,6 +529,8 @@ namespace System.Windows.Documents
                     }
                 }
 
+                string ietfLanguageTag = culture.IetfLanguageTag;
+
                 // Make a temp file and copy the original file over. 
                 // Ensure that the copy has Unicode (UTF16-LE) encoding
                 lexiconPrivateCopyPath = WinRTSpellerInterop.GetTempFileName(extension: "dic");
@@ -543,21 +552,24 @@ namespace System.Windows.Documents
                 _customDictionaryFilesLock.WaitOne();
                 try
                 {
-                    if (!_customDictionaryFiles.ContainsKey(culture))
+                    if (!_customDictionaryFiles.ContainsKey(ietfLanguageTag))
                     {
-                        _customDictionaryFiles[culture] = new List<string>();
+                        _customDictionaryFiles[ietfLanguageTag] = new List<string>();
                     }
 
-                    _customDictionaryFiles[culture].Add(lexiconPrivateCopyPath);
+                    _customDictionaryFiles[ietfLanguageTag].Add(lexiconPrivateCopyPath);
                 }
                 finally
                 {
                     _customDictionaryFilesLock.Release();
                 }
 
-                SpellCheckerFactory.RegisterUserDictionary(lexiconPrivateCopyPath, culture.IetfLanguageTag);
+                using (new SpellerCOMActionTraceLogger(this, SpellerCOMActionTraceLogger.Actions.RegisterUserDictionary))
+                {
+                    SpellCheckerFactory.RegisterUserDictionary(lexiconPrivateCopyPath, ietfLanguageTag);
+                }
 
-                return new Tuple<CultureInfo, string>(culture, lexiconPrivateCopyPath);
+                return new Tuple<string, string>(ietfLanguageTag, lexiconPrivateCopyPath);
             }
             catch (Exception e) when ((e is SecurityException) || (e is ArgumentException) || !fileCopied)
             {
@@ -603,21 +615,24 @@ namespace System.Windows.Documents
                 return;
             }
 
-            _customDictionaryFilesLock.WaitOne();
             try
             {
+                _customDictionaryFilesLock.WaitOne();
                 if (_customDictionaryFiles != null)
                 {
-                    foreach (KeyValuePair<CultureInfo, List<string>> items in _customDictionaryFiles)
+                    foreach (KeyValuePair<string, List<string>> items in _customDictionaryFiles)
                     {
-                        CultureInfo culture = items.Key;
+                        string ietfLanguageTag = items.Key;
                         foreach (string filePath in items.Value)
-                        {
                             try
                             {
                                 new FileIOPermission(FileIOPermissionAccess.AllAccess, filePath).Demand();
 
-                                SpellCheckerFactory.UnregisterUserDictionary(filePath, culture.IetfLanguageTag);
+                                using (new SpellerCOMActionTraceLogger(this, SpellerCOMActionTraceLogger.Actions.UnregisterUserDictionary))
+                                {
+                                    SpellCheckerFactory.UnregisterUserDictionary(filePath, ietfLanguageTag);
+                                }
+
                                 File.Delete(filePath);
                             }
                             catch
@@ -625,20 +640,41 @@ namespace System.Windows.Documents
                                 // Do nothing - Continue to make a best effort 
                                 // attempt at unregistering custom dictionaries
                             }
-                        }
                     }
 
                     _customDictionaryFiles.Clear();
                 }
             }
+            catch (ObjectDisposedException)
+            {
+                // _customeDictionaryFilesLock might throw ObjectDisposedException 
+                // if it has been disposed before reaching ClearDictionaries. 
+                // We will simply handle the exception and abort gracefully.
+                // 
+                // Setting _customDictionaryFilesLock to null here would 
+                // ensure that the call into Release() in the finally block would 
+                // not throw again. 
+                _customDictionaryFilesLock = null;
+            }
             finally
             {
-                if(isDisposeOrFinalize)
+                if (isDisposeOrFinalize)
                 {
                     _customDictionaryFiles = null;
                 }
 
-                _customDictionaryFilesLock.Release();
+                try
+                {
+                    _customDictionaryFilesLock?.Release();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // do nothing
+                }
+                finally
+                {
+                    _customDictionaryFilesLock = null;
+                }
             }
         }
 
@@ -886,8 +922,12 @@ namespace System.Windows.Documents
         private CultureInfo _defaultCulture;
         private CultureInfo _culture;
 
-        // Cache of private dictionaries
-        private Dictionary<CultureInfo, List<string>> _customDictionaryFiles;
+        /// <summary>
+        /// Cache of private dictionaries
+        /// Key: ietfLanguageTag
+        /// Values: List of file names that have been registered for <i>ietfLanguageTag</i>
+        /// </summary>
+        private Dictionary<string, List<string>> _customDictionaryFiles;
 
         /// <remarks>
         ///     See remarks in ClearDictionaries method
@@ -934,11 +974,12 @@ namespace System.Windows.Documents
         {
             #region Constructor
 
-            public SpellerSegment(WordSegment segment, SpellChecker spellChecker)
+            public SpellerSegment(WordSegment segment, SpellChecker spellChecker, WinRTSpellerInterop owner)
             {
                 _segment = segment;
                 _spellChecker = spellChecker;
                 _suggestions = null;
+                _owner = owner;
             }
 
             static SpellerSegment()
@@ -961,7 +1002,13 @@ namespace System.Windows.Documents
                     return;
                 }
 
-                var spellingErrors = _spellChecker.ComprehensiveCheck(_segment.Text);
+                List<SpellChecker.SpellingError> spellingErrors = null;
+
+                using (new SpellerCOMActionTraceLogger(_owner, SpellerCOMActionTraceLogger.Actions.ComprehensiveCheck))
+                {
+                    spellingErrors = _spellChecker.ComprehensiveCheck(_segment.Text);
+                }
+
                 if (spellingErrors == null)
                 {
                     _suggestions = result.AsReadOnly();
@@ -1053,18 +1100,26 @@ namespace System.Windows.Documents
 
             private static readonly IReadOnlyList<ISpellerSegment> _empty;
 
+            /// <remarks>
+            /// This field is used only to support TraceLogging telemetry
+            /// logged using <see cref="SpellerCOMActionTraceLogger"/>. It 
+            /// has no other functional use.
+            /// </remarks>
+            private WinRTSpellerInterop _owner;
+
             #endregion Private Fields
         }
 
         [DebuggerDisplay("Sentence = {_sentence}")]
         private class SpellerSentence: ISpellerSentence
         {
-            public SpellerSentence(string sentence, WordsSegmenter wordBreaker, SpellChecker spellChecker)
+            public SpellerSentence(string sentence, WordsSegmenter wordBreaker, SpellChecker spellChecker, WinRTSpellerInterop owner)
             {
                 _sentence = sentence;
                 _wordBreaker = wordBreaker;
                 _spellChecker = spellChecker;
                 _segments = null;
+                _owner = owner;
             }
 
             #region SpellerInteropBase.ISpellerSentence
@@ -1079,7 +1134,7 @@ namespace System.Windows.Documents
 
                         foreach (var wordSegment in _wordBreaker.GetTokens(_sentence))
                         {
-                            segments.Add(new SpellerSegment(wordSegment, _spellChecker));
+                            segments.Add(new SpellerSegment(wordSegment, _spellChecker, _owner));
                         }
 
                         _segments = segments.AsReadOnly();
@@ -1111,6 +1166,13 @@ namespace System.Windows.Documents
             private WordsSegmenter _wordBreaker;
             private SpellChecker  _spellChecker;
             private IReadOnlyList<SpellerSegment> _segments;
+
+            /// <remarks>
+            /// This field is used only to support TraceLogging telemetry
+            /// logged using <see cref="SpellerCOMActionTraceLogger"/>. It 
+            /// has no other functional use.
+            /// </remarks>
+            private WinRTSpellerInterop _owner;
 
         }
 

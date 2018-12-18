@@ -55,6 +55,7 @@ namespace System.Windows.Forms {
         private static int OFFSET_4PIXELS = 4;
         protected static int Offset2X = OFFSET_2PIXELS;
         protected static int Offset2Y = OFFSET_2PIXELS;
+        private static int offset4X = OFFSET_4PIXELS;
         private static int offset4Y = OFFSET_4PIXELS;
 
         // this is used in building up the half pyramid of rectangles that are drawn in a 
@@ -695,6 +696,7 @@ namespace System.Windows.Forms {
             if (DpiHelper.IsScalingRequired) {
                 Offset2X = DpiHelper.LogicalToDeviceUnitsX(OFFSET_2PIXELS);
                 Offset2Y = DpiHelper.LogicalToDeviceUnitsY(OFFSET_2PIXELS);
+                offset4X = DpiHelper.LogicalToDeviceUnitsX(OFFSET_4PIXELS);
                 offset4Y = DpiHelper.LogicalToDeviceUnitsY(OFFSET_4PIXELS);
             }
             isScalingInitialized = true;
@@ -719,6 +721,10 @@ namespace System.Windows.Forms {
                  Point[] arrow = null;
 
                  ScaleArrowOffsetsIfNeeded();
+
+                 // using (offset4X - Offset2X) instead of (Offset2X) to compensate for rounding error in scaling
+                 int horizontalOffset = DpiHelper.EnableToolStripHighDpiImprovements ? offset4X - Offset2X : Offset2X;
+
                  switch (e.Direction) {
                      case ArrowDirection.Up:
                          
@@ -732,14 +738,14 @@ namespace System.Windows.Forms {
                          arrow = new Point[] {
                                  new Point(middle.X + Offset2X, middle.Y - offset4Y),
                                  new Point(middle.X + Offset2X, middle.Y + offset4Y),
-                                 new Point(middle.X - Offset2X, middle.Y)};
+                                 new Point(middle.X - horizontalOffset, middle.Y)};
                                  
                          break;
                      case ArrowDirection.Right:
                          arrow = new Point[] {
                                  new Point(middle.X - Offset2X, middle.Y - offset4Y),
                                  new Point(middle.X - Offset2X, middle.Y + offset4Y),
-                                 new Point(middle.X + Offset2X, middle.Y)};
+                                 new Point(middle.X + horizontalOffset, middle.Y)};
                                      
                          break;
                      case ArrowDirection.Down:

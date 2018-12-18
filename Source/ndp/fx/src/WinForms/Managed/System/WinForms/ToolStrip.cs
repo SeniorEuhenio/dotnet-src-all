@@ -88,7 +88,6 @@ namespace System.Windows.Forms {
         private bool                           alreadyHooked  = false;
 
         private Size                           imageScalingSize;
-        private static bool                    isScalingInitialized     = false;
         private const int                      ICON_DIMENSION           = 16;
         private static int                     iconWidth                = ICON_DIMENSION;
         private static int                     iconHeight               = ICON_DIMENSION;
@@ -98,12 +97,17 @@ namespace System.Windows.Forms {
 
         private bool                           layoutRequired = false;
 
+        private static readonly Padding defaultPadding = new Padding(0, 0, 1, 0);
+        private static readonly Padding defaultGripMargin = new Padding(2);
+        private Padding scaledDefaultPadding                            = defaultPadding;
+        private Padding scaledDefaultGripMargin                         = defaultGripMargin;
 
 
         private Point                          mouseEnterWhenShown      = InvalidMouseEnter;
 
-        internal const int                     INSERTION_BEAM_WIDTH     = 6;
+        private const int                      INSERTION_BEAM_WIDTH     = 6;
         
+        internal static int                    insertionBeamWidth       = INSERTION_BEAM_WIDTH;
 
         private static readonly object EventPaintGrip                = new object();
         private static readonly object EventLayoutCompleted          = new object();
@@ -172,12 +176,14 @@ namespace System.Windows.Forms {
         /// Summary of ToolStrip.
         /// </devdoc>
         public ToolStrip() {
-            if (!isScalingInitialized) {
-                if (DpiHelper.IsScalingRequired) {
-                    iconWidth = DpiHelper.LogicalToDeviceUnitsX(ICON_DIMENSION);
-                    iconHeight = DpiHelper.LogicalToDeviceUnitsY(ICON_DIMENSION);
+            if (DpiHelper.IsScalingRequired) {
+                iconWidth = DpiHelper.LogicalToDeviceUnitsX(ICON_DIMENSION);
+                iconHeight = DpiHelper.LogicalToDeviceUnitsY(ICON_DIMENSION);
+                if (DpiHelper.EnableToolStripHighDpiImprovements) {
+                    insertionBeamWidth = DpiHelper.LogicalToDeviceUnitsX(INSERTION_BEAM_WIDTH);
+                    scaledDefaultPadding = DpiHelper.LogicalToDeviceUnits(defaultPadding);
+                    scaledDefaultGripMargin = DpiHelper.LogicalToDeviceUnits(defaultGripMargin);
                 }
-                isScalingInitialized = true;
             }
             imageScalingSize = new Size(iconWidth, iconHeight);
 
@@ -642,7 +648,7 @@ namespace System.Windows.Forms {
             get {
                 // one pixel from the right edge to prevent the right border from painting over the
                 // aligned-right toolstrip item.
-                return new Padding(0,0,1,0);
+                return scaledDefaultPadding;
             }
         }
 
@@ -662,7 +668,7 @@ namespace System.Windows.Forms {
                     return toolStripGrip.DefaultMargin;
                 }
                 else {
-                    return new Padding(2);
+                    return scaledDefaultGripMargin;
                 }
             }
         }
@@ -3825,7 +3831,7 @@ namespace System.Windows.Forms {
         /// </devdoc>
         internal void PaintInsertionMark(Graphics g) {
             if (lastInsertionMarkRect != Rectangle.Empty)  {
-                int widthOfBeam = INSERTION_BEAM_WIDTH;
+                int widthOfBeam = insertionBeamWidth;
                 if (Orientation == Orientation.Horizontal) {
                    int start = lastInsertionMarkRect.X;
                    int verticalBeamStart = start + 2;
@@ -3848,7 +3854,7 @@ namespace System.Windows.Forms {
                 }
                 else {
 
-                    widthOfBeam = INSERTION_BEAM_WIDTH;
+                    widthOfBeam = insertionBeamWidth;
                     int start = lastInsertionMarkRect.Y;
                     int horizontalBeamStart = start + 2;
 
@@ -5160,16 +5166,16 @@ namespace System.Windows.Forms {
                     Rectangle insertionRect = Rectangle.Empty;
                     switch (relativeLocation) {
                         case RelativeLocation.Above:
-                            insertionRect = new Rectangle(owner.Margin.Left, item.Bounds.Top, owner.Width - (owner.Margin.Horizontal) -1, ToolStrip.INSERTION_BEAM_WIDTH);
+                            insertionRect = new Rectangle(owner.Margin.Left, item.Bounds.Top, owner.Width - (owner.Margin.Horizontal) -1, ToolStrip.insertionBeamWidth);
                             break;
                         case RelativeLocation.Below:
-                            insertionRect = new Rectangle(owner.Margin.Left, item.Bounds.Bottom, owner.Width - (owner.Margin.Horizontal) -1, ToolStrip.INSERTION_BEAM_WIDTH);
+                            insertionRect = new Rectangle(owner.Margin.Left, item.Bounds.Bottom, owner.Width - (owner.Margin.Horizontal) -1, ToolStrip.insertionBeamWidth);
                             break;
                         case RelativeLocation.Right:
-                            insertionRect = new Rectangle(item.Bounds.Right, owner.Margin.Top, ToolStrip.INSERTION_BEAM_WIDTH, owner.Height- (owner.Margin.Vertical)-1);
+                            insertionRect = new Rectangle(item.Bounds.Right, owner.Margin.Top, ToolStrip.insertionBeamWidth, owner.Height- (owner.Margin.Vertical)-1);
                             break;
                         case RelativeLocation.Left:
-                            insertionRect = new Rectangle(item.Bounds.Left, owner.Margin.Top, ToolStrip.INSERTION_BEAM_WIDTH, owner.Height - (owner.Margin.Vertical) -1);
+                            insertionRect = new Rectangle(item.Bounds.Left, owner.Margin.Top, ToolStrip.insertionBeamWidth, owner.Height - (owner.Margin.Vertical) -1);
                             break;
                     }
 
@@ -5178,7 +5184,7 @@ namespace System.Windows.Forms {
                 }
                 else if (owner.Items.Count == 0) {
                     Rectangle insertionRect = owner.DisplayRectangle;
-                    insertionRect.Width = ToolStrip.INSERTION_BEAM_WIDTH;
+                    insertionRect.Width = ToolStrip.insertionBeamWidth;
                     owner.PaintInsertionMark(insertionRect);
                     return true;
                 }

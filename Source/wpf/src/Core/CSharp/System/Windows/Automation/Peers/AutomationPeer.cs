@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Diagnostics;
 using System.Security;
 using System.Security.Permissions;
 using System.Windows;
@@ -1198,6 +1199,7 @@ namespace System.Windows.Automation.Peers
             if (_children != null && _children.Count > 0)
             {
                 peer = _children[0];
+                peer.ChooseIterationParent(this);
             }
 
             return peer;
@@ -1248,6 +1250,7 @@ namespace System.Windows.Automation.Peers
             if (_children != null && _children.Count > 0)
             {
                 peer = _children[_children.Count - 1];
+                peer.ChooseIterationParent(this);
             }
 
             return peer;
@@ -1264,17 +1267,19 @@ namespace System.Windows.Automation.Peers
         internal AutomationPeer GetNextSibling()
         {
             AutomationPeer sibling = null;
-            AutomationPeer parent = GetParent();
+            AutomationPeer parent = IterationParent;
 
             if (parent != null)
             {
                 parent.EnsureChildren();
 
                 if (    parent._children != null
+                    &&  _index >= 0
                     &&  _index + 1 < parent._children.Count
                     &&  parent._children[_index] == this    )
                 {
                     sibling = parent._children[_index + 1];
+                    sibling.IterationParent = parent;
                 }
             }
 
@@ -1285,7 +1290,7 @@ namespace System.Windows.Automation.Peers
         internal AutomationPeer GetPreviousSibling()
         {
             AutomationPeer sibling = null;
-            AutomationPeer parent = GetParent();
+            AutomationPeer parent = IterationParent;
 
             if (parent != null)
             {
@@ -1297,10 +1302,131 @@ namespace System.Windows.Automation.Peers
                     &&  parent._children[_index] == this    )
                 {
                     sibling = parent._children[_index - 1];
+                    sibling.IterationParent = parent;
                 }
             }
 
             return sibling;
+        }
+
+        // For ItemsControls, there are typically two different peers for each
+        // (visible) item:  an "item" peer and a "wrapper" peer.  The former
+        // corresponds to the item itself, the latter to the container.  (These
+        // are different peers, even when the item is its own container.)  The item
+        // peer appears as a child of the ItemsControl's peer, while the wrapper
+        // peer is what you get by asking the container for its peer directly.
+        // For example, a ListBoxAutomationPeer holds children of type
+        // ListBoxItemAutomationPeer, while the peer for a ListBoxItem has type
+        // ListBoxItemWrapperAutomationPeer.
+        //
+        // The item and wrapper peers for a particular item can (and do) share
+        // children, i.e. the _children lists can contain the same elements.  The
+        // _parent pointer in a (shared) child peer could point to either the
+        // item peer or the wrapper peer, depending on which parent peer rebuilt
+        // its _children collection (EnsureChildren) most recently.  This is
+        // confusing, but usually the two lists are identical so the navigation
+        // methods (GetFirstChild, GetNextSibling, etc.) produce the correct
+        // result regardless of which parent is used.
+        //
+        // It matters for TabControl, however.  The item peer (TabItemAutomationPeer)
+        // and wrapper peer (TabItemWrapperAutomationPeer) contain the same
+        // children, except when the TabItem is selected (so that its content
+        // is shown in the TabControls large display area).  In that case the item
+        // peer has extra children, corresponding to the displayed content.
+        //
+        // Dev11 bug 496434 (and DDVSO 294272) illustrates the problem this can
+        // cause. The app does something that causes the wrapper peer to call
+        // EnsureChildren (e.g. changes TabControl.IsEnabled).  Now the shared
+        // children all point back to the wrapper peer, while the extra children
+        // still point back to the item peer.  An automation client that searches
+        // through, or iterates over, the children of the item peer will not see
+        // the extra children.  It (effectively) calls itemPeer.GetFirstChild,
+        // followed by repeated calls to childPeer.GetNextSibling;  those calls
+        // are evaluated using the _parent's child collection, but _parent points
+        // to the wrapper peer (which doesn't have the extra children).
+        //
+        // To patch this problem, the navigation methods should use the parent that
+        // started the iteration, i.e. the one where GetFirstChild was called.  But
+        // we can't change _parent (the "custody parent") - we tried that, and it
+        // caused Dev11 746574. Instead we add a new pointer, referring to the
+        // "iteration parent". GetFirstChild sets it, and GetNextSibling propagates
+        // it through the family as the iteration proceeds.  We only need to do
+        // this if the iteration parent differs from the custody parent and has
+        // a different set of children (a rare situation), so to make it pay-for-play
+        // we implement the new pointer as an indirection through an existing field.
+        // We chose _eventsSource - it's already encapsulated in a property, and is used
+        // in situations that aren't perf-critical (creation of new peers, et al.).
+
+        // Called by GetFirstChild, GetLastChild.
+        // Choose which of the custody parent (_parent) and the caller
+        // should serve as the iteration parent for the iteration that's starting.
+        private void ChooseIterationParent(AutomationPeer caller)
+        {
+            Debug.Assert(caller._children != null, "iteration over a null family");
+            AutomationPeer iterationParent;
+
+            // easy (and frequent) case:  both candidates are the same
+            // easy case: custody parent is null (preserve original behavior)
+            if (_parent == caller || _parent == null)
+            {
+                iterationParent = _parent;
+            }
+            else
+            {
+                // Usually we choose the custody parent.   The only case that needs
+                // something different is the TabItem case described earlier, which we
+                // recognize by the fact that the families have different size.
+                //
+                // There's also a funky case when the custody parent's family is null,
+                // even after EnsureChildren.  Like the "custodyParent == null" case above,
+                // I'm not sure this can ever happen, but if it does we choose the
+                // custody parent;  this preserves the original logic that terminates
+                // the iteration at the next call to GetNextSibling.
+                _parent.EnsureChildren();
+                iterationParent = (_parent._children == null || _parent._children.Count == caller._children.Count)
+                    ? _parent : caller;
+            }
+
+            IterationParent = iterationParent;
+        }
+
+        private AutomationPeer IterationParent
+        {
+            get
+            {
+                return !_hasIterationParent ? _parent : ((PeerRecord)_eventsSourceOrPeerRecord).IterationParent;
+            }
+            set
+            {
+                if (value == _parent)
+                {
+                    if (_hasIterationParent)
+                    {
+                        // remove the indirection
+                        _eventsSourceOrPeerRecord = EventsSource;
+                        _hasIterationParent = false;
+                    }
+                    else
+                    {
+                        // this is the 90% case - nothing to do
+                    }
+                }
+                else
+                {
+                    if (!_hasIterationParent)
+                    {
+                        // add the indirection
+                        PeerRecord record = new PeerRecord { EventsSource = EventsSource, IterationParent = value };
+                        _eventsSourceOrPeerRecord = record;
+                        _hasIterationParent = true;
+                    }
+                    else
+                    {
+                        // revise the existing indirection
+                        ((PeerRecord)_eventsSourceOrPeerRecord).IterationParent = value;
+                    }
+                }
+            }
         }
 
         //
@@ -1407,10 +1533,11 @@ namespace System.Windows.Automation.Peers
         {
             AutomationPeer referencePeer = this;
 
-            //replace itself with _eventsSource if we are aggregated and hidden from the UIA
-            if((peer == this) && (_eventsSource != null))
+            //replace itself with EventsSource if we are aggregated and hidden from the UIA
+            AutomationPeer eventsSource;
+            if((peer == this) && ((eventsSource = EventsSource) != null))
             {
-                referencePeer = peer = _eventsSource;
+                referencePeer = peer = eventsSource;
             }
 
             return ElementProxy.StaticWrap(peer, referencePeer);
@@ -1433,8 +1560,23 @@ namespace System.Windows.Automation.Peers
         ///</Summary>
         public AutomationPeer EventsSource
         {
-            get { return _eventsSource; }
-            set { _eventsSource = value; }
+            get
+            {
+                return !_hasIterationParent
+                    ? (AutomationPeer)_eventsSourceOrPeerRecord
+                    : ((PeerRecord)_eventsSourceOrPeerRecord).EventsSource;
+            }
+            set
+            {
+                if (!_hasIterationParent)
+                {
+                    _eventsSourceOrPeerRecord = value;
+                }
+                else
+                {
+                    ((PeerRecord)_eventsSourceOrPeerRecord).EventsSource = value;
+                }
+            }
         }
 
 
@@ -1956,7 +2098,7 @@ namespace System.Windows.Automation.Peers
         private List<AutomationPeer> _children;
         private AutomationPeer _parent;
 
-        private AutomationPeer _eventsSource;
+        private object _eventsSourceOrPeerRecord;
 
         private Rect _boundingRectangle;
         private string _itemStatus;
@@ -1970,9 +2112,26 @@ namespace System.Windows.Automation.Peers
         private bool _publicCallInProgress;
         private bool _publicSetFocusInProgress;
         private bool _isInteropPeer;
+        private bool _hasIterationParent;
         private WeakReference _elementProxyWeakReference = null;
 
         private static DispatcherOperationCallback _updatePeer = new DispatcherOperationCallback(UpdatePeer);
 
+        private class PeerRecord
+        {
+            private AutomationPeer _eventsSource;
+            public AutomationPeer EventsSource
+            {
+                 get { return _eventsSource; }
+                 set { _eventsSource = value; }
+            }
+
+            private AutomationPeer _iterationParent;
+            public AutomationPeer IterationParent
+            {
+                get { return _iterationParent; }
+                set { _iterationParent = value; }
+            }
+        }
     }
 }

@@ -3447,8 +3447,8 @@ namespace System.IdentityModel.Tokens
                 }
 
                 // We are now laxing the uri check for audience restriction to support interop partners 
-                // This is a specific request from server : 
-
+                // This is a specific request from server : Bug 11850
+                // ReadSimpleUriElement now has a flag that turns lax reading ON/OFF.
                 audienceRestriction = new Saml2AudienceRestriction(ReadSimpleUriElement(reader, UriKind.RelativeOrAbsolute, true));
                 while (reader.IsStartElement(Saml2Constants.Elements.Audience, Saml2Constants.Namespace))
                 {

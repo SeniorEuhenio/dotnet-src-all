@@ -1030,7 +1030,7 @@ namespace System.Windows.Forms {
 
             base.OnMouseUp(e);
 
-            // 
+            // bug 95211 : don't do any Handle-related operations when in disposing state
             if (Disposing || IsDisposed) {
                 return;
             }
@@ -1205,10 +1205,10 @@ namespace System.Windows.Forms {
                                 }
                             }
 
-                            // Fix for Windows 7 
-
-
-
+                            // Fix for Windows 7 bug 361974
+                            // When there is only one link in link label,
+                            // it's not necessary to paint with forebrush first 
+                            // as it will be overlapped by linkbrush in the following steps
                             if (!IsOneLink()) {
                                 PaintLink(e.Graphics, null, foreBrush, linkBrush, optimizeBackgroundRendering, finalrect);
                             }

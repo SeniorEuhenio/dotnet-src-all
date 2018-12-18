@@ -1128,8 +1128,8 @@ namespace System.Windows.Forms
             }
             else
             {
-                // SECREVIEW : Late-binding does not represent a security threat, see 
-
+                // SECREVIEW : Late-binding does not represent a security threat, see bug#411899 for more info..
+                //
                 dataGridViewRow = (DataGridViewRow) System.Activator.CreateInstance(thisType);
             }
             if (dataGridViewRow != null)

@@ -822,7 +822,7 @@ namespace MS.Internal.Data
         // determine whether the items have reliable hash codes
         internal override bool HasReliableHashCodes()
         {
-            // sample an item from each contained collection (
+            // sample an item from each contained collection (bug 1738297)
             for (int k=0, n=_collection.Count; k<n; ++k)
             {
                 CollectionContainer cc = _collection[k] as CollectionContainer;

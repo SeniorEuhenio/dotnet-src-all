@@ -24,6 +24,7 @@ namespace System.Windows.Controls
     using System.Collections.ObjectModel; // ReadOnlyCollection
     using MS.Internal.Automation;     // For TextAdaptor
     using MS.Internal.Controls; // EmptyEnumerator
+    using MS.Internal.Telemetry.PresentationFramework;
 
     /// <summary>
     /// RichTextBox control
@@ -58,6 +59,8 @@ namespace System.Windows.Controls
             // from RichTextBox level into its FlowDocument.
             // For this purpose we set listeners for all these properties:
             HookupInheritablePropertyListeners();
+
+            ControlsTraceLogger.AddControl(TelemetryControls.RichTextBox);
         }
 
         /// <summary>

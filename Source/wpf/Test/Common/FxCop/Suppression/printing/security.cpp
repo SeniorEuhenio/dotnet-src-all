@@ -16,121 +16,121 @@ using namespace System::Diagnostics::CodeAnalysis;
 //***************************************************************************************************************************
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
-
+// Bug ID:    200292 in DevDiv bug DB
+// Developer: Microsoft
+// Reason: Modifying existing ReviewImperativeSecurity suppressions to work with DevDiv code analysis rules. In each case, objects used to create permissions
+// are not changed during permission's scope
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security", "CA2103:ReviewImperativeSecurity", Scope = "member", Target = "Microsoft.Internal.GDIExporter.FontStreamContext.#GetStream()");
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security", "CA2103:ReviewImperativeSecurity", Scope = "member", Target = "System.Windows.Xps.XpsDocumentWriter.CreateXPSDocument(System.String):System.Void");
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security", "CA2103:ReviewImperativeSecurity", Scope = "member", Target = "System.Windows.Xps.VisualsToXpsDocument.CreateXPSDocument(System.String):System.Void");
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
+// Bug ID:    200292 in DevDiv bug DB
+// Developer: Microsoft
+// Reason: From CLR 2.0, non-CLS exceptions are wrapped in System.Runtime.CompilerServices.RuntimeWrappedException which derives from System.Exception
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security", "CA2102:CatchNonClsCompliantExceptionsInGeneralHandlers", Scope = "member", Target = "MS.Internal.PrintWin32Thunk.PropertyCollectionMemorySafeHandle.#AllocPropertyCollectionMemorySafeHandle(System.UInt32)");
 
 //**************************************************************************************************************************************************************************************
-// 
-
-
-
+// Bug ID:    200292 in DevDiv bug DB
+// Developer: Microsoft
+// Reason: Porting existing suppression from 3.0 to work in DevDiv code analysis system. Per 3.0 suppression, this code has been reviewed and is not a threat.
+//**************************************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security", "CA2118:ReviewSuppressUnmanagedCodeSecurityUsage", Scope = "member", Target = "MS.Internal.PrintWin32Thunk.Win32ApiThunk.UnsafeNativeMethods.#InvokeClosePrinter(System.IntPtr)");
 
 //**************************************************************************************************************************
-// 
-
-
-
-
+// Bug ID:    200292 in DevDiv bug DB
+// Developer: Microsoft
+// Reason: Porting existing suppression from 3.0 to work in DevDiv code analysis system. Per 3.0 suppression, this code
+// is used in print queue to create Packaging Policy packaging process event
+//**************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security", "CA2109:ReviewVisibleEventHandlers", Scope = "member", Target = "System.Printing.PrintQueueStream.#HandlePackagingProgressEvent(System.Object,System.Windows.Xps.Packaging.PackagingProgressEventArgs)");
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
+// Bug ID:    200292 in DevDiv bug DB
+// Developer: Microsoft
+// Reason: Porting existing suppression from 3.0 to work in DevDiv code analysis system. Per 3.0 suppression - Avalon PT blessed Assert. See comments in code.
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security", "CA2106:SecureAsserts", Scope = "member", Target = "System.Printing.PrintQueueStream.#AbortOrCancel(System.Boolean)");
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
-
+// Bug ID:    200292 in DevDiv bug DB
+// Developer: Microsoft
+// Reason: Porting existing suppression from 3.0 to work in DevDiv code analysis system. Per 3.0 suppression - PrintQueueStream code
+// has been reviewed and does not cause a way to circumvent security protection
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security", "CA2106:SecureAsserts", Scope = "member", Target = "System.Printing.PrintQueueStream.#CommitDataToPrinter()");
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
-
+// Bug ID:    200292 in DevDiv bug DB
+// Developer: Microsoft
+// Reason: Porting existing suppression from 3.0 to work in DevDiv code analysis system. Per 3.0 suppression - All asserts were reviewed by PT team.
+// No PT code paths call into non-APTCA without showing the Avalon Print UI dialog
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security", "CA2106:SecureAsserts", Scope = "member", Target = "System.Printing.PrintQueueStream.#HandlePackagingProgressEvent(System.Object,System.Windows.Xps.Packaging.PackagingProgressEventArgs)");
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
-
+// Bug ID:    200292 in DevDiv bug DB
+// Developer: Microsoft
+// Reason: Porting existing suppression from 3.0 to work in DevDiv code analysis system. Per 3.0 suppression - PrintQueueStream code has been
+// reviewed and does not cause a way to circumvent security protection
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security", "CA2106:SecureAsserts", Scope = "member", Target = "System.Printing.PrintQueueStream.#InitializePrintStream()");
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
-
+// Bug ID:    200292 in DevDiv bug DB
+// Developer: Microsoft
+// Reason: Porting existing suppression from 3.0 to work in DevDiv code analysis system. Per 3.0 suppression - All asserts were reviewed by PT team.
+// No PT code paths call into non-APTCA without showing the Avalon Print UI dialog
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security", "CA2106:SecureAsserts", Scope = "member", Target = "System.Printing.PrintQueueStream.#OpenSpoolFileStream(Microsoft.Win32.SafeHandles.SafeFileHandle)");
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
-
+// Bug ID:    200292 in DevDiv bug DB
+// Developer: Microsoft
+// Reason: Porting existing suppression from 3.0 to work in DevDiv code analysis system. Per 3.0 suppression - All asserts were reviewed by PT team.
+// No PT code paths call into non-APTCA without showing the Avalon Print UI dialog
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security", "CA2106:SecureAsserts", Scope = "member", Target = "System.Printing.PrintQueueStream.#Write(System.Byte[],System.Int32,System.Int32)");
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
-
+// Bug ID:    200292 in DevDiv bug DB
+// Developer: Microsoft
+// Reason: Porting existing suppression from 3.0 to work in DevDiv code analysis system. Per 3.0 suppression - Security critical attribute added.
+// The path name only comes from the trusted MXDW driver. Reviewed and approved by PT team.
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security", "CA2106:SecureAsserts", Scope = "member", Target = "System.Windows.Xps.VisualsToXpsDocument.#CreateXPSDocument(System.String)");
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
-
+// Bug ID:    200292 in DevDiv bug DB
+// Developer: Microsoft
+// Reason: Porting existing suppression from 3.0 to work in DevDiv code analysis system. Per 3.0 suppression - Security critical attribute added.
+// The path name only comes from the trusted MXDW driver. Reviewed and approved by PT team.
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security", "CA2106:SecureAsserts", Scope = "member", Target = "System.Windows.Xps.XpsDocumentWriter.#CreateXPSDocument(System.String)");
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
-
+// Bug ID:    200292 in DevDiv bug DB
+// Developer: Microsoft
+// Reason: Porting existing suppression from 3.0 to work in DevDiv code analysis system. Per 3.0 suppression - Fix Printing in PT after
+// PrintUI dialog optimizations to call EnumPrinters with only name and attribute.Blessed by PT team - Akaza.
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security", "CA2106:SecureAsserts", Scope = "member", Target = "System.Windows.Xps.VisualsToXpsDocument.#MxdwConversionRequired(System.Printing.PrintQueue)");
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
-
+// Bug ID:    200292 in DevDiv bug DB
+// Developer: Microsoft
+// Reason: Porting existing suppression from 3.0 to work in DevDiv code analysis system. Per 3.0 suppression - Fix Printing in PT after
+// PrintUI dialog optimizations to call EnumPrinters with only name and attribute.Blessed by PT team - Akaza.
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security", "CA2106:SecureAsserts", Scope = "member", Target = "System.Windows.Xps.XpsDocumentWriter.#MxdwConversionRequired(System.Printing.PrintQueue)");
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
+// Bug ID:    789126 Dev10 bugs
+// Developer: Microsoft
+// Reason: System.Printing.dll depends on types in non-APTCA ReachFramework.dll - all usage has been reviewed by Security team
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security","CA2116:AptcaMethodsShouldOnlyCallAptcaMethods", Scope="member", Target="Microsoft.Internal.GDIExporter.CGDIRenderTarget.#ExtEscGetName()");
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security","CA2116:AptcaMethodsShouldOnlyCallAptcaMethods", Scope="member", Target="Microsoft.Internal.GDIExporter.CGDIRenderTarget.#StartDocument(System.String,System.String,System.String,System.Byte[])");
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security","CA2116:AptcaMethodsShouldOnlyCallAptcaMethods", Scope="member", Target="Microsoft.Internal.GDIExporter.CGDIRenderTarget.#StartDocumentWithoutCreatingDC(System.String,System.String,System.String)");
@@ -216,10 +216,10 @@ CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security","CA2116:AptcaMethodsShouldOnlyCa
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security","CA2116:AptcaMethodsShouldOnlyCallAptcaMethods", Scope="member", Target="System.Windows.Xps.XpsDocumentWriter.#WriteAsync(System.Windows.Media.Visual,System.Printing.PrintTicket)");
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
+// Bug ID:    828208 Dev10 bugs
+// Developer: Microsoft
+// Reason: Methods are annotated with the new [SecuritySafeCritical] which replaces [SecurityCritical, SecurityTreatAsSafe]
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security","CA2129:SecurityTransparentCodeShouldNotReferenceNonpublicSecurityCriticalCode", Scope="member", Target="Microsoft.Internal.GDIExporter.CGDIBitmap.#ColorReduction()");
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security","CA2129:SecurityTransparentCodeShouldNotReferenceNonpublicSecurityCriticalCode", Scope="member", Target="Microsoft.Internal.GDIExporter.CGDIBitmap.#IsValid()");
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security","CA2129:SecurityTransparentCodeShouldNotReferenceNonpublicSecurityCriticalCode", Scope="member", Target="Microsoft.Internal.GDIExporter.CGDIBitmap.#Load(System.Windows.Media.Imaging.BitmapSource,System.Byte[],System.Windows.Media.PixelFormat)");
@@ -362,10 +362,10 @@ CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security","CA2128:SecurityTransparentCodeS
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security","CA2128:SecurityTransparentCodeShouldNotAssert", Scope="member", Target="System.Windows.Xps.XpsDocumentWriter.#MxdwConversionRequired(System.Printing.PrintQueue)");
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
+// Bug ID:    789126 Dev10 bugs
+// Developer: Microsoft
+// Reason: The compiler has inlined all calls to MS.Internal.PrintWin32Thunk.AttributeValueInteropHandler.#AllocateUnmanagedPrintPropertiesCollection(System.Printing.IndexedProperties.PrintPropertyDictionary)
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Performance","CA1811:AvoidUncalledPrivateCode", Scope="member", Target="MS.Internal.PrintWin32Thunk.AttributeValueInteropHandler.#AllocateUnmanagedPrintPropertiesCollection(System.Printing.IndexedProperties.PrintPropertyDictionary)");
 
 // New suppressions since V4 RTM:
@@ -383,9 +383,9 @@ CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security","CA2116:AptcaMethodsShouldOnlyCa
 
 
 //**************************************************************************************************************************************************************
-// 
-
-
-
+// Bug ID:    402890 Dev11 bugs
+// Developer: Microsoft
+// Reason: System.Printing.dll depends on types in non-APTCA ReachFramework.dll - all usage has been reviewed by Security team
+//**************************************************************************************************************************************************************
 CA_GLOBAL_SUPPRESS_MESSAGE("Microsoft.Security","CA2116:AptcaMethodsShouldOnlyCallAptcaMethods", Scope="member", Target="MS.Internal.PrintWin32Thunk.XpsDeviceSimulatingPrintThunkHandler.#ThunkStartDocPrinter(MS.Internal.PrintWin32Thunk.DocInfoThree,System.Printing.PrintTicket)");
 

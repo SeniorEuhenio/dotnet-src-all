@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Windows.Automation.Provider;
@@ -61,7 +61,7 @@ namespace System.Windows.Automation.Peers
             ItemPeers = new ItemPeersStorage<ItemAutomationPeer>();
             ItemsControl owner = (ItemsControl)Owner;
 
-            if (OwningDataGrid.Columns.Count > 0)
+            if (OwningDataGrid?.Columns.Count > 0)
             {
                 IList childItems = null;
                 Panel itemHost = owner.ItemsHost;

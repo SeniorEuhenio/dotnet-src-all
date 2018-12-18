@@ -1423,62 +1423,64 @@ namespace System.Deployment.Internal.CodeSigning
         private static void AuthenticodeSignLicenseDom(XmlDocument licenseDom, CmiManifestSigner2 signer, string timeStampUrl, bool useSha256)
         {
             // Make sure it is RSA, as this is the only one Fusion will support.
-            RSA rsaPrivateKey = CngLightup.GetRSAPrivateKey(signer.Certificate);
-            if (rsaPrivateKey == null)
+            using (RSA rsaPrivateKey = CngLightup.GetRSAPrivateKey(signer.Certificate))
             {
-                throw new NotSupportedException();
-            }
+                if (rsaPrivateKey == null)
+                {
+                    throw new NotSupportedException();
+                }
 
-            // Setup up XMLDSIG engine.
-            ManifestSignedXml2 signedXml = new ManifestSignedXml2(licenseDom);
-            signedXml.SigningKey = rsaPrivateKey;
-            signedXml.SignedInfo.CanonicalizationMethod = SignedXml.XmlDsigExcC14NTransformUrl;
-            if (signer.UseSha256)
-                signedXml.SignedInfo.SignatureMethod = Sha256SignatureMethodUri;
+                // Setup up XMLDSIG engine.
+                ManifestSignedXml2 signedXml = new ManifestSignedXml2(licenseDom);
+                signedXml.SigningKey = rsaPrivateKey;
+                signedXml.SignedInfo.CanonicalizationMethod = SignedXml.XmlDsigExcC14NTransformUrl;
+                if (signer.UseSha256)
+                    signedXml.SignedInfo.SignatureMethod = Sha256SignatureMethodUri;
 
-            // Add the key information.
-            signedXml.KeyInfo.AddClause(new RSAKeyValue(rsaPrivateKey));
-            signedXml.KeyInfo.AddClause(new KeyInfoX509Data(signer.Certificate, signer.IncludeOption));
+                // Add the key information.
+                signedXml.KeyInfo.AddClause(new RSAKeyValue(rsaPrivateKey));
+                signedXml.KeyInfo.AddClause(new KeyInfoX509Data(signer.Certificate, signer.IncludeOption));
 
-            // Add the enveloped reference.
-            Reference reference = new Reference();
-            reference.Uri = "";
-            if (signer.UseSha256)
-                reference.DigestMethod = Sha256DigestMethod;
+                // Add the enveloped reference.
+                Reference reference = new Reference();
+                reference.Uri = "";
+                if (signer.UseSha256)
+                    reference.DigestMethod = Sha256DigestMethod;
 
-            // Add an enveloped and an Exc-C14N transform.
-            reference.AddTransform(new XmlDsigEnvelopedSignatureTransform());
+                // Add an enveloped and an Exc-C14N transform.
+                reference.AddTransform(new XmlDsigEnvelopedSignatureTransform());
 #if (false) // 
             reference.AddTransform(new XmlLicenseTransform()); 
 #endif
-            reference.AddTransform(new XmlDsigExcC14NTransform());
+                reference.AddTransform(new XmlDsigExcC14NTransform());
 
-            // Add the reference.
-            signedXml.AddReference(reference);
+                // Add the reference.
+                signedXml.AddReference(reference);
 
-            // Compute the signature.
-            signedXml.ComputeSignature();
+                // Compute the signature.
+                signedXml.ComputeSignature();
 
-            // Get the XML representation
-            XmlElement xmlDigitalSignature = signedXml.GetXml();
-            xmlDigitalSignature.SetAttribute("Id", "AuthenticodeSignature");
+                // Get the XML representation
+                XmlElement xmlDigitalSignature = signedXml.GetXml();
+                xmlDigitalSignature.SetAttribute("Id", "AuthenticodeSignature");
 
-            // Insert the signature node under the issuer element.
-            XmlNamespaceManager nsm = new XmlNamespaceManager(licenseDom.NameTable);
-            nsm.AddNamespace("r", LicenseNamespaceUri);
-            XmlElement issuerNode = licenseDom.SelectSingleNode("r:license/r:issuer", nsm) as XmlElement;
-            issuerNode.AppendChild(licenseDom.ImportNode(xmlDigitalSignature, true));
+                // Insert the signature node under the issuer element.
+                XmlNamespaceManager nsm = new XmlNamespaceManager(licenseDom.NameTable);
+                nsm.AddNamespace("r", LicenseNamespaceUri);
+                XmlElement issuerNode = licenseDom.SelectSingleNode("r:license/r:issuer", nsm) as XmlElement;
+                issuerNode.AppendChild(licenseDom.ImportNode(xmlDigitalSignature, true));
 
-            // Time stamp it if requested.
-            if (timeStampUrl != null && timeStampUrl.Length != 0)
-            {
-                TimestampSignedLicenseDom(licenseDom, timeStampUrl);
+                // Time stamp it if requested.
+                if (timeStampUrl != null && timeStampUrl.Length != 0)
+                {
+                    TimestampSignedLicenseDom(licenseDom, timeStampUrl);
+                }
+
+                // Wrap it inside a RelData element.
+                licenseDom.DocumentElement.ParentNode.InnerXml = "<msrel:RelData xmlns:msrel=\"" +
+                                                                 MSRelNamespaceUri + "\">" +
+                                                                 licenseDom.OuterXml + "</msrel:RelData>";
             }
-
-            // Wrap it inside a RelData element.
-            licenseDom.DocumentElement.ParentNode.InnerXml = "<msrel:RelData xmlns:msrel=\"" +
-                                                             MSRelNamespaceUri + "\">" +
-                                                             licenseDom.OuterXml + "</msrel:RelData>";
         }
 
         private static void TimestampSignedLicenseDom(XmlDocument licenseDom, string timeStampUrl)

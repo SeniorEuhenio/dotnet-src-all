@@ -480,9 +480,9 @@ namespace System.Windows.Forms.PropertyGridInternal {
                 // find the next parent property with a differnet value owner
                 object owner = ge.GetValueOwner();
 
-                // Fix for Dev10 
-
-
+                // Fix for Dev10 bug 584323:
+                // when owner is an instance of a value type, 
+                // we can't just use == in the following while condition testing
                 bool isValueType = owner.GetType().IsValueType;
 
                 // find the next property descriptor with a different parent

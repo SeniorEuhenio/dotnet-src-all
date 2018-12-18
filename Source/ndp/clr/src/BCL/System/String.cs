@@ -1382,6 +1382,16 @@ namespace System {
         }
 
         [System.Security.SecuritySafeCritical]  // auto-generated
+         unsafe internal int GetBytesFromEncoding(byte* pbNativeBuffer, int cbNativeBuffer,Encoding encoding)
+         {
+             // encoding == Encoding.UTF8
+             fixed (char* pwzChar = &this.m_firstChar)
+             {
+                 return encoding.GetBytes(pwzChar, m_stringLength, pbNativeBuffer, cbNativeBuffer);
+             }
+         }
+
+        [System.Security.SecuritySafeCritical]  // auto-generated
         unsafe internal int ConvertToAnsi(byte *pbNativeBuffer, int cbNativeBuffer, bool fBestFit, bool fThrowOnUnmappableChar)
         {
             Contract.Assert(cbNativeBuffer >= (Length + 1) * Marshal.SystemMaxDBCSCharSize, "Insufficient buffer length passed to ConvertToAnsi");
@@ -2835,10 +2845,10 @@ namespace System {
             if (CompatibilitySwitches.IsAppEarlierThanWindowsPhoneMango)
             {
                 // Dev11 453753 quirk
-                // for pre-Mango this function had a 
-
-
-
+                // for pre-Mango this function had a bug that would cause it to
+                // drop all characters to the right of the first embedded NULL.
+                // this was quirked on Mango for pre-Mango apps however for apps
+                // targeting Mango the bug was fixed.
                 int i = s.IndexOf('\0');
                 if (i > 0)
                     return s.Substring(0, i);

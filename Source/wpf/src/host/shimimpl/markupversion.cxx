@@ -167,7 +167,7 @@ HRESULT CMarkupVersion::Read()
 
     if (m_mapNamespaceVersion.GetCount() > 0)
     {
-        CKHR(CoCreateInstance(__uuidof(SAXXMLReader), NULL, CLSCTX_INPROC_SERVER, __uuidof(ISAXXMLReader), (void**)&pReader));
+        CKHR(CoCreateInstance(__uuidof(SAXXMLReader60), NULL, CLSCTX_INPROC_SERVER, __uuidof(ISAXXMLReader), (void**)&pReader));
         CKHR(pReader->putContentHandler(this));
         hr = pReader->parseURL(GetLocalMarkupPath());
 

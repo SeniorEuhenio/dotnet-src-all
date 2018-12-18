@@ -4,20 +4,20 @@
 #define __PRINTSYSTEMDIRECTINTEROPINC_HPP__
 
 /*++
-                                                                              
-    Copyright (C) 2002 - 2003 Microsoft Corporation                                   
-    All rights reserved.                                                        
-                                                                              
-    Module Name:                                                                
-        PrintSystemDirectInteropInc.hpp                                                             
-                                                                              
-    Abstract:
-        
-    Author:                                                                     
-        Adina Trufinescu (AdinaTru) 24-April-2003                                        
-                                                                             
-    Revision History:  
-        Khaled Sedky (KhaledS) 30-April-2003
+
+Copyright (C) 2002 - 2003 Microsoft Corporation
+All rights reserved.
+
+Module Name:
+PrintSystemDirectInteropInc.hpp
+
+Abstract:
+
+Author:
+Adina Trufinescu (AdinaTru) 24-April-2003
+
+Revision History:
+Khaled Sedky (KhaledS) 30-April-2003
 --*/
 
 #ifndef  __INTEROPDEVMODE_HPP__ 
@@ -60,6 +60,10 @@ using namespace System::Windows::Xps::Serialization;
 
 #ifndef  __XPSDEVSIMINTEROPPRINTERHANDLER_HPP__
 #include <XpsDeviceSimulatingInteropPrinterHandler.hpp>
+#endif 
+
+#ifndef  __XPSCOMPATIBLEPRINTER_HPP__
+#include <XpsCompatiblePrinter.hpp>
 #endif 
 
 using namespace MS::Internal::PrintWin32Thunk;

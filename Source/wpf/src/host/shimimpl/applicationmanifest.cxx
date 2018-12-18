@@ -160,7 +160,7 @@ HRESULT CApplicationManifest::Read()
     // stated in the SDK.
     CKHR(URLDownloadToCacheFile(NULL, GetUri(), wzCacheFileName, MAX_PATH, 0, this));
 
-    CKHR(CoCreateInstance(__uuidof(SAXXMLReader), NULL, CLSCTX_INPROC_SERVER, __uuidof(ISAXXMLReader), (void**)&pReader));
+    CKHR(CoCreateInstance(__uuidof(SAXXMLReader60), NULL, CLSCTX_INPROC_SERVER, __uuidof(ISAXXMLReader), (void**)&pReader));
     CKHR(pReader->putContentHandler(this));
     hr = pReader->parseURL(wzCacheFileName);
 

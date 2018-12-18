@@ -933,11 +933,11 @@ namespace System.Windows.Interop
                     // pollute the measure data based on the Minized window size.
                     if (NativeMethods.IntPtrToInt32(wparam) != NativeMethods.SIZE_MINIMIZED)
                     {
-                        // Dev10 
-
-
-
-
+                        // Dev10 bug #796388 is caused by a race condition in Windows 7 (and possibly
+                        // Windows Vista, though we haven't observed the effect there).
+                        // Sometimes when we restore from minimized, when we present into the newly
+                        // resized window, the present silently fails, and we end up with garbage in
+                        // our window buffer. This work around queues another invalidate to occur after 100ms.
                         if (_isMinimized)
                         {
                             _restoreDT.Start();
@@ -1248,7 +1248,7 @@ namespace System.Windows.Interop
                 && !_isMinimized
                 && (!_isSuspended || (UnsafeNativeMethods.GetSystemMetrics(SM.REMOTESESSION) != 0))) // 
                                                                                                      // notifications for the server monitor are being broad-casted when the
-                                                                                                     // machine is in a non-local TS session. See Dev10 
+                                                                                                     // machine is in a non-local TS session. See Dev10 bug for more details.
             {
                 rcPaint = new NativeMethods.RECT(
                           0,

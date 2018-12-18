@@ -2271,8 +2271,8 @@ public class Page: TemplateControl, IHttpHandler {
             // Need to always render out the viewstate field so alternate viewstate persistence will get called
             writer.Write("\r\n<input type=\"hidden\" name=\"");
             writer.Write(ViewStateFieldPrefixID);
-            // Dev10 
-
+            // Dev10 Bug 486494
+            // Remove previously rendered NewLine
             writer.Write("\" id=\"");
             writer.Write(ViewStateFieldPrefixID);
             writer.WriteLine("\" value=\"\" />");
@@ -5579,8 +5579,8 @@ window.onload = WebForm_RestoreScrollPosition;
         HttpCapabilitiesBase caps = _request.Browser;
 
         if(caps != null) {
-            // Dev10 440476: Page.SetIntrinsics method has a 
-
+            // Dev10 440476: Page.SetIntrinsics method has a bug causing throwing NullReferenceException
+            // in certain circumstances. This edge case was regressed by the VSWhidbey fix below.
 
             // VSWhidbey 109162: Set content type at the very beginning so it can be
             // overwritten within the user code of the page if needed.

@@ -464,7 +464,7 @@ namespace System.Windows.Threading
         ///     An IAsyncResult object that represents the result of the
         ///     BeginInvoke operation.
         /// </returns>
-        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking 
+        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking Bug: 29647
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public DispatcherOperation BeginInvoke(DispatcherPriority priority, Delegate method, object arg) // NOTE: should be Priority
         {
@@ -494,7 +494,7 @@ namespace System.Windows.Threading
         ///     An IAsyncResult object that represents the result of the
         ///     BeginInvoke operation.
         /// </returns>
-        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking 
+        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking Bug: 29647
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public DispatcherOperation BeginInvoke(DispatcherPriority priority, Delegate method, object arg, params object[] args)
         {
@@ -1971,9 +1971,9 @@ namespace System.Windows.Threading
                 _shutdownExecutionContext = new SecurityCriticalDataClass<CulturePreservingExecutionContext>(shutdownExecutionContext);
 
                 // Tell Win32 to exit the message loop for this thread.
-                // NOTE: I removed this code because of 
-
-
+                // NOTE: I removed this code because of bug 1062099.
+                //
+                // UnsafeNativeMethods.PostQuitMessage(0);
 
                 if(_frameDepth > 0)
                 {
@@ -2099,11 +2099,11 @@ namespace System.Windows.Threading
         }
 
         // Returns whether or not the priority was set.
-        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking 
-
-
-
-
+        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking Bug: 29647
+        /// <SecurityNote>
+        ///     Critical: accesses _hooks
+        ///     TreatAsSafe: does not expose _hooks
+        /// </SecurityNote>
         [SecurityCritical, SecurityTreatAsSafe]
         internal bool SetPriority(DispatcherOperation operation, DispatcherPriority priority) // NOTE: should be Priority
         {
@@ -2144,11 +2144,11 @@ namespace System.Windows.Threading
         }
 
         // Returns whether or not the operation was removed.
-        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking 
-
-
-
-
+        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking Bug: 29647
+        /// <SecurityNote>
+        ///     Critical: accesses _hooks
+        ///     TreatAsSafe: does not expose _hooks
+        /// </SecurityNote>
         [SecurityCritical, SecurityTreatAsSafe]
         internal bool Abort(DispatcherOperation operation)
         {
@@ -2184,11 +2184,11 @@ namespace System.Windows.Threading
             return notify;
         }
 
-        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking 
-
-
-
-
+        //[CodeAnalysis("AptcaMethodsShouldOnlyCallAptcaMethods")] //Tracking Bug: 29647
+        /// <SecurityNote>
+        ///    Critical: This code can be used to process input and calls into DispatcherOperation.Invoke which
+        ///    is critical
+        /// </SecurityNote>
         [SecurityCritical]
         private void ProcessQueue()
         {

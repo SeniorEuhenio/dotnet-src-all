@@ -58,6 +58,12 @@ namespace System.Windows.Forms {
         private string cachedShortcutText;
         private Size cachedShortcutSize = Size.Empty;
 
+        private static readonly Padding defaultPadding = new Padding(4, 0, 4, 0);
+        private static readonly Padding defaultDropDownPadding = new Padding(0, 1, 0, 1);
+        private static readonly Size checkMarkBitmapSize = new Size(16, 16);
+        private Padding scaledDefaultPadding = defaultPadding;
+        private Padding scaledDefaultDropDownPadding = defaultDropDownPadding;
+        private Size scaledCheckMarkBitmapSize = checkMarkBitmapSize;
 
         private byte openMouseId = 0;
     
@@ -170,6 +176,12 @@ namespace System.Windows.Forms {
         }
 
         private void Initialize() {
+            if (DpiHelper.EnableToolStripHighDpiImprovements) {
+                scaledDefaultPadding = DpiHelper.LogicalToDeviceUnits(defaultPadding);
+                scaledDefaultDropDownPadding = DpiHelper.LogicalToDeviceUnits(defaultDropDownPadding);
+                scaledCheckMarkBitmapSize = DpiHelper.LogicalToDeviceUnits(checkMarkBitmapSize);
+            }
+
             this.Overflow                   = ToolStripItemOverflow.Never;
             this.MouseDownAndUpMustBeInSameItem = false;
             this.SupportsDisabledHotTracking = true;
@@ -197,10 +209,10 @@ namespace System.Windows.Forms {
         protected override Padding DefaultPadding {
             get {
                 if (IsOnDropDown) {
-                    return new Padding(0, 1, 0, 1);
+                    return scaledDefaultDropDownPadding;
                 }
                 else {
-                    return new Padding(4, 0, 4, 0);
+                    return scaledDefaultPadding;
                 }
             }
         }
@@ -264,28 +276,38 @@ namespace System.Windows.Forms {
            
                 if (checkedState == CheckState.Indeterminate) {
                     if (indeterminateCheckedImage == null) {
-                        Bitmap indeterminateCheckedBmp = new Bitmap(typeof(ToolStripMenuItem), "IndeterminateChecked.bmp");
-                        if (indeterminateCheckedBmp != null) {
-                            // 
-                            indeterminateCheckedBmp.MakeTransparent(indeterminateCheckedBmp.GetPixel(1,1));
-                            if (DpiHelper.IsScalingRequired) {
-                                DpiHelper.ScaleBitmapLogicalToDevice(ref indeterminateCheckedBmp);
+                        if (DpiHelper.EnableToolStripHighDpiImprovements) {
+                            indeterminateCheckedImage = GetBitmapFromIcon("IndeterminateChecked.ico", scaledCheckMarkBitmapSize);
+                        }
+                        else {
+                            Bitmap indeterminateCheckedBmp = new Bitmap(typeof(ToolStripMenuItem), "IndeterminateChecked.bmp");
+                            if (indeterminateCheckedBmp != null) {
+                                // 
+                                indeterminateCheckedBmp.MakeTransparent(indeterminateCheckedBmp.GetPixel(1, 1));
+                                if (DpiHelper.IsScalingRequired) {
+                                    DpiHelper.ScaleBitmapLogicalToDevice(ref indeterminateCheckedBmp);
+                                }
+                                indeterminateCheckedImage = indeterminateCheckedBmp;
                             }
-                            indeterminateCheckedImage = indeterminateCheckedBmp;
                         }
                     }
                     return indeterminateCheckedImage;
                 }
                 else if (checkedState == CheckState.Checked)  {
                     if (checkedImage == null) {
-                        Bitmap checkedBmp = new Bitmap(typeof(ToolStripMenuItem), "Checked.bmp");
-                         if (checkedBmp != null) {  
-                            // 
-                            checkedBmp.MakeTransparent(checkedBmp.GetPixel(1,1));
-                            if (DpiHelper.IsScalingRequired) {
-                                DpiHelper.ScaleBitmapLogicalToDevice(ref checkedBmp);
+                        if (DpiHelper.EnableToolStripHighDpiImprovements) {
+                            checkedImage = GetBitmapFromIcon("Checked.ico", scaledCheckMarkBitmapSize);
+                        }
+                        else {
+                            Bitmap checkedBmp = new Bitmap(typeof(ToolStripMenuItem), "Checked.bmp");
+                            if (checkedBmp != null) {
+                                // 
+                                checkedBmp.MakeTransparent(checkedBmp.GetPixel(1, 1));
+                                if (DpiHelper.IsScalingRequired) {
+                                    DpiHelper.ScaleBitmapLogicalToDevice(ref checkedBmp);
+                                }
+                                checkedImage = checkedBmp;
                             }
-                            checkedImage = checkedBmp;
                         }
                     }
                     return checkedImage;
@@ -295,6 +317,44 @@ namespace System.Windows.Forms {
             }
         }
         
+        private static Bitmap GetBitmapFromIcon(string iconName, Size desiredIconSize)
+        {
+            Bitmap b = null;
+
+            Icon icon = new Icon(typeof(ToolStripMenuItem), iconName);
+            if (icon != null)
+            {
+                Icon desiredIcon = new Icon(icon, desiredIconSize);
+                if (desiredIcon != null)
+                {
+                    try
+                    {
+                        b = desiredIcon.ToBitmap();
+
+                        if (b != null)
+                        {
+                            b.MakeTransparent(b.GetPixel(1, 1));
+                            if (DpiHelper.IsScalingRequired && (b.Size.Width != desiredIconSize.Width || b.Size.Height != desiredIconSize.Height))
+                            {
+                                Bitmap scaledBitmap = DpiHelper.CreateResizedBitmap(b, desiredIconSize);
+                                if (scaledBitmap != null)
+                                {
+                                    b.Dispose();
+                                    b = scaledBitmap;
+                                }
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        icon.Dispose();
+                        desiredIcon.Dispose();
+                    }
+                }
+            }
+
+            return b;
+        }
 
          /// <include file='doc\WinBarMenuItem.uex' path='docs/doc[@for="ToolStripMenuItem.CheckOnClick"]/*' />
          [

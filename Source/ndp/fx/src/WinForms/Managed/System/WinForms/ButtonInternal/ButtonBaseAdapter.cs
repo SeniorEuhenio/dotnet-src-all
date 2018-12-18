@@ -52,7 +52,7 @@ namespace System.Windows.Forms.ButtonInternal {
 
         internal virtual Size GetPreferredSizeCore(Size proposedSize) {
             // this is a shared cached graphics, therefore it does not require dispose.
-            using (Graphics measurementGraphics = WindowsFormsUtils.CreateMeasurementGraphics()) {
+            using (Graphics measurementGraphics = WindowsFormsUtils.CreateMeasurementGraphics(Control)) {
                 using (PaintEventArgs pe = new PaintEventArgs(measurementGraphics, new Rectangle())) {
                     LayoutOptions options = Layout(pe);
                     return options.GetPreferredSizeCore(proposedSize);
@@ -1157,7 +1157,7 @@ namespace System.Windows.Forms.ButtonInternal {
                         layout.checkBounds.Y = (field.Y+field.Height)-layout.checkBounds.Height;
                     }
                     else if ((align & LayoutUtils.AnyTop) != 0) {
-                        layout.checkBounds.Y = field.Y + 2; // + 2: this needs to be aligned to the text (
+                        layout.checkBounds.Y = field.Y + 2; // + 2: this needs to be aligned to the text (bug 87483)
                     }
                     else {
                         layout.checkBounds.Y = field.Y + (field.Height - layout.checkBounds.Height)/2;
