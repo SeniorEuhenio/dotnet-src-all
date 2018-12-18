@@ -8,6 +8,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
 using System.Collections.Generic;
+using System.Windows.Automation;
 using System.Windows.Automation.Provider;
 
 using MS.Internal;
@@ -201,6 +202,8 @@ namespace System.Windows.Automation.Peers
         InputReachedOtherElement,
         ///
         InputDiscarded,
+        ///
+        LiveRegionChanged,
     }
 
 
@@ -685,6 +688,12 @@ namespace System.Windows.Automation.Peers
 
         ///
         abstract protected void SetFocusCore();
+        
+        ///
+        virtual protected AutomationLiveSetting GetLiveSettingCore()
+        {
+            return AutomationLiveSetting.Off;
+        }
 
         //
         // INTERNAL STUFF - NOT OVERRIDABLE
@@ -1148,6 +1157,25 @@ namespace System.Windows.Automation.Peers
             {
                 _publicSetFocusInProgress = false;
             }
+        }
+        
+        ///
+        public AutomationLiveSetting GetLiveSetting()
+        {
+            AutomationLiveSetting result = AutomationLiveSetting.Off;
+            if (_publicCallInProgress)
+                throw new InvalidOperationException(SR.Get(SRID.Automation_RecursivePublicCall));
+
+            try
+            {
+                _publicCallInProgress = true;
+                result = GetLiveSettingCore();
+            }
+            finally
+            {
+                _publicCallInProgress = false;
+            }
+            return result;
         }
 
         ///
@@ -2038,6 +2066,10 @@ namespace System.Windows.Automation.Peers
             s_propertyInfo[AutomationElementIdentifiers.FrameworkIdProperty.Id] = new GetProperty(GetFrameworkId);
             s_propertyInfo[AutomationElementIdentifiers.IsRequiredForFormProperty.Id] = new GetProperty(IsRequiredForForm);
             s_propertyInfo[AutomationElementIdentifiers.ItemStatusProperty.Id] = new GetProperty(GetItemStatus);
+            if (!CoreAppContextSwitches.UseLegacyAccessibilityFeatures && AutomationElementIdentifiers.LiveSettingProperty != null)
+            {
+                s_propertyInfo[AutomationElementIdentifiers.LiveSettingProperty.Id] = new GetProperty(GetLiveSetting);
+            }
         }
 
         private delegate object WrapObject(AutomationPeer peer, object iface);
@@ -2085,6 +2117,7 @@ namespace System.Windows.Automation.Peers
         private static object GetFrameworkId(AutomationPeer peer)           {   return peer.GetFrameworkId();   }
         private static object IsRequiredForForm(AutomationPeer peer)        {   return peer.IsRequiredForForm();    }
         private static object GetItemStatus(AutomationPeer peer)            {   return peer.GetItemStatus();    }
+        private static object GetLiveSetting(AutomationPeer peer)           {   return peer.GetLiveSetting();    }
 
         private static Hashtable s_patternInfo;
         private static Hashtable s_propertyInfo;

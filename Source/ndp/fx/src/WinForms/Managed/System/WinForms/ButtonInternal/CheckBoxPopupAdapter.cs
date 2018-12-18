@@ -36,8 +36,9 @@ namespace System.Windows.Forms.ButtonInternal {
                 PaintImage(e, layout);
                 
                 DrawCheckBackground(e, layout.checkBounds, colors.windowText, colors.options.highContrast ? colors.buttonFace : colors.highlight, true, colors);
-                DrawFlatBorder(e.Graphics, layout.checkBounds, colors.buttonShadow);
-                DrawCheckOnly(e, layout, colors, colors.windowText, colors.highlight, true);
+                DrawFlatBorder(e.Graphics, layout.checkBounds, 
+                    (colors.options.highContrast && !Control.Enabled && !LocalAppContextSwitches.UseLegacyAccessibilityFeatures) ? colors.windowFrame : colors.buttonShadow);
+                DrawCheckOnly(e, layout, colors, colors.windowText, colors.highlight);
 
                 PaintField(e, layout, colors, colors.windowText, true);
             }
@@ -60,7 +61,7 @@ namespace System.Windows.Forms.ButtonInternal {
                 
                 DrawCheckBackground(e, layout.checkBounds, colors.windowText, colors.options.highContrast ? colors.buttonFace : colors.highlight, true, colors);
                 DrawPopupBorder(g, layout.checkBounds, colors);
-                DrawCheckOnly(e, layout, colors, colors.windowText, colors.highlight, true);
+                DrawCheckOnly(e, layout, colors, colors.windowText, colors.highlight);
 
                 e.Graphics.Clip = original;
                 e.Graphics.ExcludeClip(layout.checkArea);
@@ -86,7 +87,7 @@ namespace System.Windows.Forms.ButtonInternal {
                 
                 DrawCheckBackground(e, layout.checkBounds, colors.windowText, colors.buttonFace, true, colors);
                 DrawPopupBorder(g, layout.checkBounds, colors);
-                DrawCheckOnly(e, layout, colors, colors.windowText, colors.buttonFace, true);
+                DrawCheckOnly(e, layout, colors, colors.windowText, colors.buttonFace);
 
                 PaintField(e, layout, colors, colors.windowText, true);
             }

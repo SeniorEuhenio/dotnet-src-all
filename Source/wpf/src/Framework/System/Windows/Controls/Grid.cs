@@ -1787,7 +1787,7 @@ namespace System.Windows.Controls
             }
         }
 
-        // new implementation as of 4.6.3.  Several improvements:
+        // new implementation as of 4.7.  Several improvements:
         // 1. Allocate to *-defs hitting their min or max constraints, before allocating
         //      to other *-defs.  A def that hits its min uses more space than its
         //      proportional share, reducing the space available to everyone else.
@@ -2004,7 +2004,7 @@ namespace System.Windows.Controls
                 {
                     // if no *-defs remain and we haven't allocated all the space, reconsider the defs
                     // resolved as 'min'.   Their allocation can be increased to make up the gap.
-                    for (int i = 0; i < minCountPhase2; ++i)
+                    for (int i = minCount; i < minCountPhase2; ++i)
                     {
                         DefinitionBase def = tempDefinitions[i];
                         if (def != null)
@@ -2020,7 +2020,7 @@ namespace System.Windows.Controls
                 {
                     // if we've allocated too much space, reconsider the defs
                     // resolved as 'max'.   Their allocation can be decreased to make up the gap.
-                    for (int i = 0; i < maxCountPhase2; ++i)
+                    for (int i = maxCount; i < maxCountPhase2; ++i)
                     {
                         DefinitionBase def = tempDefinitions[defCount + i];
                         if (def != null)
@@ -2362,7 +2362,7 @@ namespace System.Windows.Controls
             }
         }
 
-        // new implementation, as of 4.6.2.  This incorporates the same algorithm
+        // new implementation, as of 4.7.  This incorporates the same algorithm
         // as in ResolveStarMaxDiscrepancy.  It differs in the same way that SetFinalSizeLegacy
         // differs from ResolveStarLegacy, namely (a) leaves results in def.SizeCache
         // instead of def.MeasureSize, (b) implements LayoutRounding if requested,
@@ -2646,7 +2646,7 @@ namespace System.Windows.Controls
                 {
                     // if no *-defs remain and we haven't allocated all the space, reconsider the defs
                     // resolved as 'min'.   Their allocation can be increased to make up the gap.
-                    for (int i = 0; i < minCountPhase2; ++i)
+                    for (int i = minCount; i < minCountPhase2; ++i)
                     {
                         if (definitionIndices[i] >= 0)
                         {
@@ -2662,7 +2662,7 @@ namespace System.Windows.Controls
                 {
                     // if we've allocated too much space, reconsider the defs
                     // resolved as 'max'.   Their allocation can be decreased to make up the gap.
-                    for (int i = 0; i < maxCountPhase2; ++i)
+                    for (int i = maxCount; i < maxCountPhase2; ++i)
                     {
                         if (definitionIndices[defCount + i] >= 0)
                         {

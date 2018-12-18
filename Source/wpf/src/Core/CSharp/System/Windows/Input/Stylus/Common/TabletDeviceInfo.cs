@@ -35,7 +35,7 @@ namespace System.Windows.Input
         ///     This data is not safe to expose as it holds refrence to IPimcTablet
         /// </SecurityNote>
         [SecurityCritical]
-        public SecurityCriticalDataClass<IPimcTablet> PimcTablet;
+        public SecurityCriticalDataClass<IPimcTablet2> PimcTablet;
         public int Id;
         public string Name;
         public string PlugAndPlayId;

@@ -51,7 +51,27 @@ namespace MS.Internal
         }
 
         #endregion
+
+        /// <summary>
+        /// DDVSO:395149
+        /// PacakageDigitalSignatureManager.DefaultHashAlgorithm is now SHA256.  Setting this flag will make it SHA1 as it is in legacy scenarios prior to .NET 4.7.1.
+        /// </summary>
+        #region UseSha1AsDefaultHashAlgorithmForDigitalSignatures
+
+        internal const string SwitchUseSha1AsDefaultHashAlgorithmForDigitalSignatures = "Switch.MS.Internal.UseSha1AsDefaultHashAlgorithmForDigitalSignatures";
+        private static int _useSha1AsDefaultHashAlgorithmForDigitalSignatures;
+
+        public static bool UseSha1AsDefaultHashAlgorithmForDigitalSignatures
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                return LocalAppContext.GetCachedSwitchValue(SwitchUseSha1AsDefaultHashAlgorithmForDigitalSignatures, ref _useSha1AsDefaultHashAlgorithmForDigitalSignatures);
+            }
+        }
+
+        #endregion
     }
 
-    #pragma warning restore 436
+#pragma warning restore 436
 }

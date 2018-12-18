@@ -70,7 +70,7 @@ namespace System.Windows.Forms.ButtonInternal {
             // VSWhidbey 420870
             if (Application.RenderWithVisualStyles) {
                 ButtonBase b = Control; 
-                using (Graphics g = WindowsFormsUtils.CreateMeasurementGraphics(b)) {
+                using (Graphics g = WindowsFormsUtils.CreateMeasurementGraphics()) {
                     layout.checkSize = RadioButtonRenderer.GetGlyphSize(g, RadioButtonRenderer.ConvertFromButtonState(GetState(), b.MouseIsOver), b.HandleInternal).Width;
                 }
             }

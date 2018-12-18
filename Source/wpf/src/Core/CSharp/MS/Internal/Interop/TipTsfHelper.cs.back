@@ -63,7 +63,10 @@ namespace MS.Internal.Interop
             // If the touch stack is disabled or the WM_POINTER touch stack 
             // is enabled, we get touch KB support for free.  So don't 
             // attempt any calls into InputPane for these scenarios. 
+            // DDVSO:362756
+            // Don't show if implicit invocation is turned off.
             if (s_PlatformSupported
+                && !CoreAppContextSwitches.DisableImplicitTouchKeyboardInvocation
                 && StylusLogic.IsStylusAndTouchSupportEnabled
                 && !StylusLogic.IsPointerStackEnabled
                 && ShouldShow(focusedObject))

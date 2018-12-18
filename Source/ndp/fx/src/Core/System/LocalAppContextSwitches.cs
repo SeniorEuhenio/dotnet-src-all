@@ -63,6 +63,30 @@ namespace System
                 return LocalAppContext.GetCachedSwitchValue(AesCryptoServiceProviderDontCorrectlyResetDecryptorStr, ref _aesCryptoServiceProviderDontCorrectlyResetDecryptorName);
             }
         }
+
+        //
+        //  Switch.System.Security.Cryptography.SymmetricCng.AlwaysUseNCrypt
+        //
+        //    The returned object from CreateEncryptor or CreateDecryptor of AesCng and TripleDESCng in prior framework
+        //    versions always used NCryptEncrypt and NCryptDecrypt, but NCrypt* APIs have an IPC and indirection cost
+        //    that makes them orders of magnitude slower than the BCrypt* equivalents (at least, for small data sizes).
+        //
+        //    Now when an ephemeral key is being used we will use BCrypt* functions, and when a persisted key is being
+        //    used we will use the NCrypt* functions.
+        //
+        //    Setting this switch to "true" returns to always using the NCrypt* functions, with any performance and side
+        //    effect consequences.
+        //
+        internal const string SymmetricCngAlwaysUseNCryptStr = @"Switch.System.Security.Cryptography.SymmetricCng.AlwaysUseNCrypt";
+        private static int _symmetricCngAlwaysUseNCryptName;
+        public static bool SymmetricCngAlwaysUseNCrypt
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                return LocalAppContext.GetCachedSwitchValue(SymmetricCngAlwaysUseNCryptStr, ref _symmetricCngAlwaysUseNCryptName);
+            }
+        }
     }
 
     internal static partial class AppContextDefaultValues

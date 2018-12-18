@@ -398,7 +398,12 @@ namespace System.Windows.Forms {
         }
 
         protected override AccessibleObject CreateAccessibilityInstance() {
-           return new ToolStripSplitButtonAccessibleObject(this);
+            if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                return new ToolStripSplitButtonExAccessibleObject(this);
+            }
+            else {
+                return new ToolStripSplitButtonAccessibleObject(this);
+            }
        }
 
         protected override ToolStripDropDown CreateDefaultDropDown() {
@@ -789,12 +794,62 @@ namespace System.Windows.Forms {
             public override void DoDefaultAction() {
                 owner.PerformButtonClick();
             }
-         
         }
-        
 
+        /// <include file='doc\ToolStripDropDownItem.uex' path='docs/doc[@for="ToolStripSplitButtonExAccessibleObject"]/*' /> 
+        internal class ToolStripSplitButtonExAccessibleObject: ToolStripSplitButtonAccessibleObject {
+
+            private ToolStripSplitButton ownerItem;
+
+            public ToolStripSplitButtonExAccessibleObject(ToolStripSplitButton item)
+                : base(item) {
+                ownerItem = item;
+            }
+
+            internal override object GetPropertyValue(int propertyID) {
+                if (propertyID == NativeMethods.UIA_ControlTypePropertyId) {
+                    return NativeMethods.UIA_ButtonControlTypeId;
+                }
+                else {
+                    return base.GetPropertyValue(propertyID);
+                }
+            }
+
+            internal override bool IsIAccessibleExSupported() {
+                if (ownerItem != null) {
+                    return true;
+                }
+                else {
+                    return base.IsIAccessibleExSupported();
+                }
+            }
+
+            internal override bool IsPatternSupported(int patternId) {
+                if (patternId == NativeMethods.UIA_ExpandCollapsePatternId && ownerItem.HasDropDownItems) {
+                    return true;
+                }
+                else {
+                    return base.IsPatternSupported(patternId);
+                }
+            }
+
+            internal override void Expand() {
+                DoDefaultAction();
+            }
+
+            internal override void Collapse() {
+                if (ownerItem != null && ownerItem.DropDown != null && ownerItem.DropDown.Visible) {
+                    ownerItem.DropDown.Close();
+                }
+            }
+
+            internal override UnsafeNativeMethods.ExpandCollapseState ExpandCollapseState {
+                get {
+                    return ownerItem.DropDown.Visible ? UnsafeNativeMethods.ExpandCollapseState.Expanded : UnsafeNativeMethods.ExpandCollapseState.Collapsed;
+                }
+            }
+        }
     }
-
 }
     
 

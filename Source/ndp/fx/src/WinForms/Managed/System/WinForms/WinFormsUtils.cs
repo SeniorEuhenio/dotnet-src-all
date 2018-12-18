@@ -64,20 +64,6 @@ namespace System.Windows.Forms {
             return Graphics.FromHdcInternal(WindowsGraphicsCacheManager.MeasurementGraphics.DeviceContext.Hdc);
         }
        
-        /// this graphics requires disposal.
-        [ResourceExposure(ResourceScope.Process)]
-        [ResourceConsumption(ResourceScope.Process)]
-        public static Graphics CreateMeasurementGraphics(Control control) {
-            Graphics g = null;
-            if (DpiHelper.EnableDpiChangedMessageHandling && control != null && control.IsHandleCreated) {
-                HandleRef handle = new HandleRef(control, control.Handle);
-                g = Graphics.FromHdcInternal(Screen.GetMeasurementsGraphicsForHandleRef(handle).DeviceContext.Hdc);
-            } else {
-                g = CreateMeasurementGraphics();  
-            }
-            return g;
-        }
-
         // If you want to know if a piece of text contains one and only one &
         // this is your function.  If you have a character "t" and want match it to &Text
         // Control.IsMnemonic is a better bet.

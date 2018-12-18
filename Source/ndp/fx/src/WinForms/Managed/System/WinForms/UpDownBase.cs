@@ -1253,6 +1253,19 @@ namespace System.Windows.Forms {
                 this.parent = parent;
             }
 
+            public override string Text {
+                get {
+                    return base.Text;
+                }
+                set {
+                    bool valueChanged = (value != base.Text);
+                    base.Text = value;      
+                    if (valueChanged && !LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                            AccessibilityNotifyClients(AccessibleEvents.NameChange, -1);
+                    }
+                }
+            }
+
             protected override AccessibleObject CreateAccessibilityInstance() {
                 return new UpDownEditAccessibleObject(this, parent);
             }

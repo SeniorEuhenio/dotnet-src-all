@@ -29,7 +29,7 @@ namespace System.Windows.Input
 
         /////////////////////////////////////////////////////////////////////
         /// <SecurityNote>
-        ///     Critical:  creates security critical data (IpimcTablet)
+        ///     Critical:  creates security critical data (IPimcTablet2)
         /// </SecurityNote>
         [SecurityCritical]
         internal WispTabletDevice(TabletDeviceInfo tabletInfo, PenThread penThread)
@@ -378,7 +378,7 @@ namespace System.Windows.Input
                 // DDVSO:174153
                 // Force tablets to clean up as soon as they are disposed.  This helps to reduce
                 // COM references that might be waiting for RCWs to finalize.
-                IPimcTablet tablet = _tabletInfo.PimcTablet?.Value;
+                IPimcTablet2 tablet = _tabletInfo.PimcTablet?.Value;
                 _tabletInfo.PimcTablet = null;
 
                 if (tablet != null)

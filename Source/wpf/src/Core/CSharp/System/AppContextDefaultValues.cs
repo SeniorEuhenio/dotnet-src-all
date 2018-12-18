@@ -34,6 +34,11 @@ namespace System
                         {
                             LocalAppContext.DefineSwitchDefault(CoreAppContextSwitches.OverrideExceptionWithNullReferenceExceptionName, true);
                         }
+                        
+                        if (targetFrameworkVersion <= 40700)
+                        {
+                            LocalAppContext.DefineSwitchDefault(CoreAppContextSwitches.UseLegacyAccessibilityFeaturesSwitchName, true);
+                        }
 
                         break;
                     }

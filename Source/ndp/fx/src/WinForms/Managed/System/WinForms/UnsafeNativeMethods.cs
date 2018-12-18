@@ -1328,8 +1328,12 @@ namespace System.Windows.Forms {
 
         [DllImport(ExternDll.Kernel32, CharSet=CharSet.Auto, SetLastError=true)]
         [ResourceExposure(ResourceScope.Machine)]
-        public static extern IntPtr LoadLibrary(string libname);
+        private static extern IntPtr LoadLibrary(string libname);
        
+        [DllImport(ExternDll.Kernel32, CharSet=CharSet.Auto, SetLastError=true, BestFitMapping=false)]
+        [ResourceExposure(ResourceScope.Machine)]
+        private static extern IntPtr LoadLibraryEx(string lpModuleName, IntPtr hFile, uint dwFlags);
+
         [DllImport(ExternDll.Kernel32, CharSet=CharSet.Auto, SetLastError=true)]
         [ResourceExposure(ResourceScope.None)]
         public static extern bool FreeLibrary(HandleRef hModule);
@@ -8234,5 +8238,260 @@ namespace System.Windows.Forms {
             string[] activationData,
             PROCESS_INFORMATION processInformation);
 
+        // UIAutomation interfaces and enums
+        // obtained from UIAutomation source code
+
+        [ComVisible(true)]
+        [Guid("76d12d7e-b227-4417-9ce2-42642ffa896a")]
+        public enum ExpandCollapseState {
+            /// <summary>No children are showing</summary>
+            Collapsed,
+            /// <summary>All children are showing</summary>
+            Expanded,
+            /// <summary>Not all children are showing</summary>
+            PartiallyExpanded,
+            /// <summary>Does not expand or collapse</summary>
+            LeafNode
+        }
+
+        [Flags]
+        public enum ProviderOptions {
+            /// <summary>Indicates that this is a client-side provider</summary>
+            ClientSideProvider = 0x0001,
+            /// <summary>Indicates that this is a server-side provider</summary>
+            ServerSideProvider = 0x0002,
+            /// <summary>Indicates that this is a non-client-area provider</summary>
+            NonClientAreaProvider = 0x0004,
+            /// <summary>Indicates that this is an override provider</summary>
+            OverrideProvider = 0x0008,
+
+            /// <summary>Indicates that this provider handles its own focus, and does not want
+            /// UIA to set focus to the nearest HWND on its behalf when AutomationElement.SetFocus
+            /// is used. This option is typically used by providers for HWNDs that appear to take
+            /// focus without actually receiving actual Win32 focus, such as menus and dropdowns</summary>
+            ProviderOwnsSetFocus = 0x0010,
+
+            /// <summary>Indicates that this provider expects to be called according to COM threading rules:
+            /// if the provider is in a Single-Threaded Apartment, it will be called only on the apartment
+            /// thread. Only Server-side providers can use this option.</summary>
+            UseComThreading = 0x0020
+        }
+
+        public static readonly Guid guid_IAccessibleEx = new Guid("{F8B80ADA-2C44-48D0-89BE-5FF23C9CD875}");
+
+        /// <SecurityNote>
+        ///     Critical:Elevates to Unmanaged code permission
+        /// </SecurityNote>
+        [SecurityCritical(SecurityCriticalScope.Everything)]
+        [ComImport()]
+        [Guid("6D5140C1-7436-11CE-8034-00AA006009FA")]
+        [InterfaceTypeAttribute(ComInterfaceType.InterfaceIsIUnknown)]
+        internal interface IServiceProvider {
+            ///<SecurityNote>
+            /// Critical elevates via a SUC.
+            ///</SecurityNote>
+            [SuppressUnmanagedCodeSecurity, SecurityCritical]
+            [PreserveSig]
+            int QueryService(ref Guid service, ref Guid riid, out IntPtr ppvObj);
+        }
+
+        [SecurityCritical(SecurityCriticalScope.Everything)]
+        [ComVisible(true)]
+        [ComImport()]
+        [InterfaceTypeAttribute(ComInterfaceType.InterfaceIsIUnknown)]
+        [CLSCompliantAttribute(false)]
+        [Guid("F8B80ADA-2C44-48D0-89BE-5FF23C9CD875")]
+        internal interface IAccessibleEx {
+            // Returns the IAccessibleEx for specified child. Returns
+            // S_OK/NULL if this implementation does not use child ids,
+            // or does not have an IAccessibleEx for the specified child,
+            // or already represents a child element.
+            // idChild must be normalized; ie. client must have previously
+            // used get_accChild to check whether it actually has its own
+            // IAccessible. Only idChild values that do not have a corresponding
+            // IAccessible can be used here.
+
+            [return: MarshalAs(UnmanagedType.IUnknown)]
+            object GetObjectForChild(int idChild);
+
+            // Returns an IAccessible and idChild pair for this IAccessibleEx.
+            // Implementation must return fully normalized idChild values: ie.
+            // it is not required to call get_accChild on the resulting pair.
+            //
+            // For IAccessible implementations that do not use child ids, this
+            // just returns the corresponding IAccessible and CHILDID_SELF.
+            [return: MarshalAs(UnmanagedType.I4)]
+            [PreserveSig]
+            int GetIAccessiblePair(
+            [Out, MarshalAs(UnmanagedType.Interface)]
+            out object /*UnsafeNativeMethods.IAccessible*/ ppAcc,
+            [Out] out int pidChild);
+
+            [return: MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_I4)]
+            int[] GetRuntimeId();
+
+            // Some wrapper-based implementations (notably UIABridge) can't reasonably wrap all
+            // IRawElementProviderSimple elements returned as property values or patterns, so
+            // these elements won't QI to IAccessibleEx. Where this is the case, the original
+            // IAccessibleEx that the property was retreived from must implement this method
+            // so that the client can get an IAccessibleEx.
+            //
+            // Usage for a client is as follows:
+            // When an IRawElementProviderSimple is obtained as a property value,
+            // - first try to QI to IAccessibleEx
+            // - if that fails, call this method on the source IAccessibleEx
+            [return: MarshalAs(UnmanagedType.I4)]
+            [PreserveSig]
+            int ConvertReturnedElement(
+            [In, MarshalAs(UnmanagedType.Interface)]
+            object /*UnsafeNativeMethods.IRawElementProviderSimple*/ pIn,
+            [Out, MarshalAs(UnmanagedType.Interface)]
+            out object /*UnsafeNativeMethods.IAccessibleEx*/ ppRetValOut);
+        }
+
+
+        [SecurityCritical(SecurityCriticalScope.Everything)]
+        [ComVisible(true)]
+        [ComImport()]
+        [Guid("d847d3a5-cab0-4a98-8c32-ecb45c59ad24")]
+        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        public interface IExpandCollapseProvider {
+            /// <summary>
+            /// Blocking method that returns after the element has been expanded.
+            /// </summary>
+            void Expand();
+
+            /// <summary>
+            /// Blocking method that returns after the element has been collapsed.
+            /// </summary>
+            void Collapse();
+
+            ///<summary>indicates an element's current Collapsed or Expanded state</summary>
+            ExpandCollapseState ExpandCollapseState {
+                get;
+            }
+        }
+
+        [SecurityCritical(SecurityCriticalScope.Everything)]
+        [ComVisible(true)]
+        [ComImport()]
+        [Guid("c7935180-6fb3-4201-b174-7df73adbf64a")]
+        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        public interface IValueProvider {
+            /// <summary>
+            /// Request to set the value that this UI element is representing
+            /// </summary>
+            /// <param name="value">Value to set the UI to</param>
+            void SetValue([MarshalAs(UnmanagedType.LPWStr)] string value);
+
+            ///<summary>Value of a value control, as a a string.</summary>
+            string Value {
+                get;
+            }
+
+            ///<summary>Indicates that the value can only be read, not modified.
+            ///returns True if the control is read-only</summary>
+            bool IsReadOnly {
+                [return: MarshalAs(UnmanagedType.Bool)] // CLR bug? Without this, only lower SHORT of BOOL*pRetVal param is updated.
+                get;
+            }
+        }
+
+        [SecurityCritical(SecurityCriticalScope.Everything)]
+        [ComImport()]
+        [ComVisible(true)]
+        [Guid("D6DD68D1-86FD-4332-8666-9ABEDEA2D24C")]
+        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        [CLSCompliantAttribute(false)]
+        public interface IRawElementProviderSimple {
+            /// <summary>
+            /// Indicates the type of provider this is, for example, whether it is a client-side
+            /// or server-side provider.
+            /// </summary>
+            /// <remarks>
+            /// Providers must specify at least either one of ProviderOptions.ClientSideProvider
+            /// or ProviderOptions.ServerSideProvider.
+            /// 
+            /// UIAutomation treats different types of providers
+            /// differently - for example, events from server-side provider are broadcast to all listening
+            /// clients, whereas events from client-side providers remain in that client.
+            /// </remarks>
+            ProviderOptions ProviderOptions {
+                get;
+            }
+
+            /// <summary>
+            /// Get a pattern interface from this object
+            /// </summary>
+            /// <param name="patternId">Identifier indicating the interface to return</param>
+            /// <returns>Returns the interface as an object, if supported; otherwise returns null/</returns>
+            [return: MarshalAs(UnmanagedType.IUnknown)]
+            object GetPatternProvider(int patternId);
+
+            /// <summary>
+            /// Request value of specified property from an element.
+            /// </summary>
+            /// <param name="propertyId">Identifier indicating the property to return</param>
+            /// <returns>Returns a ValInfo indicating whether the element supports this property, or has no value for it.</returns>
+            object GetPropertyValue(int propertyId);
+
+            // Only native impl roots need to return something for this,
+            // proxies always return null (cause we already know their HWNDs)
+            // If proxies create themselves when handling winvents events, then they
+            // also need to implement this so we can determine the HWND. Still only
+            // lives on a root, however.
+            /// <summary>
+            /// Returns a base provider for this element.
+            ///
+            /// Typically only used by elements that correspond directly to a Win32 Window Handle,
+            /// in which case the implementation returns AutomationInteropProvider.BaseElementFromHandle( hwnd ).
+            /// </summary>
+            IRawElementProviderSimple HostRawElementProvider {
+                get;
+            }
+        }
+
+        [Flags]
+        public enum ToggleState {
+            ToggleState_Off = 0,
+            ToggleState_On = 1,
+            ToggleState_Indeterminate = 2
+        }
+
+        [SecurityCritical(SecurityCriticalScope.Everything)]
+        [ComImport()]
+        [ComVisible(true)]
+        [Guid("56D00BD0-C4F4-433C-A836-1A52A57E0892")]
+        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        [CLSCompliantAttribute(false)]
+        public interface IToggleProvider {
+            void Toggle();
+
+            ///<summary>indicates an element's current on or off state</summary>
+            ToggleState ToggleState {
+                get;
+            }
+        }
+
+        public static IntPtr LoadLibraryFromSystemPathIfAvailable(string libraryName) {
+            IntPtr module = IntPtr.Zero;
+
+            // KB2533623 introduced the LOAD_LIBRARY_SEARCH_SYSTEM32 flag. It also introduced
+            // the AddDllDirectory function. We test for presence of AddDllDirectory as an 
+            // indirect evidence for the support of LOAD_LIBRARY_SEARCH_SYSTEM32 flag. 
+            IntPtr kernel32 = GetModuleHandle(ExternDll.Kernel32);
+            if (kernel32 != IntPtr.Zero) {
+                if (GetProcAddress(new HandleRef(null, kernel32), "AddDllDirectory") != IntPtr.Zero) {
+                    module = LoadLibraryEx(libraryName, IntPtr.Zero, NativeMethods.LOAD_LIBRARY_SEARCH_SYSTEM32);
+                } else {
+                    // LOAD_LIBRARY_SEARCH_SYSTEM32 is not supported on this OS. 
+                    // Fall back to using plain ol' LoadLibrary
+                    // There is risk that this call might fail, or that it might be
+                    // susceptible to DLL hijacking. 
+                    module = LoadLibrary(libraryName);
+                }
+            }
+            return module;
+        }
     }
 }

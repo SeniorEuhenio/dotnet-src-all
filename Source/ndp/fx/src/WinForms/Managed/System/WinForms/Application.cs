@@ -151,7 +151,7 @@ namespace System.Windows.Forms {
                 else
                 {
                     // Load comctl since GetModuleHandle failed to find it
-                    hModule = UnsafeNativeMethods.LoadLibrary(ExternDll.Comctl32);
+                    hModule = UnsafeNativeMethods.LoadLibraryFromSystemPathIfAvailable(ExternDll.Comctl32);
                     if (hModule != IntPtr.Zero)
                     {
                         try

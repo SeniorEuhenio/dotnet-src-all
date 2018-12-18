@@ -1456,6 +1456,7 @@ namespace System.Net {
         {
             lock (this)
             {
+                Debug.Assert(request.WriteBuffer == null);
                 request.HeadersCompleted = true;
                 if (m_WriteList.Count == 0)
                 {

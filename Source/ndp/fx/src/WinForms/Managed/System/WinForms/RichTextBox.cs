@@ -360,7 +360,7 @@ namespace System.Windows.Forms {
                 // Check for library
                 if (moduleHandle == IntPtr.Zero) {
                     string richEditControlDllVersion = LocalAppContextSwitches.DoNotLoadLatestRichEditControl ? RichTextBoxConstants.DLL_RICHEDIT : RichTextBoxConstants.DLL_RICHEDIT_41;
-                    moduleHandle = UnsafeNativeMethods.LoadLibrary(richEditControlDllVersion);
+                    moduleHandle = UnsafeNativeMethods.LoadLibraryFromSystemPathIfAvailable(richEditControlDllVersion);
 
                     int lastWin32Error = Marshal.GetLastWin32Error();
 

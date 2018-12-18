@@ -69,7 +69,7 @@ namespace System.Windows.Forms
         {
             this.fillWeight = DATAGRIDVIEWCOLUMN_defaultFillWeight;
             this.usedFillWeight = DATAGRIDVIEWCOLUMN_defaultFillWeight;
-            this.Thickness = (DATAGRIDVIEWCOLUMN_defaultWidth);
+            this.Thickness = ScaleToCurrentDpi(DATAGRIDVIEWCOLUMN_defaultWidth);
             this.MinimumThickness = ScaleToCurrentDpi(DATAGRIDVIEWCOLUMN_defaultMinColumnThickness);
             this.name = String.Empty;
             this.bandIsRow = false;

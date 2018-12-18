@@ -23,6 +23,7 @@ namespace System
                 return LocalAppContext.GetCachedSwitchValue(MemberDescriptorEqualsReturnsFalseIfEquivalentName, ref _memberDescriptorEqualsReturnsFalseIfEquivalent);
             }
         }
+
         #endregion
 
         #region System.Net quirks
@@ -85,7 +86,31 @@ namespace System
                 return LocalAppContext.GetCachedSwitchValue(DontEnableTlsAlertsName, ref _dontEnableTlsAlerts);
             }
         }
+
+        private static int _dontCheckCertificateEKUs;
+        internal const string DontCheckCertificateEKUsName = @"Switch.System.Net.DontCheckCertificateEKUs";
+
+        public static bool DontCheckCertificateEKUs
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                return LocalAppContext.GetCachedSwitchValue(DontCheckCertificateEKUsName, ref _dontCheckCertificateEKUs);
+            }
+        }
         #endregion
 
+
+        private static int _doNotCatchSerialStreamThreadExceptions;
+        internal const string DoNotCatchSerialStreamThreadExceptionsName = @"Switch.System.IO.Ports.DoNotCatchSerialStreamThreadExceptions";
+
+        public static bool DoNotCatchSerialStreamThreadExceptions
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                return LocalAppContext.GetCachedSwitchValue(DoNotCatchSerialStreamThreadExceptionsName, ref _doNotCatchSerialStreamThreadExceptions);
+            }
+        }
     }
 }

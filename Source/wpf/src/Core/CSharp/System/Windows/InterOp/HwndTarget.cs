@@ -86,6 +86,16 @@ namespace System.Windows.Interop
         [SecurityCritical]
         private static WindowMessage s_needsRePresentOnWake;
 
+        /// <summary>
+        /// wpfgfx will raise this message whenever a new display-set is enumerated.
+        /// wParam: 1 if valid displays are available, 0 otherwise
+        /// lParam: Not used
+        /// </summary>
+        /// <securitynote>
+        /// critical: gets to the unmanaged layer
+        /// </securitynote>
+        [SecurityCritical]
+        private static WindowMessage s_DisplayDevicesAvailabilityChanged;
 
         private MatrixTransform _worldTransform;
         private double _devicePixelsPerInchX;
@@ -145,6 +155,32 @@ namespace System.Windows.Interop
         // Any failure after that until another sleep state event occurs will not trigger an invalidate.
         private bool _hasRePresentedSinceWake = false;
 
+        /// <summary>
+        /// True if wpfgfx indicates that valid displays 
+        /// are available. This is communiated by use of the 
+        /// window message <see cref="s_DisplayDevicesAvailabilityChanged"/>
+        /// </summary>
+        private bool _displayDevicesAvailable = true;
+
+        /// <summary>
+        /// True if WM_PAINT processing was deferred due to 
+        /// <see cref="_displayDevicesAvailable"/> being false.
+        /// 
+        /// We will use this flag to determine whether we need to 
+        /// invalidate the entire window when display devices become 
+        /// available
+        /// </summary>
+        private bool _wasWmPaintProcessingDeferred = false; 
+
+        /// <summary>
+        /// Session ID of this process
+        /// </summary>
+        /// <remarks>
+        /// If the query for the session ID using WTS API's fails, 
+        /// then this value will remain null
+        /// </remarks>
+        private int? _sessionId = null;
+
         // The time of the last wake or unlock message we received. When we receive a lock/sleep message,
         // we set this value to DateTime.MinValue
         private DateTime _lastWakeOrUnlockEvent;
@@ -169,6 +205,8 @@ namespace System.Windows.Interop
         {
             s_updateWindowSettings = UnsafeNativeMethods.RegisterWindowMessage("UpdateWindowSettings");
             s_needsRePresentOnWake = UnsafeNativeMethods.RegisterWindowMessage("NeedsRePresentOnWake");
+            s_DisplayDevicesAvailabilityChanged = 
+                UnsafeNativeMethods.RegisterWindowMessage("DisplayDevicesAvailabilityChanged");
         }
 
         /// <summary>
@@ -191,6 +229,13 @@ namespace System.Windows.Interop
         public HwndTarget(IntPtr hwnd)
         {
             bool exceptionThrown = true;
+
+            _sessionId = SafeNativeMethods.GetCurrentSessionId();
+            _isSessionDisconnected = !SafeNativeMethods.IsCurrentSessionConnectStateWTSActive(_sessionId);
+            if (_isSessionDisconnected)
+            {
+                _needsRePresentOnWake = true;
+            }
 
             AttachToHwnd(hwnd);
 
@@ -855,6 +900,15 @@ namespace System.Windows.Interop
                 }
                 return result;
             }
+            else if (msg == s_DisplayDevicesAvailabilityChanged)
+            {
+                _displayDevicesAvailable = (wparam.ToInt32() != 0);
+                if (_displayDevicesAvailable && _wasWmPaintProcessingDeferred)
+                {
+                    UnsafeNativeMethods.InvalidateRect(_hWnd.MakeHandleRef(this), IntPtr.Zero, true);
+                    DoPaint();
+                }
+            }
             else if (msg == s_updateWindowSettings)
             {
                 // Make sure we enable the render target if the window is visible.
@@ -882,7 +936,9 @@ namespace System.Windows.Interop
                 TimeSpan delta = DateTime.Now - _lastWakeOrUnlockEvent;
                 bool fWithinPresentRetryWindow = delta.TotalSeconds < _allowedPresentFailureDelay;
 
-                if (_isSessionDisconnected || _isSuspended || (_hasRePresentedSinceWake && !fWithinPresentRetryWindow))
+                if (_isSessionDisconnected || _isSuspended || 
+                    (_hasRePresentedSinceWake && !fWithinPresentRetryWindow) || 
+                    !_displayDevicesAvailable)
                 {
                     _needsRePresentOnWake = true;
                 }
@@ -912,8 +968,16 @@ namespace System.Windows.Interop
                     break;
 
                 case WindowMessage.WM_PAINT:
-                    DoPaint();
-                    result = handled;
+                    if (_displayDevicesAvailable)
+                    {
+                        _wasWmPaintProcessingDeferred = false;
+                        DoPaint();
+                        result = handled;
+                    }
+                    else
+                    {
+                        _wasWmPaintProcessingDeferred = true;
+                    }
                     break;
 
                 case WindowMessage.WM_SIZE:
@@ -1072,6 +1136,11 @@ namespace System.Windows.Interop
                 //      we're switched out and will render on coming back.
                 //
                 case WindowMessage.WM_WTSSESSION_CHANGE:
+                    // If this message did not originate in our workstation session, then ignore it. 
+                    if (_sessionId.HasValue && (_sessionId.Value != lparam.ToInt32()))
+                    {
+                        break;
+                    }
                     switch (NativeMethods.IntPtrToInt32(wparam))
                     {
                         // Session is disconnected. Due to:
@@ -1093,7 +1162,7 @@ namespace System.Windows.Interop
                         case NativeMethods.WTS_REMOTE_CONNECT:
                         case NativeMethods.WTS_SESSION_UNLOCK:
                             _isSessionDisconnected = false;
-                            if (_needsRePresentOnWake)
+                            if (_needsRePresentOnWake || _wasWmPaintProcessingDeferred)
                             {
                                 UnsafeNativeMethods.InvalidateRect(_hWnd.MakeHandleRef(this), IntPtr.Zero , true);
                                 _needsRePresentOnWake = false;

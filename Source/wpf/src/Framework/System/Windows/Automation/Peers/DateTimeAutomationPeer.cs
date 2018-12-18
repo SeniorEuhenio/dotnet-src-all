@@ -302,6 +302,21 @@ namespace System.Windows.Automation.Peers
             return null;
         }
 
+        protected override AutomationLiveSetting GetLiveSettingCore()
+        {
+            AutomationPeer wrapperPeer = WrapperPeer;
+            if (wrapperPeer != null)
+            {
+                return wrapperPeer.GetLiveSetting();
+            }
+            else
+            {
+                ThrowElementNotAvailableException();
+            }
+
+            return AutomationLiveSetting.Off;
+        }
+
         protected override string GetLocalizedControlTypeCore()
         {
             return IsDayButton ? SR.Get(SRID.CalendarAutomationPeer_DayButtonLocalizedControlType) : SR.Get(SRID.CalendarAutomationPeer_CalendarButtonLocalizedControlType);

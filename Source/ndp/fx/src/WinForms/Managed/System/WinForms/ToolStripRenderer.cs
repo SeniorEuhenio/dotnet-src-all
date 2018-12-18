@@ -392,22 +392,7 @@ namespace System.Windows.Forms {
     
        /// <include file='doc\ToolStripRenderer.uex' path='docs/doc[@for="ToolStripRenderer.CreateDisabledImage"]/*' />
        public static Image CreateDisabledImage(Image normalImage) {
-           ImageAttributes imgAttrib = new ImageAttributes();
-           imgAttrib.ClearColorKey();
-           imgAttrib.SetColorMatrix(DisabledImageColorMatrix);
- 
-           Size size = normalImage.Size;
-           Bitmap disabledBitmap = new Bitmap(size.Width, size.Height);
-           Graphics graphics = Graphics.FromImage(disabledBitmap);
- 
-           graphics.DrawImage(normalImage, 
-                              new Rectangle(0, 0, size.Width, size.Height), 
-                              0, 0, size.Width, size.Height,
-                              GraphicsUnit.Pixel, 
-                              imgAttrib);
-           graphics.Dispose();
- 
-           return disabledBitmap;
+            return CreateDisabledImage(normalImage, null);
        }
 
         /// <include file='doc\WinBarRenderer.uex' path='docs/doc[@for="ToolStripRenderer.DrawArrow"]/*' />
@@ -870,7 +855,7 @@ namespace System.Windows.Forms {
                    imageRect.X +=1;
                 }
                 if (!e.Item.Enabled) {
-                    image = CreateDisabledImage(image);
+                    image = CreateDisabledImage(image, e.ImageAttributes);
                     disposeImage = true;
                 }
                 if (e.Item.ImageScaling == ToolStripItemImageScaling.None) {
@@ -900,10 +885,11 @@ namespace System.Windows.Forms {
                   
            if (imageRect != Rectangle.Empty && image != null) {
                if (!e.Item.Enabled) {
-                   image = CreateDisabledImage(image);
+                   image = CreateDisabledImage(image, e.ImageAttributes);
                }
                
-               e.Graphics.DrawImage(image, imageRect, new Rectangle(Point.Empty,imageRect.Size), GraphicsUnit.Pixel);
+               e.Graphics.DrawImage(image, imageRect, 0, 0, imageRect.Width, 
+                   imageRect.Height, GraphicsUnit.Pixel, e.ImageAttributes);
            }
        }
 
@@ -1065,5 +1051,27 @@ namespace System.Windows.Forms {
             return (control.RawBackColor == Color.Empty && control.BackgroundImage == null);
         }
 
-    }
+        private static Image CreateDisabledImage(Image normalImage, ImageAttributes imgAttrib) {
+            if (imgAttrib == null) {
+                imgAttrib = new ImageAttributes();
+            }
+
+            imgAttrib.ClearColorKey();
+            imgAttrib.SetColorMatrix(DisabledImageColorMatrix);
+
+            Size size = normalImage.Size;
+            Bitmap disabledBitmap = new Bitmap(size.Width, size.Height);
+            using (Graphics graphics = Graphics.FromImage(disabledBitmap)) {
+
+                graphics.DrawImage(normalImage,
+                                   new Rectangle(0, 0, size.Width, size.Height),
+                                   0, 0, size.Width, size.Height,
+                                   GraphicsUnit.Pixel,
+                                   imgAttrib);
+            }
+
+            return disabledBitmap;
+        }
+
+        }
 }

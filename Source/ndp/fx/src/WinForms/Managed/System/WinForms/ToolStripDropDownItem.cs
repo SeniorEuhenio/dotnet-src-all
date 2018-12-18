@@ -416,8 +416,11 @@ namespace System.Windows.Forms {
             OnDropDownHide(EventArgs.Empty);
         
            if (this.dropDown != null && this.dropDown.Visible) {
-               DropDown.Visible = false;                    
-              
+               DropDown.Visible = false;
+               if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                   AccessibilityNotifyClients(AccessibleEvents.StateChange);
+                   AccessibilityNotifyClients(AccessibleEvents.NameChange);
+               }
            }
         }
 
@@ -668,7 +671,6 @@ namespace System.Windows.Forms {
                 OnDropDownShow(EventArgs.Empty);
             }
 
-
             // the act of setting the drop down visible the first time sets the parent
             // it seems that GetVisibleCore returns true if your parent is null.
 
@@ -682,11 +684,15 @@ namespace System.Windows.Forms {
                     throw new InvalidOperationException(SR.GetString(SR.ToolStripShowDropDownInvalidOperation));
                 }
 
-
                 this.dropDown.OwnerItem = this;
                 this.dropDown.Location = DropDownLocation;
                 this.dropDown.Show();
                 this.Invalidate();
+
+                if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                    AccessibilityNotifyClients(AccessibleEvents.StateChange);
+                    AccessibilityNotifyClients(AccessibleEvents.NameChange);
+                }
             }
         }
 
@@ -731,6 +737,41 @@ namespace System.Windows.Forms {
             }
             else {
                 base.DoDefaultAction();
+            }
+
+        }
+
+        internal override bool IsIAccessibleExSupported() {
+            if (owner!= null && !LocalAppContextSwitches.UseLegacyAccessibilityFeatures ) {
+                return true;
+            }
+            else {
+                return base.IsIAccessibleExSupported();
+            }
+        }
+
+        internal override bool IsPatternSupported(int patternId) {
+            if (patternId == NativeMethods.UIA_ExpandCollapsePatternId && owner.HasDropDownItems) {
+                return true;
+            }
+            else {
+                return base.IsPatternSupported(patternId);
+            }
+        }
+
+        internal override void Expand() {
+            DoDefaultAction();            
+        }
+
+        internal override void Collapse() {
+            if (owner != null && owner.DropDown != null && owner.DropDown.Visible) {
+                owner.DropDown.Close();
+            }            
+        }
+
+        internal override UnsafeNativeMethods.ExpandCollapseState ExpandCollapseState {
+            get {
+                return owner.DropDown.Visible ? UnsafeNativeMethods.ExpandCollapseState.Expanded : UnsafeNativeMethods.ExpandCollapseState.Collapsed;                
             }
         }
 

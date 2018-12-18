@@ -201,7 +201,13 @@ namespace System.Windows.Forms.PropertyGridInternal {
 
                 int indent = PropertyLabelIndent-2;
                 Rectangle focusRect = new Rectangle(indent, rect.Y, labelWidth+3, rect.Height-1);
-                ControlPaint.DrawFocusRectangle(g, focusRect);
+                if (SystemInformation.HighContrast && !OwnerGrid.developerOverride && !LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                    // we changed line color to SystemColors.ControlDarkDark in high contrast mode
+                    ControlPaint.DrawFocusRectangle(g, focusRect, SystemColors.ControlText, OwnerGrid.LineColor);
+                }
+                else {
+                    ControlPaint.DrawFocusRectangle(g, focusRect);
+                }
             }
 
             // draw the line along the top

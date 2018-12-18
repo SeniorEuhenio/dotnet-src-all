@@ -714,7 +714,7 @@ namespace System.Windows.Controls
             }
 
             DependencyObject currentFocus = Keyboard.FocusedElement as DependencyObject;
-            if (currentFocus != null && UIElementHelper.IsUIElementOrUIElement3D(currentFocus))
+            if (currentFocus != null)
             {
                 DependencyObject predict = UIElementHelper.PredictFocus(currentFocus, direction);
                 if (predict != currentFocus)
@@ -731,7 +731,7 @@ namespace System.Windows.Controls
                             return true;
                         }
 
-                        predict = VisualTreeHelper.GetParent(predict);
+                        predict = KeyboardNavigation.GetParent(predict);
                     }
                 }
             }

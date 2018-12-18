@@ -69,7 +69,6 @@ namespace System.Windows.Input.StylusWisp
             _stylusLogic.RegisterStylusDeviceCore(StylusDevice);
         }
 
-
         /////////////////////////////////////////////////////////////////////
         ///<SecurityNote>
         /// Critical - Calls UnregisterStylusDeviceCore which can cause device
@@ -1954,13 +1953,12 @@ namespace System.Windows.Input.StylusWisp
             }
             else if (stylusEvent == Stylus.StylusUpEvent)
             {
-                _fBlockMouseMoveChanges = false;
-                _seenDoubleTapGesture = false; // reset this on Stylus Up.
-                _sawMouseButton1Down = false; // reset to make sure we don't promote a mouse down on the next stylus down.
+                var tempPromotedMouseState = _promotedMouseState;
 
-                if (_promotedMouseState == MouseButtonState.Pressed)
+                ResetStateForStylusUp();
+
+                if (tempPromotedMouseState == MouseButtonState.Pressed)
                 {
-                    _promotedMouseState = MouseButtonState.Released;
                     RawMouseActions actions = _fLeftButtonDownTrigger ?
                                                     RawMouseActions.Button1Release :
                                                     RawMouseActions.Button2Release;
@@ -1979,6 +1977,19 @@ namespace System.Windows.Input.StylusWisp
             return RawMouseActions.None;
         }
 
+        // DDVSO:298355
+        // Reset all StylusDevice state in response to a StylusUp
+        internal void ResetStateForStylusUp()
+        {
+            _fBlockMouseMoveChanges = false;
+            _seenDoubleTapGesture = false; // reset this on Stylus Up.
+            _sawMouseButton1Down = false; // reset to make sure we don't promote a mouse down on the next stylus down.
+
+            if (_promotedMouseState == MouseButtonState.Pressed)
+            {
+                _promotedMouseState = MouseButtonState.Released;
+            }
+        }
 
         /////////////////////////////////////////////////////////////////////
 

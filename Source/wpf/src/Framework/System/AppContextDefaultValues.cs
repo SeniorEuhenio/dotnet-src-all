@@ -33,6 +33,11 @@ namespace System
                         {
                             LocalAppContext.DefineSwitchDefault(FrameworkAppContextSwitches.GridStarDefinitionsCanExceedAvailableSpaceSwitchName, true);
                         }
+                        if (targetFrameworkVersion <= 40700)
+                        {
+                            LocalAppContext.DefineSwitchDefault(FrameworkAppContextSwitches.UseLegacyAccessibilityFeaturesSwitchName, true);
+                            LocalAppContext.DefineSwitchDefault(FrameworkAppContextSwitches.SelectionPropertiesCanLagBehindSelectionChangedEventSwitchName, true);
+                        }
                         break;
                     }
             }

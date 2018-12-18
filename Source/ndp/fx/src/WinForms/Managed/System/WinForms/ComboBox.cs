@@ -1527,7 +1527,12 @@ namespace System.Windows.Forms {
         /// <devdoc>
         /// </devdoc>
         protected override AccessibleObject CreateAccessibilityInstance() {
-            return new ComboBoxAccessibleObject(this);
+            if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                return new ComboBoxExAccessibleObject(this);
+            }
+            else {
+                return new ComboBoxAccessibleObject(this);
+            }
         }
 
          /// <devdoc>
@@ -4234,6 +4239,99 @@ namespace System.Windows.Forms {
                     return this.KeyboardShortcut;
                 } else {
                     return base.get_accKeyboardShortcutInternal(childID);
+                }
+            }
+        }
+
+        /// <devdoc>
+        /// </devdoc>
+        [ComVisible(true)]
+        internal class ComboBoxExAccessibleObject : ComboBoxAccessibleObject {
+
+            private ComboBox ownerItem = null;
+
+            private void ComboBoxDefaultAction(bool expand)
+            {
+                if (ownerItem.DroppedDown != expand) {
+                    ownerItem.DroppedDown = expand;
+                }
+            }
+
+            public ComboBoxExAccessibleObject(ComboBox ownerControl)
+                : base(ownerControl) {
+                    ownerItem = ownerControl;
+            }
+
+            internal override bool IsIAccessibleExSupported() {
+                if (ownerItem != null) {
+                    return true;
+                }
+                return base.IsIAccessibleExSupported();
+            }
+
+            internal override bool IsPatternSupported(int patternId) {
+                if (patternId == NativeMethods.UIA_ExpandCollapsePatternId) {
+                    if (ownerItem.DropDownStyle == ComboBoxStyle.Simple) {
+                        return false;
+                    }
+                    return true;
+                }
+                else {
+                    if (patternId == NativeMethods.UIA_ValuePatternId) {
+                        if (ownerItem.DropDownStyle == ComboBoxStyle.DropDownList) {
+                            return false;
+                        }
+                        return true;
+                    }
+                }
+                return base.IsPatternSupported(patternId);
+            }
+
+            internal override int[] RuntimeId {
+                get {
+                    if (ownerItem != null) {
+                        // we need to provide a unique ID
+                        // others are implementing this in the same manner
+                        // first item is static - 0x2a
+                        // second item can be anything, but here it is a hash
+
+                        var runtimeId = new int[3];
+                        runtimeId[0] = 0x2a;
+                        runtimeId[1] = (int)(long)ownerItem.Handle;
+                        runtimeId[2] = ownerItem.GetHashCode();
+                        return runtimeId;
+                    }
+                    
+                    return base.RuntimeId;
+                }
+            }
+
+            internal override object GetPropertyValue(int propertyID) {
+
+                if (propertyID == NativeMethods.UIA_NamePropertyId) {
+                    return Name;
+                }
+                else if (propertyID == NativeMethods.UIA_IsExpandCollapsePatternAvailablePropertyId) {
+                    return (object)this.IsPatternSupported(NativeMethods.UIA_ExpandCollapsePatternId);
+                }
+                else if (propertyID == NativeMethods.UIA_IsValuePatternAvailablePropertyId) {
+                    return (object)this.IsPatternSupported(NativeMethods.UIA_ValuePatternId);
+                }
+
+                return base.GetPropertyValue(propertyID);
+            }
+            
+            internal override void Expand() {
+                ComboBoxDefaultAction(true);
+            }
+
+            internal override void Collapse() {
+                ComboBoxDefaultAction(false);
+            }
+
+            internal override UnsafeNativeMethods.ExpandCollapseState ExpandCollapseState {
+                get {
+                    return ownerItem.DroppedDown == true ? UnsafeNativeMethods.ExpandCollapseState.Expanded : UnsafeNativeMethods.ExpandCollapseState.Collapsed;
                 }
             }
         }

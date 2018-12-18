@@ -53,6 +53,15 @@ namespace System.Windows.Forms {
         public ToolStripDropDownButton(string text, Image image, params ToolStripItem[] dropDownItems):base(text,image,dropDownItems) {
             Initialize();            
         }
+
+        protected override AccessibleObject CreateAccessibilityInstance() {
+            if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                return new ToolStripDropDownButtonAccessibleObject(this);
+            }
+            else {
+                return base.CreateAccessibilityInstance();
+            }            
+        }
  
         [DefaultValue(true)]
         public new bool AutoToolTip {
@@ -191,6 +200,27 @@ namespace System.Windows.Forms {
              return false;
          }
 
+        /// <devdoc>
+        /// An implementation of Accessibleobject for use with ToolStripDropDownButton        
+        /// </devdoc>
+        [System.Runtime.InteropServices.ComVisible(true)]
+        internal class ToolStripDropDownButtonAccessibleObject : ToolStripDropDownItemAccessibleObject {
+            private ToolStripDropDownButton ownerItem = null;
+
+            public ToolStripDropDownButtonAccessibleObject(ToolStripDropDownButton ownerItem)
+                : base(ownerItem) {
+                this.ownerItem = ownerItem;
+            }
+
+            internal override object GetPropertyValue(int propertyID) {
+                if (propertyID == NativeMethods.UIA_ControlTypePropertyId) {
+                    return NativeMethods.UIA_ButtonControlTypeId;
+                }
+                else {
+                    return base.GetPropertyValue(propertyID);
+                }
+            }
+        }
 
         internal class ToolStripDropDownButtonInternalLayout : ToolStripItemInternalLayout {
             private ToolStripDropDownButton    ownerItem;

@@ -268,12 +268,30 @@ namespace System.Windows.Forms {
                 this.ownerItem = ownerItem;
             }
 
-            
+            public override AccessibleRole Role {
+                get {
+                    if (ownerItem.CheckOnClick && !LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                        return AccessibleRole.CheckButton;
+                    }
+                    else {
+                        return base.Role;
+                    }
+                }
+            }
+
             public override AccessibleStates State {
                get {
                     if (ownerItem.Enabled && ownerItem.Checked) {
                         return base.State | AccessibleStates.Checked;
                     }
+
+                    if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                        // Disabled ToolStripButton, that is selected, must have focus state so that Narrator can announce it
+                        if (!ownerItem.Enabled && ownerItem.Selected) {
+                            return base.State | AccessibleStates.Focused;
+                        }
+                    }
+
                     return base.State;
                }
             }

@@ -22,6 +22,8 @@ namespace System.Net
         private const string RegistryGlobalSystemDefaultTlsVersionsName = "SystemDefaultTlsVersions";
         private const string RegistryLocalSystemDefaultTlsVersionsName = "System.Net.ServicePointManager.SystemDefaultTlsVersions";
         private const string RegistryLocalSecureProtocolName = "System.Net.ServicePointManager.SecurityProtocol";
+        private const string RegistryGlobalRequireCertificateEKUs = "RequireCertificateEKUs";
+        private const string RegistryLocalRequireCertificateEKUs = "System.Net.ServicePointManager.RequireCertificateEKUs";
 
         private static void LoadConfiguration()
         {
@@ -31,6 +33,7 @@ namespace System.Net
             s_disableStrongCrypto = TryInitialize(LoadDisableStrongCryptoConfiguration, true);
             s_disableSendAuxRecord = TryInitialize(LoadDisableSendAuxRecordConfiguration, false);
             s_disableSystemDefaultTlsVersions = TryInitialize(LoadDisableSystemDefaultTlsVersionsConfiguration, true);
+            s_disableCertificateEKUs = TryInitialize(LoadDisableCertificateEKUsConfiguration, false);
 
             s_defaultSslProtocols = TryInitialize(LoadSecureProtocolConfiguration, SslProtocols.Ssl3 | SslProtocols.Tls);
             s_SecurityProtocolType = (SecurityProtocolType)s_defaultSslProtocols;
@@ -144,6 +147,30 @@ namespace System.Net
             }
 
             return reusePortInternal;
+        }
+
+        private static bool LoadDisableCertificateEKUsConfiguration(bool disable)
+        {
+            int requireCertificateEKUsKeyValue;
+
+            if (LocalAppContextSwitches.DontCheckCertificateEKUs)
+            {
+                return true;
+            }
+
+            requireCertificateEKUsKeyValue = RegistryConfiguration.AppConfigReadInt(RegistryLocalRequireCertificateEKUs, 1);
+            if (requireCertificateEKUsKeyValue == 0)
+            {
+                return true;
+            }
+
+            requireCertificateEKUsKeyValue = RegistryConfiguration.GlobalConfigReadInt(RegistryGlobalRequireCertificateEKUs, 1);
+            if (requireCertificateEKUsKeyValue == 0)
+            {
+                return true;
+            }
+
+            return disable;
         }
 
         private static void EnsureConfigurationLoaded()

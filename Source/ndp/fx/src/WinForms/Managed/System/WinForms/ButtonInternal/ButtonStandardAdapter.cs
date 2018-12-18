@@ -81,7 +81,8 @@ namespace System.Windows.Forms.ButtonInternal {
             //only paint if the user said not to use the themed backcolor.
             if (!Control.UseVisualStyleBackColor) {
                 bool painted = false;
-                Color color = Control.BackColor;
+                bool isHighContrastHighlighted = IsHighContrastHighlighted(up);
+                Color color = isHighContrastHighlighted ? SystemColors.Highlight : Control.BackColor;
 
                 // Note: PaintEvent.HDC == 0 if GDI+ has used the HDC -- it wouldn't be safe for us
                 // to use it without enough bookkeeping to negate any performance gain of using GDI.
@@ -89,7 +90,9 @@ namespace System.Windows.Forms.ButtonInternal {
 
                     if (DisplayInformation.BitsPerPixel > 8) {
                         NativeMethods.RECT r = new NativeMethods.RECT(bounds.X, bounds.Y, bounds.Right, bounds.Bottom);
-                        SafeNativeMethods.FillRect(new HandleRef(e, e.HDC), ref r, new HandleRef(this, Control.BackColorBrush));
+                        // SysColorBrush does not have to be deleted.
+                        SafeNativeMethods.FillRect(new HandleRef(e, e.HDC), ref r, new HandleRef(this, 
+                            isHighContrastHighlighted ? SafeNativeMethods.GetSysColorBrush(ColorTranslator.ToOle(color) & 0xFF) : Control.BackColorBrush));
                         painted = true;
                     }
                 }
@@ -99,7 +102,7 @@ namespace System.Windows.Forms.ButtonInternal {
                     //
                     if (color.A > 0) {
                         if (color.A == 255) {
-                            color = e.Graphics.GetNearestColor(color);
+                             color = e.Graphics.GetNearestColor(color);
                         }
 
                         // Color has some transparency or we have no HDC, so we must
@@ -116,6 +119,11 @@ namespace System.Windows.Forms.ButtonInternal {
             if (Control.BackgroundImage != null && !DisplayInformation.HighContrast) {
                 ControlPaint.DrawBackgroundImage(e.Graphics, Control.BackgroundImage, Color.Transparent, Control.BackgroundImageLayout, Control.ClientRectangle, bounds, Control.DisplayRectangle.Location, Control.RightToLeft);
             }
+        }
+
+        private bool IsHighContrastHighlighted(bool up) {
+            return !LocalAppContextSwitches.UseLegacyAccessibilityFeatures && SystemInformation.HighContrast && up && Application.RenderWithVisualStyles &&
+                (Control.Focused || Control.MouseIsOver || (Control.IsDefault && Control.Enabled));
         }
 
         void PaintWorker(PaintEventArgs e, bool up, CheckState state) {
@@ -170,7 +178,11 @@ namespace System.Windows.Forms.ButtonInternal {
             if (Application.RenderWithVisualStyles) {
                 layout.focus.Inflate(1, 1);
             }
-            PaintField(e, layout, colors, colors.windowText, true);
+
+            Color foreColor = IsHighContrastHighlighted(up) ? 
+                SystemColors.HighlightText :
+                colors.windowText;
+            PaintField(e, layout, colors, foreColor, true);
 
             if (!Application.RenderWithVisualStyles) {
                 Rectangle r = Control.ClientRectangle;

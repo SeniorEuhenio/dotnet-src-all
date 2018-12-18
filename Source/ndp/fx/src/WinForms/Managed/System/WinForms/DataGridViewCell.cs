@@ -4852,6 +4852,11 @@ namespace System.Windows.Forms
                         state |= AccessibleStates.Selected;
                     }
 
+                    if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures && this.owner.ReadOnly)
+                    {
+                        state |= AccessibleStates.ReadOnly;
+                    }
+
                     Rectangle cellBounds;
                     if (this.owner.OwningColumn != null && this.owner.OwningRow != null)
                     {

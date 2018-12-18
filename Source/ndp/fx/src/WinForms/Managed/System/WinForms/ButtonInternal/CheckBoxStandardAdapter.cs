@@ -77,7 +77,7 @@ namespace System.Windows.Forms.ButtonInternal {
                 return adapter.GetPreferredSizeCore(proposedSize);
             } 
             else {
-                using (Graphics measurementGraphics = WindowsFormsUtils.CreateMeasurementGraphics(Control)) {
+                using (Graphics measurementGraphics = WindowsFormsUtils.CreateMeasurementGraphics()) {
                     using (PaintEventArgs pe = new PaintEventArgs(measurementGraphics, new Rectangle())) {
                         LayoutOptions options = Layout(pe);
                         
@@ -106,7 +106,7 @@ namespace System.Windows.Forms.ButtonInternal {
 
             // VSWhidbey 420870
             if (Application.RenderWithVisualStyles) {
-                using (Graphics g = WindowsFormsUtils.CreateMeasurementGraphics(Control)) {
+                using (Graphics g = WindowsFormsUtils.CreateMeasurementGraphics()) {
                     layout.checkSize = CheckBoxRenderer.GetGlyphSize(g, CheckBoxRenderer.ConvertFromButtonState(GetState(), true, Control.MouseIsOver), Control.HandleInternal).Width;
                 }
             }

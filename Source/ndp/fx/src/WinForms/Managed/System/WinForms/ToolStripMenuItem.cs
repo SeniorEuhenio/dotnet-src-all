@@ -1223,9 +1223,16 @@ namespace System.Windows.Forms {
                   return base.State;
                 }
             }
-
+                                                
+            internal override object GetPropertyValue(int propertyID) {
+                if (propertyID == NativeMethods.UIA_ControlTypePropertyId) {
+                    return NativeMethods.UIA_MenuItemControlTypeId;
+                }
+                else {
+                    return base.GetPropertyValue(propertyID);
+                }
+            }
         }
-
     }    
 
 

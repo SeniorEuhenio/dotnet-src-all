@@ -2596,8 +2596,7 @@ DWORD Ssl::Decrypt( __inout SNI_Packet *pPacket, __deref_out SNI_Packet **ppLeft
 			//    ConsBufferSize + ProvBufferSize - 2*(m_cbHeaderLength + m_cbTrailerLength), 
 			//    which is the maximum payload size of the SSL provider (assuming condition 1).
 			//    See Ssl::GetSSLProvInfo for additional details.
-			
-			if( (2 * (m_cbHeaderLength + m_cbTrailerLength) + Buffers[1].cbBuffer) > 
+			if( (2 * (m_cbHeaderLength + m_cbTrailerLength) + Buffers[1].cbBuffer) >
 				( m_pConn->m_ConnInfo.ConsBufferSize + m_pConn->m_ConnInfo.ProvBufferSize ) )
 			{
 				scRet = ERROR_INVALID_DATA;

@@ -1492,6 +1492,10 @@ namespace System.Windows.Data
 
             if (isFullUpdate)
             {
+                // one-way bindings initialized from proposed values should now
+                // re-fetch values from the source.  This handles cases where
+                // the source normalizes the proposed value.  (DDVSO 158520)
+                _proposedValueTable.UpdateDependents();
                 _proposedValueTable.Clear();
             }
         }

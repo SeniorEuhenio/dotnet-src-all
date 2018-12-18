@@ -22,6 +22,7 @@ using System.Diagnostics;
 using System.Security;
 using System.Security.Permissions;
 using System.Windows.Controls;
+using System.Windows.Diagnostics;
 using System.Windows.Media;
 using System.Windows.Markup;
 
@@ -317,6 +318,9 @@ namespace System.Windows
             {
                 throw new System.InvalidOperationException(SR.Get(SRID.CannotBeSelfParent));
             }
+
+            // invalid during a VisualTreeChanged event
+            VisualDiagnostics.VerifyVisualTreeChange(this);
 
             // Logical Parent implies no InheritanceContext
             if (newParent != null)

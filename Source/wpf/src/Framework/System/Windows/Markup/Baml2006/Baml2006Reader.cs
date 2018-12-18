@@ -2084,7 +2084,7 @@ namespace System.Windows.Baml2006
                         // We need to append local assembly
 
                         return uriInput + ((_settings.LocalAssembly != null)
-                                                ? ";assembly=" + GetAssemblyShortName(_settings.LocalAssembly)
+                                                ? ";assembly=" + GetAssemblyNameForNamespace(_settings.LocalAssembly)
                                                 : String.Empty);
                     }
                     else
@@ -2103,7 +2103,7 @@ namespace System.Windows.Baml2006
                         string assemblyName = uriInput.Substring(equalIdx + 1);
                         if (String.IsNullOrEmpty(assemblyName))
                         {
-                            return uriInput + GetAssemblyShortName(_settings.LocalAssembly);
+                            return uriInput + GetAssemblyNameForNamespace(_settings.LocalAssembly);
                         }
                     }
                 }
@@ -2112,8 +2112,10 @@ namespace System.Windows.Baml2006
             return uriInput;
         }
 
-        // Given an assembly, return the assembly short name.  We need to avoid Assembly.GetName() so we run in PartialTrust without asserting.
-        private static string GetAssemblyShortName(Assembly assembly)
+        // DDVSO 378607: Providing the assembly short name may lead to ambiguity between two versions of the same assembly, but we need to
+        // keep it this way since it is exposed publicly via the Namespace property, Baml2006ReaderInternal provides the full Assembly name.
+        // We need to avoid Assembly.GetName() so we run in PartialTrust without asserting.
+        internal virtual string GetAssemblyNameForNamespace(Assembly assembly)
         {
             string assemblyLongName = assembly.FullName;
             string assemblyShortName = assemblyLongName.Substring(0, assemblyLongName.IndexOf(','));
@@ -2128,7 +2130,7 @@ namespace System.Windows.Baml2006
             Read_RecordSize();
             string prefix = _binaryReader.ReadString();
             string xamlNs = _binaryReader.ReadString();
-
+            
             xamlNs = Logic_GetFullXmlns(xamlNs);
 
             _context.CurrentFrame.AddNamespace(prefix, xamlNs);

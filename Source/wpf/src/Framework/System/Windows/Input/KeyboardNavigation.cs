@@ -1500,7 +1500,7 @@ namespace System.Windows.Input
         // 2. visual is visible UIElement3D
         // 3. visual is IContentHost but not UIElementIsland
         // Note: UIElementIsland is a special element that has only one child and should be excluded
-        private bool IsInNavigationTree(DependencyObject visual)
+        private static bool IsInNavigationTree(DependencyObject visual)
         {
             UIElement uiElement = visual as UIElement;
             if (uiElement != null && uiElement.IsVisible)
@@ -1817,7 +1817,7 @@ namespace System.Windows.Input
             return null;
         }
 
-        private DependencyObject GetParent(DependencyObject e)
+        internal static DependencyObject GetParent(DependencyObject e)
         {
             // For Visual - go up the visual parent chain until we find Visual, Visual3D or IContentHost
             if (e is Visual || e is Visual3D)
@@ -2742,9 +2742,9 @@ namespace System.Windows.Input
                             return true;
 
                         if (direction == FocusNavigationDirection.Right)
-                            return DoubleUtil.GreaterThan(targetRect.Left, sourceRect.Left) || (DoubleUtil.AreClose(targetRect.Left, sourceRect.Left) && IsAncestorOf(sourceElement, targetElement));
+                            return DoubleUtil.GreaterThan(targetRect.Left, sourceRect.Left) || (DoubleUtil.AreClose(targetRect.Left, sourceRect.Left) && IsAncestorOfEx(sourceElement, targetElement));
                         else
-                            return DoubleUtil.LessThan(targetRect.Right, sourceRect.Right) || (DoubleUtil.AreClose(targetRect.Right, sourceRect.Right) && IsAncestorOf(sourceElement, targetElement));
+                            return DoubleUtil.LessThan(targetRect.Right, sourceRect.Right) || (DoubleUtil.AreClose(targetRect.Right, sourceRect.Right) && IsAncestorOfEx(sourceElement, targetElement));
 
                     }
                     break;
@@ -2764,9 +2764,9 @@ namespace System.Windows.Input
                             return true;
 
                         if (direction == FocusNavigationDirection.Down)
-                            return DoubleUtil.GreaterThan(targetRect.Top, sourceRect.Top) || (DoubleUtil.AreClose (targetRect.Top, sourceRect.Top) && IsAncestorOf(sourceElement, targetElement));
+                            return DoubleUtil.GreaterThan(targetRect.Top, sourceRect.Top) || (DoubleUtil.AreClose (targetRect.Top, sourceRect.Top) && IsAncestorOfEx(sourceElement, targetElement));
                         else
-                            return DoubleUtil.LessThan(targetRect.Bottom, sourceRect.Bottom) || (DoubleUtil.AreClose(targetRect.Bottom, sourceRect.Bottom) && IsAncestorOf(sourceElement, targetElement));
+                            return DoubleUtil.LessThan(targetRect.Bottom, sourceRect.Bottom) || (DoubleUtil.AreClose(targetRect.Bottom, sourceRect.Bottom) && IsAncestorOfEx(sourceElement, targetElement));
                     }
                     break;
 

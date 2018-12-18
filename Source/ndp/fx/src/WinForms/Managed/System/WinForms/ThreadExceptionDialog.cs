@@ -7,15 +7,12 @@
 /*
  */
 namespace System.Windows.Forms {
-    using System.Threading;
-    using System.Runtime.Remoting;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System;
     using System.Text;
     using System.ComponentModel;
     using System.Drawing;
-    using System.Windows.Forms;
     using System.Reflection;
     using System.Security;
     using System.Security.Permissions;
@@ -37,6 +34,10 @@ namespace System.Windows.Forms {
         SecurityPermission(SecurityAction.LinkDemand, Flags=SecurityPermissionFlag.UnmanagedCode),
         UIPermission(SecurityAction.Assert, Window=UIPermissionWindow.AllWindows)]
     public class ThreadExceptionDialog : Form {
+
+        private const string DownBitmapName = "down.bmp";
+        private const string UpBitmapName = "up.bmp";
+
         private const int MAXWIDTH = 440;
         private const int MAXHEIGHT = 325;
         private const int PADDINGWIDTH = 84;
@@ -98,25 +99,25 @@ namespace System.Windows.Forms {
         public ThreadExceptionDialog(Exception t) {
 
             if (DpiHelper.EnableThreadExceptionDialogHighDpiImprovements) {
-                scaledMaxWidth = DpiHelper.LogicalToDeviceUnitsX(MAXWIDTH);
-                scaledMaxHeight = DpiHelper.LogicalToDeviceUnitsY(MAXHEIGHT);
-                scaledPaddingWidth = DpiHelper.LogicalToDeviceUnitsX(PADDINGWIDTH);
-                scaledPaddingHeight = DpiHelper.LogicalToDeviceUnitsY(PADDINGHEIGHT);
-                scaledMaxTextWidth = DpiHelper.LogicalToDeviceUnitsX(MAXTEXTWIDTH);
-                scaledMaxTextHeight = DpiHelper.LogicalToDeviceUnitsY(MAXTEXTHEIGHT);
-                scaledButtonTopPadding = DpiHelper.LogicalToDeviceUnitsY(BUTTONTOPPADDING);
-                scaledButtonDetailsLeftPadding = DpiHelper.LogicalToDeviceUnitsX(BUTTONDETAILS_LEFTPADDING);
-                scaledMessageTopPadding = DpiHelper.LogicalToDeviceUnitsY(MESSAGE_TOPPADDING);
-                scaledHeightPadding = DpiHelper.LogicalToDeviceUnitsY(HEIGHTPADDING);
-                scaledButtonWidth = DpiHelper.LogicalToDeviceUnitsX(BUTTONWIDTH);
-                scaledButtonHeight = DpiHelper.LogicalToDeviceUnitsY(BUTTONHEIGHT);
-                scaledButtonAlignmentWidth = DpiHelper.LogicalToDeviceUnitsX(BUTTONALIGNMENTWIDTH);
-                scaledButtonAlignmentPadding = DpiHelper.LogicalToDeviceUnitsX(BUTTONALIGNMENTPADDING);
-                scaledDetailsWidthPadding = DpiHelper.LogicalToDeviceUnitsX(DETAILSWIDTHPADDING);
-                scaledDetailsHeight = DpiHelper.LogicalToDeviceUnitsY(DETAILSHEIGHT);
-                scaledPictureWidth = DpiHelper.LogicalToDeviceUnitsX(PICTUREWIDTH);
-                scaledPictureHeight = DpiHelper.LogicalToDeviceUnitsY(PICTUREHEIGHT);
-                scaledExceptionMessageVerticalPadding = DpiHelper.LogicalToDeviceUnitsY(EXCEPTIONMESSAGEVERTICALPADDING);
+                scaledMaxWidth = LogicalToDeviceUnits(MAXWIDTH);
+                scaledMaxHeight = LogicalToDeviceUnits(MAXHEIGHT);
+                scaledPaddingWidth = LogicalToDeviceUnits(PADDINGWIDTH);
+                scaledPaddingHeight = LogicalToDeviceUnits(PADDINGHEIGHT);
+                scaledMaxTextWidth = LogicalToDeviceUnits(MAXTEXTWIDTH);
+                scaledMaxTextHeight = LogicalToDeviceUnits(MAXTEXTHEIGHT);
+                scaledButtonTopPadding = LogicalToDeviceUnits(BUTTONTOPPADDING);
+                scaledButtonDetailsLeftPadding = LogicalToDeviceUnits(BUTTONDETAILS_LEFTPADDING);
+                scaledMessageTopPadding = LogicalToDeviceUnits(MESSAGE_TOPPADDING);
+                scaledHeightPadding = LogicalToDeviceUnits(HEIGHTPADDING);
+                scaledButtonWidth = LogicalToDeviceUnits(BUTTONWIDTH);
+                scaledButtonHeight = LogicalToDeviceUnits(BUTTONHEIGHT);
+                scaledButtonAlignmentWidth = LogicalToDeviceUnits(BUTTONALIGNMENTWIDTH);
+                scaledButtonAlignmentPadding = LogicalToDeviceUnits(BUTTONALIGNMENTPADDING);
+                scaledDetailsWidthPadding = LogicalToDeviceUnits(DETAILSWIDTHPADDING);
+                scaledDetailsHeight = LogicalToDeviceUnits(DETAILSHEIGHT);
+                scaledPictureWidth = LogicalToDeviceUnits(PICTUREWIDTH);
+                scaledPictureHeight = LogicalToDeviceUnits(PICTUREHEIGHT);
+                scaledExceptionMessageVerticalPadding = LogicalToDeviceUnits(EXCEPTIONMESSAGEVERTICALPADDING);
             }
 
             string messageRes;
@@ -277,9 +278,9 @@ namespace System.Windows.Forms {
             ClientSize = new Size(width, buttonTop + scaledButtonTopPadding);
             TopMost = true;
 
-            pictureBox.Location = new Point(0, 0);
-            pictureBox.Size = new Size(scaledPictureWidth, scaledPictureHeight);
-            pictureBox.SizeMode = PictureBoxSizeMode.CenterImage;
+            pictureBox.Location = new Point(scaledPictureWidth/8, scaledPictureHeight/8);
+            pictureBox.Size = new Size(scaledPictureWidth*3/4, scaledPictureHeight*3/4);
+            pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
             if (t is SecurityException) {
                 pictureBox.Image = SystemIcons.Information.ToBitmap();
             }
@@ -315,14 +316,14 @@ namespace System.Windows.Forms {
             if (detailAnchor) {
                 b = detailsButton;
 
-                expandImage = new Bitmap(this.GetType(), "down.bmp");
+                expandImage = new Bitmap(this.GetType(), DownBitmapName);
                 expandImage.MakeTransparent();
-                collapseImage = new Bitmap(this.GetType(), "up.bmp");
+                collapseImage = new Bitmap(this.GetType(), UpBitmapName);
                 collapseImage.MakeTransparent();
 
                 if (DpiHelper.EnableThreadExceptionDialogHighDpiImprovements) {
-                    DpiHelper.ScaleBitmapLogicalToDevice(ref expandImage);
-                    DpiHelper.ScaleBitmapLogicalToDevice(ref collapseImage);
+                    ScaleBitmapLogicalToDevice(ref expandImage);
+                    ScaleBitmapLogicalToDevice(ref collapseImage);
                 }
 
                 b.SetBounds(scaledButtonDetailsLeftPadding, buttonTop, scaledButtonWidth, scaledButtonHeight);
@@ -350,7 +351,30 @@ namespace System.Windows.Forms {
             details.AcceptsReturn = false;
             
             details.SetBounds(scaledButtonDetailsLeftPadding, buttonTop + scaledButtonTopPadding, width - scaledDetailsWidthPadding, scaledDetailsHeight);
+            details.Visible = detailsVisible;
             Controls.Add(details);
+            if (DpiHelper.EnableThreadExceptionDialogHighDpiImprovements) {
+                DpiChanged += ThreadExceptionDialog_DpiChanged;
+            }
+        }
+
+        private void ThreadExceptionDialog_DpiChanged(object sender, DpiChangedEventArgs e) {
+            if (expandImage != null) {
+                expandImage.Dispose();
+            }
+            expandImage = new Bitmap(this.GetType(), DownBitmapName);
+            expandImage.MakeTransparent();
+
+            if (collapseImage != null) {
+                collapseImage.Dispose();
+            }
+            collapseImage = new Bitmap(this.GetType(), UpBitmapName);
+            collapseImage.MakeTransparent();
+
+            ScaleBitmapLogicalToDevice(ref expandImage);
+            ScaleBitmapLogicalToDevice(ref collapseImage);
+
+            detailsButton.Image = detailsVisible ? collapseImage : expandImage;
         }
 
         /// <include file='doc\ThreadExceptionDialog.uex' path='docs/doc[@for="ThreadExceptionDialog.AutoSize"]/*' />
@@ -397,6 +421,7 @@ namespace System.Windows.Forms {
             if (detailsVisible) delta = -delta;
             Height = Height + delta;
             detailsVisible = !detailsVisible;
+            details.Visible = detailsVisible;
             detailsButton.Image = detailsVisible ? collapseImage : expandImage;
         }
 

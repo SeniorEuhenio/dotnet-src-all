@@ -1236,7 +1236,7 @@ namespace System.Windows.Forms {
                                SystemBrushes.Control :
                                SystemBrushes.Window;
             Color foreground = ((state & ButtonState.Inactive) == ButtonState.Inactive) ?
-                               SystemColors.ControlDark :
+                               ((SystemInformation.HighContrast && !LocalAppContextSwitches.UseLegacyAccessibilityFeatures) ? SystemColors.GrayText : SystemColors.ControlDark) :
                                SystemColors.ControlText;
             DrawFlatCheckBox(graphics, rectangle, foreground, background, state);
         }
@@ -1912,7 +1912,7 @@ namespace System.Windows.Forms {
         /// <devdoc>
         ///     Draws a string in the style appropriate for disabled items.
         /// </devdoc>
-        public static void DrawStringDisabled(Graphics graphics, string s, Font font, 
+        public static void DrawStringDisabled(Graphics graphics, string s, Font font,
                                               Color color, RectangleF layoutRectangle,
                                               StringFormat format) {
 
@@ -1920,18 +1920,21 @@ namespace System.Windows.Forms {
                 throw new ArgumentNullException("graphics");
             }
 
-            layoutRectangle.Offset(1, 1);
-            SolidBrush brush = new SolidBrush(LightLight(color));
-            try {
-                graphics.DrawString(s, font, brush, layoutRectangle, format);
-
-                layoutRectangle.Offset(-1, -1);
-                color = Dark(color);
-                brush.Color = color;
-                graphics.DrawString(s, font, brush, layoutRectangle, format);
+            if (SystemInformation.HighContrast && !LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                // Ignore the foreground color argument and don't do shading in high contrast, 
+                // as colors should match the OS-defined ones.
+                graphics.DrawString(s, font, SystemBrushes.GrayText, layoutRectangle, format);
             }
-            finally {
-                brush.Dispose();
+            else {
+                layoutRectangle.Offset(1, 1);
+                using (SolidBrush brush = new SolidBrush(LightLight(color))) {
+                    graphics.DrawString(s, font, brush, layoutRectangle, format);
+
+                    layoutRectangle.Offset(-1, -1);
+                    color = Dark(color);
+                    brush.Color = color;
+                    graphics.DrawString(s, font, brush, layoutRectangle, format);
+                }
             }
         }
 
@@ -1944,13 +1947,19 @@ namespace System.Windows.Forms {
             if (dc == null) {
                 throw new ArgumentNullException("dc");
             }
-            layoutRectangle.Offset(1, 1);
-            Color paintcolor = LightLight(color);
+
+            if (SystemInformation.HighContrast && !LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                TextRenderer.DrawText(dc, s, font, layoutRectangle, SystemColors.GrayText, format);
+            }
+            else {
+                layoutRectangle.Offset(1, 1);
+                Color paintcolor = LightLight(color);
            
-            TextRenderer.DrawText(dc, s, font, layoutRectangle, paintcolor, format);
-            layoutRectangle.Offset(-1, -1);
-            paintcolor = Dark(color);
-            TextRenderer.DrawText(dc, s, font, layoutRectangle, paintcolor, format);
+                TextRenderer.DrawText(dc, s, font, layoutRectangle, paintcolor, format);
+                layoutRectangle.Offset(-1, -1);
+                paintcolor = Dark(color);
+                TextRenderer.DrawText(dc, s, font, layoutRectangle, paintcolor, format);
+            }
         }
 
 

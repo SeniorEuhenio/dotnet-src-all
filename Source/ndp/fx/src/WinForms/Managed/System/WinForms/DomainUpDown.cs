@@ -737,10 +737,31 @@ namespace System.Windows.Forms {
                     if (role != AccessibleRole.Default) {
                         return role;
                     }
-                    return AccessibleRole.ComboBox;
+                    else {
+                        if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                            return AccessibleRole.SpinButton;
+                        }
+                        else {
+                            return AccessibleRole.ComboBox;
+                        }
+                    }
                 }
             }
-            
+
+            public override string Name {
+                get {
+                    if (base.Name == null && !LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                        return Owner.GetType().Name;
+                    }
+                    else {
+                        return base.Name;
+                    }
+                }
+                set {
+                    base.Name = value;
+                }
+            }
+
             /// <include file='doc\DomainUpDown.uex' path='docs/doc[@for="DomainUpDown.DomainUpDownAccessibleObject.GetChild"]/*' />
             /// <devdoc>
             /// </devdoc>

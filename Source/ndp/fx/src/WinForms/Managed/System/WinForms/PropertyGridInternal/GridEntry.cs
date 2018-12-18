@@ -135,6 +135,10 @@ namespace System.Windows.Forms.PropertyGridInternal {
 
         private   bool               lastPaintWithExplorerStyle = false;
 
+        private static Color InvertColor(Color color) {
+            return Color.FromArgb(color.A, (byte)~color.R, (byte)~color.G, (byte)~color.B);
+        }
+
         protected GridEntry(PropertyGrid owner, GridEntry peParent) {
             parentPE = peParent;
             ownerGrid = owner;
@@ -155,6 +159,11 @@ namespace System.Windows.Forms.PropertyGridInternal {
             }
         }
 
+        private bool colorInversionNeededInHC {
+            get {
+                 return SystemInformation.HighContrast && !OwnerGrid.developerOverride && !LocalAppContextSwitches.UseLegacyAccessibilityFeatures;
+            }
+        }
 
         public AccessibleObject AccessibilityObject {
 
@@ -423,6 +432,23 @@ namespace System.Windows.Forms.PropertyGridInternal {
                     if (value) {
                         bool fMakeSure = CreateChildren();
                         SetFlag(FL_EXPAND,fMakeSure);
+                    }
+                }
+
+                if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                    // Notify accessibility clients of expanded state change
+                    // StateChange requires NameChange, too - accessible clients won't see this, unless both events are raised
+
+                    // Root item is hidden and should not raise events
+                    if (GridItemType != GridItemType.Root) {
+                        int id = ((PropertyGridView)GridEntryHost).AccessibilityGetGridEntryChildID(this);
+                        if (id >= 0) {
+                            PropertyGridView.PropertyGridViewAccessibleObject gridAccObj =
+                                (PropertyGridView.PropertyGridViewAccessibleObject)((PropertyGridView)GridEntryHost).AccessibilityObject;
+
+                            gridAccObj.NotifyClients(AccessibleEvents.StateChange, id);
+                            gridAccObj.NotifyClients(AccessibleEvents.NameChange, id);
+                        }
                     }
                 }
             }
@@ -1867,11 +1893,14 @@ namespace System.Windows.Forms.PropertyGridInternal {
             if (!Rectangle.Intersect(textRect, clipRect).IsEmpty)  {
                 Region oldClip = g.Clip;
                 g.SetClip(textRect);
-                
+                                               
+                //We need to Invert color only if in Highcontrast mode, targeting 4.7.1 and above, Gridcategory and not a developer override. This is required to achieve required contrast ratio.
+                var shouldInvertForHC = colorInversionNeededInHC && (fBold || (selected && !hasFocus));
+
                 // Do actual drawing
                 // A brush is needed if using GDI+ only (UseCompatibleTextRendering); if using GDI, only the color is needed.
-                Color textColor = (selected && hasFocus) ? gridHost.GetSelectedItemWithFocusForeColor() : g.GetNearestColor(this.LabelTextColor);
-
+                Color textColor = selected && hasFocus ? gridHost.GetSelectedItemWithFocusForeColor() : shouldInvertForHC ? InvertColor(ownerGrid.LineColor) : g.GetNearestColor(this.LabelTextColor);
+             
                 if( this.ownerGrid.UseCompatibleTextRendering ) {
                     using( Brush textBrush = new SolidBrush(textColor)){
                         StringFormat stringFormat = new StringFormat(StringFormatFlags.NoWrap);
@@ -1955,6 +1984,16 @@ namespace System.Windows.Forms.PropertyGridInternal {
                 else
                     element = VisualStyleElement.ExplorerTreeView.Glyph.Closed;
                 
+                // Invert color if it is not overriden by developer.
+                if (colorInversionNeededInHC) {
+                    Color textColor = InvertColor(ownerGrid.LineColor);
+                    if (g != null) {
+                        Brush b = new SolidBrush(textColor);
+                        g.FillRectangle(b, outline);
+                        b.Dispose();
+                    }
+                }               
+
                 VisualStyleRenderer explorerTreeRenderer = new VisualStyleRenderer(element);
                 explorerTreeRenderer.DrawBackground(g, outline);
             }
@@ -1974,6 +2013,17 @@ namespace System.Windows.Forms.PropertyGridInternal {
                 Brush b = this.GetBackgroundBrush(g);
                 Pen p;
                 Color penColor = GridEntryHost.GetTextColor();
+
+                // inverting text color to back ground to get required contrast ratio
+                if (colorInversionNeededInHC) {
+                    penColor = InvertColor(ownerGrid.LineColor);
+                }
+                else { 
+                    // Filling rectangle as it was in all cases where we do not invert colors.
+                    g.FillRectangle(b, outline); 
+                }
+                
+
                 if (penColor.IsSystemColor) {
                     p = SystemPens.FromSystemColor(penColor);
                 }
@@ -1981,7 +2031,6 @@ namespace System.Windows.Forms.PropertyGridInternal {
                     p = new Pen(penColor);
                 }
 
-                g.FillRectangle(b, outline);
                 g.DrawRectangle(p, outline.X, outline.Y, outline.Width - 1, outline.Height - 1);
 
                 // draw horizontal line for +/-
@@ -2652,6 +2701,7 @@ namespace System.Windows.Forms.PropertyGridInternal {
 
             GridEntry owner = null;
             private delegate void SelectDelegate(AccessibleSelection flags);
+            private int[] runtimeId = null; // Used by UIAutomation
 
             public GridEntryAccessibleObject(GridEntry owner) : base() {
                 Debug.Assert(owner != null, "GridEntryAccessibleObject must have a valid owner GridEntry");
@@ -2683,7 +2733,98 @@ namespace System.Windows.Forms.PropertyGridInternal {
                     return owner.PropertyDescription;
                 }
             }
-            
+
+            public override string Help {
+                get {
+                    if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                        return owner.PropertyDescription;
+                    }
+                    else {
+                        return base.Help;
+                    }
+                }
+            }
+
+            #region IAccessibleEx - patterns and properties
+
+            internal override bool IsIAccessibleExSupported() {
+                if (owner.Expandable && !LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+
+            internal override int[] RuntimeId {
+                get {
+                    if (runtimeId == null) {
+                        // we need to provide a unique ID
+                        // others are implementing this in the same manner
+                        // first item is static - 0x2a
+                        // second item can be anything, but it's good to supply HWND
+                        // third and others are optional, but in case of GridItem we need it, to make it unique
+                        // grid items are not controls, they don't have hwnd - we use hwnd of PropertyGridView
+
+                        runtimeId = new int[3];
+                        runtimeId[0] = 0x2a;
+                        runtimeId[1] = (int)(long)owner.GridEntryHost.Handle;
+                        runtimeId[2] = this.GetHashCode();
+                    }
+
+                    return runtimeId;
+                }
+            }
+
+            internal override object GetPropertyValue(int propertyID) {
+                if (propertyID == NativeMethods.UIA_NamePropertyId) {
+                    return Name;
+                }
+                else if (propertyID == NativeMethods.UIA_ControlTypePropertyId) {
+                    return NativeMethods.UIA_ButtonControlTypeId;
+                }
+                else if (propertyID == NativeMethods.UIA_IsExpandCollapsePatternAvailablePropertyId) {
+                    return (Object)IsPatternSupported(NativeMethods.UIA_ExpandCollapsePatternId);
+                }
+
+                return null;
+            }
+
+            internal override bool IsPatternSupported(int patternId) {
+                if (owner.Expandable) {
+                    if (patternId == NativeMethods.UIA_ExpandCollapsePatternId) {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            internal override void Expand() {
+                if (owner.Expandable && owner.Expanded == false) {
+                    owner.Expanded = true;
+                }
+            }
+
+            internal override void Collapse() {
+                if (owner.Expandable && owner.Expanded == true) {
+                    owner.Expanded = false;
+                }
+            }
+
+            internal override UnsafeNativeMethods.ExpandCollapseState ExpandCollapseState {
+                get {
+                    if (owner.Expandable) {
+                        return owner.Expanded ? UnsafeNativeMethods.ExpandCollapseState.Expanded : UnsafeNativeMethods.ExpandCollapseState.Collapsed;
+                    }
+                    else {
+                        return UnsafeNativeMethods.ExpandCollapseState.LeafNode;
+                    }
+                }
+            }
+
+            #endregion
+
             [SecurityPermission(SecurityAction.Demand, Flags = SecurityPermissionFlag.UnmanagedCode)]
             public override void DoDefaultAction() {
                 owner.OnOutlineClick(EventArgs.Empty);
@@ -2710,7 +2851,17 @@ namespace System.Windows.Forms.PropertyGridInternal {
 
             public override AccessibleRole Role {
                 get {
-                    return AccessibleRole.Row;
+                    if (LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                        return AccessibleRole.Row;
+                    }
+                    else {
+                        if (owner.Expandable) {
+                            return AccessibleRole.ButtonDropDownGrid;
+                        }
+                        else {
+                            return AccessibleRole.Cell;
+                        }
+                    }
                 }
             }
 

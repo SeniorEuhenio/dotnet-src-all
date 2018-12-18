@@ -32,13 +32,18 @@ namespace System
                         {
                             LocalAppContext.DefineSwitchDefault(LocalAppContextSwitches.MemberDescriptorEqualsReturnsFalseIfEquivalentName, true);
                         }
-                        
+
                         if (version <= 40602)
                         {
                             LocalAppContext.DefineSwitchDefault(LocalAppContextSwitches.DontEnableSystemDefaultTlsVersionsName, true);
                             LocalAppContext.DefineSwitchDefault(LocalAppContextSwitches.DontEnableTlsAlertsName, true);
                         }
-                        
+
+                        if (version <= 40700)
+                        {
+                            LocalAppContext.DefineSwitchDefault(LocalAppContextSwitches.DoNotCatchSerialStreamThreadExceptionsName, true);
+                        }
+
                         break;
                     }
                 case "WindowsPhone":

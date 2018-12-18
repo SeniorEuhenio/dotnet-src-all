@@ -27,7 +27,7 @@ namespace System.Windows.Forms.ButtonInternal {
 
         #region Drawing helpers
         protected void DrawCheckFlat(PaintEventArgs e, LayoutData layout, Color checkColor, Color checkBackground, Color checkBorder) {
-            DrawCheckBackgroundFlat(e, layout.checkBounds, checkBorder, checkBackground, true);
+            DrawCheckBackgroundFlat(e, layout.checkBounds, checkBorder, checkBackground);
             DrawCheckOnly(e, layout, checkColor, checkBackground, true);
         }
 
@@ -58,12 +58,16 @@ namespace System.Windows.Forms.ButtonInternal {
             }
         }
 
-        protected void DrawCheckBackgroundFlat(PaintEventArgs e, Rectangle bounds, Color borderColor, Color checkBackground, bool disabledColors) {
+        protected void DrawCheckBackgroundFlat(PaintEventArgs e, Rectangle bounds, Color borderColor, Color checkBackground) {
             Color field = checkBackground;
             Color border = borderColor;
             
-            if (!Control.Enabled && disabledColors) {
-                border = ControlPaint.ContrastControlDark;
+            if (!Control.Enabled) {
+                // if we are not in HighContrast mode OR we opted into the legacy behavior
+                if (!SystemInformation.HighContrast || LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                    border = ControlPaint.ContrastControlDark;
+                }
+                // otherwise we are in HighContrast mode 
                 field = SystemColors.Control;
             }
 
@@ -182,7 +186,7 @@ namespace System.Windows.Forms.ButtonInternal {
             
             if (Application.RenderWithVisualStyles) {
                 RadioButtonRenderer.DrawRadioButton(g, new Point(check.Left, check.Top), RadioButtonRenderer.ConvertFromButtonState(style, Control.MouseIsOver), Control.HandleInternal);
-            }
+              }
             else {
                 ControlPaint.DrawRadioButton(g, check, style);
             }

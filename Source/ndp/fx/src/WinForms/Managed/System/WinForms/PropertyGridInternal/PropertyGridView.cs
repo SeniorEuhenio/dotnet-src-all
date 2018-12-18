@@ -84,6 +84,8 @@ namespace System.Windows.Forms.PropertyGridInternal {
         private const int DOTDOTDOT_ICONWIDTH = 7;
         private const int DOTDOTDOT_ICONHEIGHT = 8;
 
+        private static int OFFSET_2PIXELS = 2;
+
         protected static readonly Point InvalidPosition = new Point(int.MinValue, int.MinValue);
 
 
@@ -2267,6 +2269,17 @@ namespace System.Windows.Forms.PropertyGridInternal {
             if (selectedGridEntry != null && selectedGridEntry.GetValueOwner() != null) {
                 UpdateHelpAttributes(null, selectedGridEntry);
             }
+
+            // For empty GridView, draw a focus-indicator rectangle, just inside GridView borders
+            if ((totalProps <= 0) && !LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                int doubleOffset = 2 * OFFSET_2PIXELS;
+
+                if ((Size.Width > doubleOffset) && (Size.Height > doubleOffset)) {
+                    using (Graphics g = CreateGraphicsInternal()) {
+                        ControlPaint.DrawFocusRectangle(g, new Rectangle(OFFSET_2PIXELS, OFFSET_2PIXELS, Size.Width - doubleOffset, Size.Height - doubleOffset));
+                    }
+                }
+            }
         }
 
          protected override void OnHandleCreated(EventArgs e) {
@@ -2418,6 +2431,16 @@ namespace System.Windows.Forms.PropertyGridInternal {
                 InvalidateRow(selectedRow);
             }
             base.OnLostFocus(e);
+
+            // For empty GridView, clear the focus indicator that was painted in OnGotFocus()
+            if (totalProps <= 0 && !LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                using (Graphics g = CreateGraphicsInternal()) {
+                    Rectangle clearRect = new Rectangle(1, 1, Size.Width - 2, Size.Height - 2);
+                    Debug.WriteLineIf(GridViewDebugPaint.TraceVerbose, "Filling empty gridview rect=" + clearRect.ToString());
+
+                    g.FillRectangle(backgroundBrush, clearRect);
+                }
+            }
         }
 
         private void OnEditChange(object sender, EventArgs e) {

@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{0dd7f451-2f7b-4d1e-8716-8f4b1cf73c7c}</ProjectGuid>
+    <ProjectGuid>{f738ad52-56db-4f05-ae22-8ede81708f3d}</ProjectGuid>
     <OutputPath>.</OutputPath>
     <OutputType>Library</OutputType>
     <AssemblyName>System.IdentityModel.Selectors</AssemblyName>
@@ -20,43 +20,43 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\clr\src\bcl\mscorlib.csproj">
-      <Project>{cee2f309-bc3a-4584-8db6-119a4e5ea519}</Project>
+      <Project>{ebdb53d6-cdc9-4e8f-899c-3658de860eb9}</Project>
       <Name>mscorlib</Name>
     </ProjectReference>
     <ProjectReference Include="SMDiagnostics\SMDiagnostics.csproj">
-      <Project>{483fa3f7-504f-48df-ab9d-b54226cbe6fb}</Project>
+      <Project>{6cd4b194-792e-4e61-a324-367cf30f1f5d}</Project>
       <Name>SMDiagnostics</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\fx\src\System.csproj">
-      <Project>{93e0d602-f830-478d-b585-6181aeeaf8aa}</Project>
+      <Project>{1bceb590-6227-45f2-983f-c8c699f0a0cc}</Project>
       <Name>System</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\fx\src\Configuration\System.Configuration.csproj">
-      <Project>{bdaea912-68ca-45da-948e-7e503cb326b4}</Project>
+      <Project>{1d81f876-a336-4378-9522-42f2df7bd631}</Project>
       <Name>System.Configuration</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\fx\src\System.Drawing.csproj">
-      <Project>{b4eb50b7-c0c4-43c1-9350-eb2ed0ae2c83}</Project>
+      <Project>{24dd0ff1-137c-4176-add6-d5776f12b728}</Project>
       <Name>System.Drawing</Name>
     </ProjectReference>
     <ProjectReference Include="IdentityModel\System.IdentityModel.csproj">
-      <Project>{90c9cd36-105e-404f-a51f-3b336ceff886}</Project>
+      <Project>{fa5d5c72-5ca4-441e-b02f-6b7c47cb5d70}</Project>
       <Name>System.IdentityModel</Name>
     </ProjectReference>
     <ProjectReference Include="Serialization\System.Runtime.Serialization.csproj">
-      <Project>{bd901c9d-f103-4a54-9f31-2219abe428d0}</Project>
+      <Project>{0e72915a-716b-4dad-a977-0ba877d4d88f}</Project>
       <Name>System.Runtime.Serialization</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\clr\src\managedlibraries\security\System.Security.csproj">
-      <Project>{ae2ca399-653e-4376-8e7f-fa6cb2b122b7}</Project>
+      <Project>{17897730-d58a-41fd-846f-a569d1b57edd}</Project>
       <Name>System.Security</Name>
     </ProjectReference>
     <ProjectReference Include="..\System.ServiceModel.Internals\System.ServiceModel.Internals.csproj">
-      <Project>{41a266a6-7b9d-4066-af5c-02e47744affb}</Project>
+      <Project>{05d337f2-34c4-40ea-8ffe-3828db606ead}</Project>
       <Name>System.ServiceModel.Internals</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\fx\src\Xml\System.Xml.csproj">
-      <Project>{89407287-3a00-4b8e-a685-1d93818e1bbb}</Project>
+      <Project>{4c1feb2d-272e-4b5d-8b9e-fbded9b9eb69}</Project>
       <Name>System.Xml</Name>
     </ProjectReference>
   </ItemGroup>

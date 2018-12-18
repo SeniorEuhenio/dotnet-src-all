@@ -664,6 +664,19 @@ namespace System.Windows.Controls
             return dataType;
         }
 
+        // called when a resource change affects implicit data templates
+        internal void ReevaluateTemplate()
+        {
+            // run the template algorithm again
+            if (Template != ChooseTemplate())
+            {
+                // if it chooses a different template, mark the current template
+                // as no longer current, and ask for re-measure
+                _templateIsCurrent = false;
+                InvalidateMeasure();
+            }
+        }
+
         //------------------------------------------------------
         //
         //  Private properties

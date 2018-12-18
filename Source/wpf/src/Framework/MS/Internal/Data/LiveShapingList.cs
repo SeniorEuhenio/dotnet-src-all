@@ -378,6 +378,12 @@ namespace MS.Internal.Data
             {
                 foreach (LivePropertyInfo info in _sortInfos)
                 {
+                    // the item may raise a cross-thread PropertyChanged after
+                    // the binding is set, but before the LSI is added to the list.
+                    // If so, the LSI needs a different way to find the list
+                    // (DDVSO 241164), namely a placeholder block that points
+                    // directly to the root.
+                    lsi.Block = _root.PlaceholderBlock;
                     lsi.SetBinding(info.Path, info.Property, oneTime, true);
                 }
                 foreach (LivePropertyInfo info in _groupInfos)

@@ -41,7 +41,34 @@ namespace MS.Internal
                 return LocalAppContext.GetCachedSwitchValue(GridStarDefinitionsCanExceedAvailableSpaceSwitchName, ref _gridStarDefinitionsCanExceedAvailableSpace);
             }
         }
+
+        internal const string SelectionPropertiesCanLagBehindSelectionChangedEventSwitchName = "Switch.System.Windows.Controls.TabControl.SelectionPropertiesCanLagBehindSelectionChangedEvent";
+        private static int _selectionPropertiesCanLagBehindSelectionChangedEvent;
+        public static bool SelectionPropertiesCanLagBehindSelectionChangedEvent
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                return LocalAppContext.GetCachedSwitchValue(SelectionPropertiesCanLagBehindSelectionChangedEventSwitchName, ref _selectionPropertiesCanLagBehindSelectionChangedEvent);
+            }
+        }
+
+        #region UseLegacyAccessibilityFeatures
+
+        // Switch to disable new Accessibility features that may affect compat.
+        internal const string UseLegacyAccessibilityFeaturesSwitchName = "Switch.UseLegacyAccessibilityFeatures";
+        private static int _useLegacyAccessibilityFeatures;
+        public static bool UseLegacyAccessibilityFeatures
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                return LocalAppContext.GetCachedSwitchValue(UseLegacyAccessibilityFeaturesSwitchName, ref _useLegacyAccessibilityFeatures);
+            }
+        }
+
+        #endregion
     }
 
-    #pragma warning restore 436
+#pragma warning restore 436
 }

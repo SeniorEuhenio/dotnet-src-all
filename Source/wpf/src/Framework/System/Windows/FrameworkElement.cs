@@ -9,6 +9,7 @@ using System.Windows.Threading;
 using System.Threading;
 using System.Reflection;
 using System.Windows.Data;
+using System.Windows.Diagnostics;
 using System.Windows.Documents;
 
 using System.Windows.Input;
@@ -2065,6 +2066,9 @@ namespace System.Windows
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             DependencyProperty dp = e.Property;
+
+            // invalid during a VisualTreeChanged event
+            VisualDiagnostics.VerifyVisualTreeChange(this);
 
             base.OnPropertyChanged(e);
 

@@ -136,6 +136,8 @@ namespace System.Windows.Forms {
         private DateTime    selectionStart;
         private DateTime    selectionEnd;
         private Day     firstDayOfWeek = DEFAULT_FIRST_DAY_OF_WEEK;
+        private NativeMethods.MONTCALENDAR_VIEW_MODE mcCurView = NativeMethods.MONTCALENDAR_VIEW_MODE.MCMV_MONTH;
+        private NativeMethods.MONTCALENDAR_VIEW_MODE mcOldView = NativeMethods.MONTCALENDAR_VIEW_MODE.MCMV_MONTH;
 
         /// <include file='doc\MonthCalendar.uex' path='docs/doc[@for="MonthCalendar.monthsOfYear"]/*' />
         /// <devdoc>
@@ -227,6 +229,19 @@ namespace System.Windows.Forms {
                         System.Security.CodeAccessPermission.RevertAssert();
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// MonthCalendar control  accessbile object.
+        /// </summary>
+        /// <returns></returns>
+        protected override AccessibleObject CreateAccessibilityInstance() {
+            if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                return new MonthCalendarAccessibleObject(this);
+            }
+            else {
+                return base.CreateAccessibilityInstance();
             }
         }
 
@@ -2275,6 +2290,12 @@ namespace System.Windows.Forms {
             NativeMethods.NMSELCHANGE nmmcsc = (NativeMethods.NMSELCHANGE)m.GetLParam(typeof(NativeMethods.NMSELCHANGE));
             DateTime start = selectionStart = DateTimePicker.SysTimeToDateTime(nmmcsc.stSelStart);
             DateTime end = selectionEnd = DateTimePicker.SysTimeToDateTime(nmmcsc.stSelEnd);
+
+            if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                AccessibilityNotifyClients(AccessibleEvents.NameChange, -1);
+                AccessibilityNotifyClients(AccessibleEvents.ValueChange, -1);
+            }
+            
             //subhag
             if (start.Ticks < minDate.Ticks || end.Ticks < minDate.Ticks)
                 SetSelRange(minDate,minDate);
@@ -2302,6 +2323,24 @@ namespace System.Windows.Forms {
             Marshal.StructureToPtr(nmmcds, m.LParam, false);
         }
 
+        /// <include file='doc\MonthCalendar.uex' path='docs/doc[@for="MonthCalendar.WmCalViewChanged"]/*' />
+        /// <devdoc>
+        ///     Handles the MCN_VIEWCHANGE  notification
+        /// </devdoc>
+        /// <internalonly/>
+
+        private void WmCalViewChanged (ref Message m) {
+            NativeMethods.NMVIEWCHANGE nmmcvm = (NativeMethods.NMVIEWCHANGE)m.GetLParam(typeof(NativeMethods.NMVIEWCHANGE));
+            Debug.Assert(mcCurView == (NativeMethods.MONTCALENDAR_VIEW_MODE)nmmcvm.uOldView, "Calendar view mode is out of sync with native control");
+            if (mcCurView != (NativeMethods.MONTCALENDAR_VIEW_MODE)nmmcvm.uNewView) {
+                mcOldView = mcCurView;
+                mcCurView = (NativeMethods.MONTCALENDAR_VIEW_MODE)nmmcvm.uNewView;
+                if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                    AccessibilityNotifyClients(AccessibleEvents.ValueChange, -1);
+                    AccessibilityNotifyClients(AccessibleEvents.NameChange, -1);
+                }
+            }
+        }
         /// <include file='doc\MonthCalendar.uex' path='docs/doc[@for="MonthCalendar.WmDateSelected"]/*' />
         /// <devdoc>
         ///     Handles the MCN_SELECT notification
@@ -2311,6 +2350,11 @@ namespace System.Windows.Forms {
             NativeMethods.NMSELCHANGE nmmcsc = (NativeMethods.NMSELCHANGE)m.GetLParam(typeof(NativeMethods.NMSELCHANGE));
             DateTime start = selectionStart = DateTimePicker.SysTimeToDateTime(nmmcsc.stSelStart);
             DateTime end = selectionEnd = DateTimePicker.SysTimeToDateTime(nmmcsc.stSelEnd);
+
+            if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                AccessibilityNotifyClients(AccessibleEvents.NameChange, -1);
+                AccessibilityNotifyClients(AccessibleEvents.ValueChange, -1);
+            }
 
             //subhag
             if (start.Ticks < minDate.Ticks || end.Ticks < minDate.Ticks)
@@ -2350,6 +2394,11 @@ namespace System.Windows.Forms {
                         break;
                     case NativeMethods.MCN_GETDAYSTATE:
                         WmDateBold(ref m);
+                        break;
+                    case NativeMethods.MCN_VIEWCHANGE:
+                        if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                            WmCalViewChanged(ref m);
+                        }
                         break;
                 }
             }
@@ -2582,6 +2631,129 @@ namespace System.Windows.Forms {
             /// The given point was on the "today" link at the bottom of the month calendar control
             /// </devdoc>
             TodayLink = 12,
+        }
+
+        /// <include file='doc\MonthCalendar.uex' path='docs/doc[@for="MonthCalendar.MonthCalendarAccessibleObject"]/*' />
+        /// <internalonly/>        
+        /// <devdoc>
+        /// </devdoc>
+        [System.Runtime.InteropServices.ComVisible(true)]
+        internal class MonthCalendarAccessibleObject : ControlAccessibleObject {
+
+            private MonthCalendar calendar;
+
+            /// <include file='doc\MonthCalendar.uex' path='docs/doc[@for="MonthCalendar.CheckBoxAccessibleObject.MonthCalendarAccessibleObject"]/*' />
+            public MonthCalendarAccessibleObject(Control owner)
+                : base(owner) {
+                    calendar = owner as MonthCalendar;
+            }
+
+            /// <include file='doc\MonthCalendar.uex' path='docs/doc[@for="MonthCalendar.MonthCalendarAccessibleObject.Role"]/*' />
+            public override AccessibleRole Role {
+                get {
+                    if (calendar != null) {
+                        AccessibleRole role = calendar.AccessibleRole;
+                        if (role != AccessibleRole.Default) {
+                            return role;
+                        }
+                    }
+                    return AccessibleRole.Table;
+                }
+            }
+
+            /// <include file='doc\MonthCalendar.uex' path='docs/doc[@for="MonthCalendar.MonthCalendarAccessibleObject.Help"]/*' />
+            public override string Help {
+                get {
+                    var help = base.Help;
+                    if (help != null) {
+                        return help;
+                    }
+                    else {
+                        if (calendar != null) {
+                            return calendar.GetType().Name + "(" + calendar.GetType().BaseType.Name + ")";
+                        }
+                    }
+                    return string.Empty;
+                }
+            }
+
+            /// <include file='doc\MonthCalendar.uex' path='docs/doc[@for="MonthCalendar.MonthCalendarAccessibleObject.Name"]/*' />
+            public override string Name {
+                get {
+                    string name = base.Name;
+                    if (name != null) {
+                        return name;
+                    }
+
+                    if (calendar != null) {
+
+                        if (calendar.mcCurView == NativeMethods.MONTCALENDAR_VIEW_MODE.MCMV_MONTH) {
+                            if (System.DateTime.Equals(calendar.SelectionStart.Date, calendar.SelectionEnd.Date)) {
+                                name = SR.GetString(SR.MonthCalendarSingleDateSelected, calendar.SelectionStart.ToLongDateString());
+                            }
+                            else {
+                                name = SR.GetString(SR.MonthCalendarRangeSelected, calendar.SelectionStart.ToLongDateString(), calendar.SelectionEnd.ToLongDateString());
+                            }
+                        }
+                        else if (this.calendar.mcCurView == NativeMethods.MONTCALENDAR_VIEW_MODE.MCMV_YEAR) {
+                            if (System.DateTime.Equals(this.calendar.SelectionStart.Month, this.calendar.SelectionEnd.Month)) {
+                                name = SR.GetString(SR.MonthCalendarSingleDateSelected, calendar.SelectionStart.ToString("y"));
+                            }
+                            else {
+                                name = SR.GetString(SR.MonthCalendarRangeSelected, calendar.SelectionStart.ToString("y"), calendar.SelectionEnd.ToString("y"));
+                            }
+                        }
+                        else if (calendar.mcCurView == NativeMethods.MONTCALENDAR_VIEW_MODE.MCMV_DECADE) {
+                            if (System.DateTime.Equals(calendar.SelectionStart.Year, calendar.SelectionEnd.Year)) {
+                                name = SR.GetString(SR.MonthCalendarSingleYearSelected, calendar.SelectionStart.ToString("yyyy"));
+                            }
+                            else {
+                                name = SR.GetString(SR.MonthCalendarYearRangeSelected, calendar.SelectionStart.ToString("yyyy"), calendar.SelectionEnd.ToString("yyyy"));
+                            }
+                        }
+                        else if (calendar.mcCurView == NativeMethods.MONTCALENDAR_VIEW_MODE.MCMV_CENTURY) {
+                            name = SR.GetString(SR.MonthCalendarSingleDecadeSelected, calendar.SelectionStart.ToString("yyyy"));
+                        }
+                    }
+                    return name;
+                }
+            }
+
+            public override string Value {
+                get {
+                    var value = string.Empty;
+                    try {
+                        if (calendar != null) {
+                            if (calendar.mcCurView == NativeMethods.MONTCALENDAR_VIEW_MODE.MCMV_MONTH) {
+                                if (System.DateTime.Equals(calendar.SelectionStart.Date, calendar.SelectionEnd.Date)) {
+                                    value = calendar.SelectionStart.ToLongDateString();
+                                }
+                                else {
+                                    value = string.Format("{0} - {1}", calendar.SelectionStart.ToLongDateString(), calendar.SelectionEnd.ToLongDateString());
+                                }
+                            }
+                            else if (this.calendar.mcCurView == NativeMethods.MONTCALENDAR_VIEW_MODE.MCMV_YEAR) {
+                                if (System.DateTime.Equals(this.calendar.SelectionStart.Month, this.calendar.SelectionEnd.Month)) {
+                                    value = calendar.SelectionStart.ToString("y");
+                                }
+                                else {
+                                    value = string.Format("{0} - {1}", calendar.SelectionStart.ToString("y"), calendar.SelectionEnd.ToString("y"));
+                                }
+                            }
+                            else {
+                                value = string.Format("{0} - {1}", calendar.SelectionRange.Start.ToString(), calendar.SelectionRange.End.ToString());
+                            }
+                        }
+                    }
+                    catch {
+                        value = base.Value;
+                    }
+                    return value;
+                }
+                set {
+                    base.Value = value;
+                }
+            }                      
         }
 
     } // end class MonthCalendar

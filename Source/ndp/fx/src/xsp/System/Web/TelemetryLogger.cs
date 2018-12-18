@@ -37,15 +37,15 @@ namespace System.Web {
                 return;
             }
 
-            try {
-                s_TelemetryLogger.Write(
-                        HttpHandlerEventName,
-                        TelemetryEventSource.MeasuresOptions(),
-                        new HttpHandlerTelemetryData() {
-                            AppID = s_AppID,
-                            HttpHandlerType = GetHashCode(httpHandlerType.AssemblyQualifiedName)
-                        }
-                    );
+            try { 
+            s_TelemetryLogger.Write(
+                    HttpHandlerEventName,
+                    TelemetryEventSource.MeasuresOptions(),
+                    new HttpHandlerTelemetryData() {
+                        AppID = s_AppID,
+                        HttpHandlerType = GetHashCode(httpHandlerType.AssemblyQualifiedName)
+                    }
+                );
             }
             catch { }
         }
@@ -64,7 +64,7 @@ namespace System.Web {
                         TargetFramework = targetFrameworkVersion.ToString()
                     }
                 );
-            } 
+            }
             catch { }
         }
 

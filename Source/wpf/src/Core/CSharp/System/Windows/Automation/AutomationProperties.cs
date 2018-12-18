@@ -467,6 +467,44 @@ namespace System.Windows.Automation
             return ((IsOffscreenBehavior)element.GetValue(IsOffscreenBehaviorProperty));
         }
         #endregion IsOffscreenBehavior
+        
+        #region LiveSetting
+        /// <summary>
+        /// LiveSetting Property
+        /// </summary>
+        public static readonly DependencyProperty LiveSettingProperty =
+                    DependencyProperty.RegisterAttached(
+                                "LiveSetting",
+                                typeof(AutomationLiveSetting),
+                                typeof(AutomationProperties),
+                                new UIPropertyMetadata(AutomationLiveSetting.Off));
+
+        /// <summary>
+        /// Helper for setting LiveSetting property on a DependencyObject. 
+        /// </summary>
+        public static void SetLiveSetting(DependencyObject element, AutomationLiveSetting value)
+        {
+            if (element == null)
+            {
+                throw new ArgumentNullException(nameof(element));
+            }
+
+            element.SetValue(LiveSettingProperty, value);
+        }
+
+        /// <summary>
+        /// Helper for reading LiveSetting property from a DependencyObject.
+        /// </summary>
+        public static AutomationLiveSetting GetLiveSetting(DependencyObject element)
+        {
+            if (element == null)
+            {
+                throw new ArgumentNullException(nameof(element));
+            }
+
+            return ((AutomationLiveSetting)element.GetValue(LiveSettingProperty));
+        }
+        #endregion LiveSetting
 
         #region private implementation
         // Validation callback for string properties

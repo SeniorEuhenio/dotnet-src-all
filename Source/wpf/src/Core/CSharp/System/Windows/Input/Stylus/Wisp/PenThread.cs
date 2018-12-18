@@ -117,7 +117,7 @@ namespace System.Windows.Input
         ///             (via HwndSource.InputFilterMessage).
         /// </SecurityNote>
         [SecurityCritical]
-        internal PenContextInfo WorkerCreateContext(IntPtr hwnd, IPimcTablet pimcTablet)
+        internal PenContextInfo WorkerCreateContext(IntPtr hwnd, IPimcTablet2 pimcTablet)
         {
             return _penThreadWorker.WorkerCreateContext(hwnd, pimcTablet);
         }
@@ -127,7 +127,7 @@ namespace System.Windows.Input
         ///             Called by PenThreadPool.WorkerRefreshCursorInfo.
         /// </SecurityNote>
         [SecurityCritical]
-        internal StylusDeviceInfo[] WorkerRefreshCursorInfo(IPimcTablet pimcTablet)
+        internal StylusDeviceInfo[] WorkerRefreshCursorInfo(IPimcTablet2 pimcTablet)
         {
             return _penThreadWorker.WorkerRefreshCursorInfo(pimcTablet);
         }
@@ -147,7 +147,7 @@ namespace System.Windows.Input
         ///             Called by PenThreadPool.WorkerGetUpdatedTabletRect.
         /// </SecurityNote>
         [SecurityCritical]
-        internal TabletDeviceSizeInfo WorkerGetUpdatedSizes(IPimcTablet pimcTablet)
+        internal TabletDeviceSizeInfo WorkerGetUpdatedSizes(IPimcTablet2 pimcTablet)
         {
             return _penThreadWorker.WorkerGetUpdatedSizes(pimcTablet);
         }

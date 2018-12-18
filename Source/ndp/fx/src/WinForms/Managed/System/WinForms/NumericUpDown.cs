@@ -744,7 +744,7 @@ namespace System.Windows.Forms {
                 newValue = maximum;
             }
 
-            Value = newValue;
+            Value = newValue;            
         }
 
         private string GetNumberText(decimal num) {
@@ -908,7 +908,29 @@ namespace System.Windows.Forms {
                     if (role != AccessibleRole.Default) {
                         return role;
                     }
-                    return AccessibleRole.ComboBox;
+                    else {
+                        if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                            return AccessibleRole.SpinButton;
+                        }
+                        else {
+                            return AccessibleRole.ComboBox;
+                        }
+                    }
+                }
+            }
+
+            public override string Name
+            {
+                get {
+                    if (base.Name == null && !LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                        return Owner.GetType().Name;
+                    }
+                    else {
+                        return base.Name;
+                    }
+                }
+                set {
+                    base.Name = value;
                 }
             }
             

@@ -54,7 +54,8 @@ public:
 								   __out SNI_Provider 	 ** ppProv,
 								   BOOL	    			fSync ); 
 
-	static DWORD LoadInstapiIfNeeded();
+	static DWORD LoadInstapiIfNeeded(const __in LPCSTR szSharedPathLocation, const __in LPCSTR szInstapidllname);
+
 
 	static DWORD IsYukonByInstanceString(__in_opt LPWSTR wszInstance, __out BOOL * isYukon, __out_opt BOOL * pfNew, __out BOOL * pfVersionRetrieved);
 

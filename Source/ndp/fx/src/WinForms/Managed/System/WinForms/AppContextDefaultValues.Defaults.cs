@@ -24,7 +24,10 @@ namespace System {
                     }
                     if (version <= 40602) {
                         LocalAppContext.DefineSwitchDefault(LocalAppContextSwitches.DoNotLoadLatestRichEditControlSwitchName, true);
-                    }                   
+                    }
+                    if (version <= 40700) {
+                        LocalAppContext.DefineSwitchDefault(LocalAppContextSwitches.UseLegacyAccessibilityFeaturesSwitchName, true);
+                    }
                     break;
                 }
             }

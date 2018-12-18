@@ -11,9 +11,12 @@ namespace System.Windows.Forms {
         internal const string DontSupportReentrantFilterMessageSwitchName = @"Switch.System.Windows.Forms.DontSupportReentrantFilterMessage";
         internal const string DoNotSupportSelectAllShortcutInMultilineTextBoxSwitchName = @"Switch.System.Windows.Forms.DoNotSupportSelectAllShortcutInMultilineTextBox";
         internal const string DoNotLoadLatestRichEditControlSwitchName = @"Switch.System.Windows.Forms.DoNotLoadLatestRichEditControl";
+        internal const string UseLegacyAccessibilityFeaturesSwitchName = @"Switch.UseLegacyAccessibilityFeatures";
+        
         private static int _dontSupportReentrantFilterMessage;
         private static int _doNotSupportSelectAllShortcutInMultilineTextBox;
         private static int _doNotLoadLatestRichEditControl;
+        private static int _useLegacyAccessibilityFeatures;
 
         public static bool DontSupportReentrantFilterMessage {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -29,14 +32,18 @@ namespace System.Windows.Forms {
             }
         }
 
-        public static bool DoNotLoadLatestRichEditControl
-        {
+        public static bool DoNotLoadLatestRichEditControl {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
+            get {
                 return LocalAppContext.GetCachedSwitchValue(LocalAppContextSwitches.DoNotLoadLatestRichEditControlSwitchName, ref _doNotLoadLatestRichEditControl);
             }
         }
 
+        public static bool UseLegacyAccessibilityFeatures {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get {
+                return LocalAppContext.GetCachedSwitchValue(LocalAppContextSwitches.UseLegacyAccessibilityFeaturesSwitchName, ref _useLegacyAccessibilityFeatures);
+            }
+        }
     }
 }

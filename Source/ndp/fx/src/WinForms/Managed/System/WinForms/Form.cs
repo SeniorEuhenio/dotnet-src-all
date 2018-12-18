@@ -5105,14 +5105,20 @@ namespace System.Windows.Forms {
 
                 if (!e.Cancel) {
                     float factor = (float)e.DeviceDpiNew / (float)e.DeviceDpiOld;
-                    SafeNativeMethods.SetWindowPos(new HandleRef(this, HandleInternal), NativeMethods.NullHandleRef, e.SuggestedRectangle.X, e.SuggestedRectangle.Y, e.SuggestedRectangle.Width, e.SuggestedRectangle.Height, NativeMethods.SWP_NOZORDER | NativeMethods.SWP_NOACTIVATE);
-                    if (AutoScaleMode != AutoScaleMode.Font) {
-                        Font = new Font(this.Font.FontFamily, this.Font.Size * factor, this.Font.Style);
-                        FormDpiChanged(factor);
+                    SuspendAllLayout(this);
+                    try {
+                        SafeNativeMethods.SetWindowPos(new HandleRef(this, HandleInternal), NativeMethods.NullHandleRef, e.SuggestedRectangle.X, e.SuggestedRectangle.Y, e.SuggestedRectangle.Width, e.SuggestedRectangle.Height, NativeMethods.SWP_NOZORDER | NativeMethods.SWP_NOACTIVATE);
+                        if (AutoScaleMode != AutoScaleMode.Font) {
+                            Font = new Font(this.Font.FontFamily, this.Font.Size * factor, this.Font.Style);
+                            FormDpiChanged(factor);
+                        }
+                        else {
+                            ScaleFont(factor);
+                            FormDpiChanged(factor);
+                        }
                     }
-                    else {
-                        ScaleFont(factor);
-                        FormDpiChanged(factor);
+                    finally {
+                        ResumeAllLayout(this, false);
                     }
                 }
             }
@@ -5120,7 +5126,7 @@ namespace System.Windows.Forms {
 
         /// <include file='doc\Form.uex' path='docs/doc[@for="Form.DpiChanged"]/*' />
         /// <devdoc>
-        ///    <para> Occurs when the DPI resolution of the screen this control is displayed on changes, 
+        ///    <para> Occurs when the DPI resolution of the screen this top level window is displayed on changes, 
         ///    either when the top level window is moved between monitors or when the OS settings are changed.
         ///    </para>
         /// </devdoc>
@@ -7047,6 +7053,10 @@ namespace System.Windows.Forms {
 
                 if (m.Msg == NativeMethods.WM_QUERYENDSESSION) {
                     m.Result = (IntPtr)(e.Cancel ? 0 : 1);
+                }
+                else if (e.Cancel && (MdiParent != null)) {
+                    // This is the case of an MDI child close event being canceled by the user.
+                    CloseReason = CloseReason.None;
                 }
 
                 if (Modal) {

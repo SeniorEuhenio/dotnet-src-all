@@ -58,7 +58,23 @@ namespace System.Windows.Forms
             {
                 if (netFrameworkVersion == null)
                 {
-                    netFrameworkVersion = new FrameworkName(AppDomain.CurrentDomain.SetupInformation.TargetFrameworkName).Version;
+                    netFrameworkVersion = new Version(0,0,0,0);  // by default version set to 0.0.0.0
+
+                    // TargetFrameworkName can be null in certain scenarios.
+                    try
+                    {
+                        var targetFrameworkName= AppDomain.CurrentDomain.SetupInformation.TargetFrameworkName;
+                        if (!String.IsNullOrEmpty(targetFrameworkName))
+                        {
+                            var frameworkName = new FrameworkName(targetFrameworkName);
+                            if (String.Equals(frameworkName.Identifier, ".NETFramework"))
+                                netFrameworkVersion = frameworkName.Version;
+                        }
+                    }
+                    catch (Exception e)
+                    {   
+                        Debug.WriteLine("Exception while reading Framework version : " + e.ToString());
+                    }
                 }
 
                 return netFrameworkVersion;

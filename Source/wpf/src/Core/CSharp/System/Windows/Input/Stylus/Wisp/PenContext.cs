@@ -29,12 +29,12 @@ namespace System.Windows.Input
         ///                and HwndWrapperHook class (via HwndSource.InputFilterMessage).
         /// </SecurityNote>
         [SecurityCritical]
-        internal PenContext(IPimcContext pimcContext, IntPtr hwnd, 
+        internal PenContext(IPimcContext2 pimcContext, IntPtr hwnd, 
                                 PenContexts contexts, bool supportInRange, bool isIntegrated,
                                 int id, IntPtr commHandle, int tabletDeviceId)
         {
             _contexts = contexts;
-            _pimcContext = new SecurityCriticalDataClass<IPimcContext>(pimcContext);
+            _pimcContext = new SecurityCriticalDataClass<IPimcContext2>(pimcContext);
             _id = id;
             _tabletDeviceId = tabletDeviceId;
             _commHandle = new SecurityCriticalData<IntPtr>(commHandle);
@@ -141,7 +141,7 @@ namespace System.Windows.Input
         /// <SecurityNote>
         /// Critical - Critical since it calls into unmanaged code (GetPacketPropertyInfo
         ///             GetPacketButtonInfo and GetPacketDescriptionInfo PenImc.dll 
-        ///             methods on IPimcContext COM interfaces stored in _pimcContext) that
+        ///             methods on IPimcContext2 COM interfaces stored in _pimcContext) that
         ///             is SecurityCritical with SUC attribute.
         /// TreatAsSafe - Takes no input and returns StylusPointDescription that is handed out publically
         ///                on StylusEvents.  Nothing inside StylusPointDescription is security critical.
@@ -157,7 +157,7 @@ namespace System.Windows.Input
             // to penimc or else we can cause reentrancy!
             Debug.Assert(!_contexts._inputSource.Value.CheckAccess());
 
-            // We should always have a valid IPimcContext interface pointer.
+            // We should always have a valid IPimcContext2 interface pointer.
             Debug.Assert(_pimcContext != null && _pimcContext.Value != null);
             
             _pimcContext.Value.GetPacketDescriptionInfo(out cProps, out cButtons); // Calls Unmanaged code - SecurityCritical with SUC.
@@ -250,24 +250,6 @@ namespace System.Windows.Input
             {
                 if (_penThreadPenContext.RemovePenContext(this))
                 {
-                    // DDVSO:202023
-                    // It is possible that calling ReleaseComObject throws.  We do not expect the
-                    // COM object to be invalid here, but releasing can lead to a message pumped
-                    // wait.  Re-entrancy can occur that will release the COM object prior to 
-                    // the wait resolving.  This results in an exception down the line when 
-                    // returning from the re-entrant call.
-                    //
-                    // To fix this, store a local, null out the member, and then release the local.
-                    // Any re-entrant call will find the member variable already null and skip the 
-                    // release.
-                    IPimcContext context = _pimcContext?.Value;
-                    _pimcContext = null;
-
-                    if (context != null)
-                    {
-                        Marshal.ReleaseComObject(context); // Make sure we release the COM Object so wisptis doesn't send messages to it anymore
-                    }
-
                     // Check if we need to shut down our pen thread.
                     if (shutdownWorkerThread)
                     {
@@ -611,7 +593,7 @@ namespace System.Windows.Input
         ///     SecurityCritical - This is got under an elevation and is hence critical.
         /// </SecurityNote>
         [SecurityCritical]
-        internal SecurityCriticalDataClass<IPimcContext> _pimcContext;
+        internal SecurityCriticalDataClass<IPimcContext2> _pimcContext;
         
         /// <SecurityNote>
         ///     SecurityCritical - This is got under an elevation and is hence critical.

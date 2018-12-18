@@ -1,7 +1,7 @@
 ﻿//---------------------------------------------------------------------------
 //
 // Copyright (C) Microsoft Corporation.  All rights reserved.
-// 
+//
 // File: CoreAppContextSwitches.cs
 //---------------------------------------------------------------------------
 
@@ -10,9 +10,9 @@ using System.Runtime.CompilerServices;
 
 namespace MS.Internal
 {
-    // WPF's builds are seeing new warnings as as result of using LocalAppContext in PresentationFramework, PresentationCore and WindowsBase. 
-    // These binaries have internalsVisibleTo attribute set between them - which results in the warning. 
-    // We don't have a way of suppressing this warning effectively until the shared copies of LocalAppContext and 
+    // WPF's builds are seeing new warnings as as result of using LocalAppContext in PresentationFramework, PresentationCore and WindowsBase.
+    // These binaries have internalsVisibleTo attribute set between them - which results in the warning.
+    // We don't have a way of suppressing this warning effectively until the shared copies of LocalAppContext and
     // AppContextDefaultValues have pragmas added to suppress warning 436
 #pragma warning disable 436
     internal static class CoreAppContextSwitches
@@ -78,6 +78,74 @@ namespace MS.Internal
             get
             {
                 return LocalAppContext.GetCachedSwitchValue(OverrideExceptionWithNullReferenceExceptionName, ref _overrideExceptionWithNullReferenceException);
+            }
+        }
+
+        #endregion
+
+        #region DisableDiagnostics
+
+        // DDVSO:406811
+        // Switch to disable diagnostic features
+        internal const string DisableDiagnosticsSwitchName = "Switch.System.Windows.Diagnostics.DisableDiagnostics";
+        private static int _disableDiagnostics;
+        public static bool DisableDiagnostics
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                return LocalAppContext.GetCachedSwitchValue(DisableDiagnosticsSwitchName, ref _disableDiagnostics);
+            }
+        }
+
+        #endregion
+
+        #region AllowVisualTreeChangesDuringVisualTreeChanged
+
+        // DDVSO:406811
+        // Switch to allow changes during a VisualTreeChanged event
+        internal const string AllowChangesDuringVisualTreeChangedSwitchName = "Switch.System.Windows.Diagnostics.AllowChangesDuringVisualTreeChanged";
+        private static int _allowChangesDuringVisualTreeChanged;
+        public static bool AllowChangesDuringVisualTreeChanged
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                return LocalAppContext.GetCachedSwitchValue(AllowChangesDuringVisualTreeChangedSwitchName, ref _allowChangesDuringVisualTreeChanged);
+            }
+        }
+
+        #endregion
+
+        #region DisableImplicitTouchKeyboardInvocation
+
+        // DDVSO:362756
+        // Switch to disable automatic touch keyboard invocation on focus of a control.
+        internal const string DisableImplicitTouchKeyboardInvocationSwitchName = "Switch.System.Windows.Input.Stylus.DisableImplicitTouchKeyboardInvocation";
+        private static int _disableImplicitTouchKeyboardInvocation;
+        public static bool DisableImplicitTouchKeyboardInvocation
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                return LocalAppContext.GetCachedSwitchValue(DisableImplicitTouchKeyboardInvocationSwitchName, ref _disableImplicitTouchKeyboardInvocation);
+            }
+        }
+
+        #endregion
+        
+        #region UseLegacyAccessibilityFeatures
+
+        // DDVSO:444529
+        // Switch to disable new Accessibility features that may affect compat.
+        internal const string UseLegacyAccessibilityFeaturesSwitchName = "Switch.UseLegacyAccessibilityFeatures";
+        private static int _useLegacyAccessibilityFeatures;
+        public static bool UseLegacyAccessibilityFeatures
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                return LocalAppContext.GetCachedSwitchValue(UseLegacyAccessibilityFeaturesSwitchName, ref _useLegacyAccessibilityFeatures);
             }
         }
 

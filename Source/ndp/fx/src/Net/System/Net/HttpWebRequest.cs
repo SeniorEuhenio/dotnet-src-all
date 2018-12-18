@@ -3035,7 +3035,9 @@ namespace System.Net {
         // Get the buffer from the pinnable cache if the necessary space is small enough
         private void SetWriteBuffer(int bufferSize)
         {
-            if(bufferSize <= CachedWriteBufferSize)
+            Debug.Assert(_WriteBuffer == null);
+
+            if (bufferSize <= CachedWriteBufferSize)
             {
                 if (!_WriteBufferFromPinnableCache) 
                 {

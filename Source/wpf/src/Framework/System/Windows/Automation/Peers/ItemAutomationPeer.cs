@@ -382,6 +382,18 @@ namespace System.Windows.Automation.Peers
         }
 
         ///
+        protected override AutomationLiveSetting GetLiveSettingCore()
+        {
+            AutomationPeer wrapperPeer = GetWrapperPeer();
+            if (wrapperPeer != null)
+                return wrapperPeer.GetLiveSetting();
+            else
+                ThrowElementNotAvailableException();
+
+            return AutomationLiveSetting.Off;
+        }
+
+        ///
         protected override string GetHelpTextCore()
         {
             AutomationPeer wrapperPeer = GetWrapperPeer();

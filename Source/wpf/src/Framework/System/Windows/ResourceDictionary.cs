@@ -224,6 +224,12 @@ namespace System.Windows
                 // Copy over the HasImplicitStyles flag
                 HasImplicitStyles = loadedRD.HasImplicitStyles;
 
+                // Copy over the HasImplicitDataTemplates flag
+                HasImplicitDataTemplates = loadedRD.HasImplicitDataTemplates;
+
+                // Copy over the InvalidatesImplicitDataTemplateResources flag
+                InvalidatesImplicitDataTemplateResources = loadedRD.InvalidatesImplicitDataTemplateResources;
+
                 // Set inheritance context on the copied values
                 if (InheritanceContext != null)
                 {
@@ -338,6 +344,19 @@ namespace System.Windows
         }
 
         /// <summary>
+        ///     Gets or sets a value indicating whether the invalidations fired
+        ///     by the ResourceDictionary when an implicit data template resource
+        ///     changes will cause ContentPresenters to re-evaluate their choice
+        ///     of template.
+        /// </summary>
+        [DefaultValue(false)]
+        public bool InvalidatesImplicitDataTemplateResources
+        {
+            get { return ReadPrivateFlag(PrivateFlags.InvalidatesImplicitDataTemplateResources); }
+            set { WritePrivateFlag(PrivateFlags.InvalidatesImplicitDataTemplateResources, value); }
+        }
+
+        /// <summary>
         ///     Gets or sets the value associated with the specified key.
         /// </summary>
         /// <remarks>
@@ -418,6 +437,9 @@ namespace System.Windows
 
                 // Update the HasImplicitStyles flag
                 UpdateHasImplicitStyles(key);
+
+                // Update the HasImplicitDataTemplates flag
+                UpdateHasImplicitDataTemplates(key);
 
                 // Notify owners of the change and fire invalidate if already initialized
                 NotifyOwners(new ResourcesChangeInfo(key));
@@ -588,6 +610,9 @@ namespace System.Windows
                 throw new InvalidOperationException(SR.Get(SRID.ResourceDictionaryIsReadOnly));
             }
 
+            // invalid during a VisualTreeChanged event
+            System.Windows.Diagnostics.VisualDiagnostics.VerifyVisualTreeChange(InheritanceContext);
+
             if( TraceResourceDictionary.IsEnabled )
             {
                 TraceResourceDictionary.Trace( TraceEventType.Start,
@@ -602,6 +627,9 @@ namespace System.Windows
 
             // Update the HasImplicitKey flag
             UpdateHasImplicitStyles(key);
+
+            // Update the HasImplicitDataTemplates flag
+            UpdateHasImplicitDataTemplates(key);
 
             // Notify owners of the change and fire invalidate if already initialized
             NotifyOwners(new ResourcesChangeInfo(key));
@@ -641,6 +669,9 @@ namespace System.Windows
             {
                 throw new InvalidOperationException(SR.Get(SRID.ResourceDictionaryIsReadOnly));
             }
+
+            // invalid during a VisualTreeChanged event
+            System.Windows.Diagnostics.VisualDiagnostics.VerifyVisualTreeChange(InheritanceContext);
 
             if (Count > 0)
             {
@@ -769,6 +800,9 @@ namespace System.Windows
             {
                 throw new InvalidOperationException(SR.Get(SRID.ResourceDictionaryIsReadOnly));
             }
+
+            // invalid during a VisualTreeChanged event
+            System.Windows.Diagnostics.VisualDiagnostics.VerifyVisualTreeChange(InheritanceContext);
 
             // We need to validate all the deferred references that refer
             // to the old resource before we remove it.
@@ -1159,6 +1193,9 @@ namespace System.Windows
 
                     // Update the HasImplicitStyles flag
                     UpdateHasImplicitStyles(value);
+
+                    // Update the HasImplicitDataTemplates flag
+                    UpdateHasImplicitDataTemplates(value);
 
                     if (keyRecord != null && keyRecord.HasStaticResources)
                     {
@@ -1591,6 +1628,11 @@ namespace System.Windows
             bool shouldInvalidate   = IsInitialized;
             bool hasImplicitStyles  = info.IsResourceAddOperation && HasImplicitStyles;
 
+            if (shouldInvalidate && InvalidatesImplicitDataTemplateResources)
+            {
+                info.SetIsImplicitDataTemplateChange();
+            }
+
             if (shouldInvalidate || hasImplicitStyles)
             {
                 // Invalidate all FE owners
@@ -1806,6 +1848,12 @@ namespace System.Windows
                         if (!HasImplicitStyles && mergedDictionary.HasImplicitStyles)
                         {
                             HasImplicitStyles = true;
+                        }
+
+                        // If the merged dictionary HasImplicitDataTemplates mark the outer dictionary the same.
+                        if (!HasImplicitDataTemplates && mergedDictionary.HasImplicitDataTemplates)
+                        {
+                            HasImplicitDataTemplates = true;
                         }
 
                         // If the parent dictionary is a theme dictionary mark the merged dictionary the same.
@@ -2295,6 +2343,16 @@ namespace System.Windows
             }
         }
 
+        // Sets the HasImplicitDataTemplates flag if the given key is of type DataTemplateKey.
+        private void UpdateHasImplicitDataTemplates(object key)
+        {
+            // Update the HasImplicitDataTemplates flag
+            if (!HasImplicitDataTemplates)
+            {
+                HasImplicitDataTemplates = (key is DataTemplateKey);
+            }
+        }
+
         private DependencyObject InheritanceContext
         {
             get
@@ -2344,6 +2402,12 @@ namespace System.Windows
         {
             get { return ReadPrivateFlag(PrivateFlags.HasImplicitStyles); }
             set { WritePrivateFlag(PrivateFlags.HasImplicitStyles, value); }
+        }
+
+        internal bool HasImplicitDataTemplates
+        {
+            get { return ReadPrivateFlag(PrivateFlags.HasImplicitDataTemplates); }
+            set { WritePrivateFlag(PrivateFlags.HasImplicitDataTemplates, value); }
         }
 
         internal bool CanBeAccessedAcrossThreads
@@ -2428,9 +2492,8 @@ namespace System.Windows
             IsThemeDictionary           = 0x08,
             HasImplicitStyles           = 0x10,
             CanBeAccessedAcrossThreads  = 0x20,
-
-            // Unused bit = 0x40,
-            // Unused bit = 0x80,
+            InvalidatesImplicitDataTemplateResources = 0x40,
+            HasImplicitDataTemplates    = 0x80,
         }
 
         #endregion PrivateDataStructures

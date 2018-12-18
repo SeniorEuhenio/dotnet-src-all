@@ -193,6 +193,36 @@ namespace System.Windows.Automation.Peers
         }
 
         ///
+        protected override string GetLocalizedControlTypeCore()
+        {
+            if (!MS.Internal.FrameworkAppContextSwitches.UseLegacyAccessibilityFeatures)
+            {
+                return SR.Get(SRID.DataGridCellItemAutomationPeer_LocalizedControlType);
+            }
+            else
+            {
+                return base.GetLocalizedControlTypeCore();
+            }
+        }
+
+        override protected AutomationLiveSetting GetLiveSettingCore()
+        {
+            AutomationPeer wrapperPeer = OwningCellPeer;
+            AutomationLiveSetting liveSetting = AutomationLiveSetting.Off;
+
+            if (wrapperPeer != null)
+            {
+                liveSetting = wrapperPeer.GetLiveSetting();
+            }
+            else
+            {
+                ThrowElementNotAvailableException();
+            }
+
+            return liveSetting;
+        }
+
+        ///
         protected override string GetNameCore()
         {
             AutomationPeer wrapperPeer = OwningCellPeer;

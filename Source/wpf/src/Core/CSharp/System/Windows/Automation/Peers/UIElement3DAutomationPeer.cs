@@ -363,6 +363,11 @@ namespace System.Windows.Automation.Peers
             return string.Empty;
         }
 
+        override protected AutomationLiveSetting GetLiveSettingCore()
+        {
+            return AutomationProperties.GetLiveSetting(_owner);
+        }
+
         //
         // M E T H O D S
         //

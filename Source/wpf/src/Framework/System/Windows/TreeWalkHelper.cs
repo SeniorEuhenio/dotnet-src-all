@@ -532,9 +532,18 @@ namespace System.Windows
                 fe.HasStyleInvalidated = false;
                 fe.HasTemplateChanged = false; // detect template changes that arise from work done here
 
+                // if the change affects implicit data templates, notify ContentPresenters
+                if (info.IsImplicitDataTemplateChange)
+                {
+                    ContentPresenter contentPresenter = fe as ContentPresenter;
+                    if (contentPresenter != null)
+                    {
+                        contentPresenter.ReevaluateTemplate();
+                    }
+                }
+
                 if (fe.HasResourceReference)
                 {
-
                     // Invalidate explicit ResourceReference properties on the current instance.
                     // If the Style property comes from an implicit resource reference that
                     // will be invalidated too.
@@ -989,8 +998,8 @@ namespace System.Windows
                             DependencyObject visualParent = VisualTreeHelper.GetParent(d);
                             if (visualParent != null && visualParent != logicalParent)
                             {
-                                // Consider the following logical tree configuration. In this case we want 
-                                // to RibbonToggleButton to pick up the new DataContext flowing in from 
+                                // Consider the following logical tree configuration. In this case we want
+                                // to RibbonToggleButton to pick up the new DataContext flowing in from
                                 // the Window.
                                 //
                                 // Window (info.RootElement)
@@ -999,32 +1008,32 @@ namespace System.Windows
                                 //      RibbonControl (only in visual tree)
                                 //          RibbonToggleButton
                                 //
-                                // Consider the following logical tree configuration. In this case we do not 
-                                // want to RibbonToggleButton to change its DataContext because the changes 
+                                // Consider the following logical tree configuration. In this case we do not
+                                // want to RibbonToggleButton to change its DataContext because the changes
                                 // are only within the visual tree.
                                 //
-                                // Window 
+                                // Window
                                 //   ...
                                 //   RibbonGroup (IsCollapsed)
                                 //      RibbonControl (only in visual tree) (info.RootElement)
                                 //          RibbonToggleButton
                                 //
-                                // Saying it another way, the RibbonToggleButton in the above case belongs in a 
+                                // Saying it another way, the RibbonToggleButton in the above case belongs in a
                                 // different logical tree than the one that the current invalidation storm begun.
                                 //
-                                // Any change in an inheritable property begins an invalidation storm using the 
-                                // DescendentsWalker and configures it to first traverse the logical children 
-                                // and then visual children. Also nodes that have previously been visited via the 
-                                // logical tree do not get visited again through the visual tree. I use this very 
-                                // behavior as the basis for detecting nodes such as RibbonToggleButton. If the 
-                                // RibbonToggleButton is being visisted for the first time via the visual tree then 
-                                // the invalidation storm did not include its logical parent. And therefore the 
+                                // Any change in an inheritable property begins an invalidation storm using the
+                                // DescendentsWalker and configures it to first traverse the logical children
+                                // and then visual children. Also nodes that have previously been visited via the
+                                // logical tree do not get visited again through the visual tree. I use this very
+                                // behavior as the basis for detecting nodes such as RibbonToggleButton. If the
+                                // RibbonToggleButton is being visisted for the first time via the visual tree then
+                                // the invalidation storm did not include its logical parent. And therefore the
                                 // RibbonToggleButton can early out of this storm.
                                 return false;
                             }
                         }
                     }
-                    
+
                     // Since we do not hold a cache of the oldValue we need to supply one
                     // in order to correctly fire the change notification
                     return (d.UpdateEffectiveValue(

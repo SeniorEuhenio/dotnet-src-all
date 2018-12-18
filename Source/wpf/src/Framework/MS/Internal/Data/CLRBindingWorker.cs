@@ -675,6 +675,10 @@ namespace MS.Internal.Data
                 ClearValue(Feature.PendingGetValueRequest);
                 int k = (int)request.Args[1];
 
+                // if the target has gone away, ignore the request (DDVSO 195760)
+                if (CheckTarget() == null)
+                    return;
+
                 switch (request.Status)
                 {
                 case AsyncRequestStatus.Completed:
@@ -752,6 +756,10 @@ namespace MS.Internal.Data
             {
                 ClearValue(Feature.PendingSetValueRequest);
 
+                // if the target has gone away, ignore the request (DDVSO 195760)
+                if (CheckTarget() == null)
+                    return;
+
                 switch (request.Status)
                 {
                 case AsyncRequestStatus.Completed:
@@ -784,12 +792,16 @@ namespace MS.Internal.Data
         {
             MemberInfo mi;
             PropertyDescriptor pd;
+            DynamicObjectAccessor doa;
 
             if ((mi = info as MemberInfo) != null)
                 return mi.Name;
 
             if ((pd = info as PropertyDescriptor) != null)
                 return pd.Name;
+
+            if ((doa = info as DynamicObjectAccessor) != null)
+                return doa.PropertyName;
 
             return null;
         }

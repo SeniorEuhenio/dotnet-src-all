@@ -647,7 +647,7 @@ namespace System.Windows.Documents
             }
             catch (ObjectDisposedException)
             {
-                // _customeDictionaryFilesLock might throw ObjectDisposedException 
+                // _customDictionaryFilesLock might throw ObjectDisposedException 
                 // if it has been disposed before reaching ClearDictionaries. 
                 // We will simply handle the exception and abort gracefully.
                 // 
@@ -658,11 +658,6 @@ namespace System.Windows.Documents
             }
             finally
             {
-                if (isDisposeOrFinalize)
-                {
-                    _customDictionaryFiles = null;
-                }
-
                 try
                 {
                     _customDictionaryFilesLock?.Release();
@@ -673,7 +668,11 @@ namespace System.Windows.Documents
                 }
                 finally
                 {
-                    _customDictionaryFilesLock = null;
+                    if (isDisposeOrFinalize)
+                    {
+                        _customDictionaryFiles = null;
+                        _customDictionaryFilesLock = null;
+                    }
                 }
             }
         }

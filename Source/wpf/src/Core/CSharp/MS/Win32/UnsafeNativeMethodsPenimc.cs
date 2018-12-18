@@ -14,14 +14,14 @@ namespace MS.Win32.Penimc
         /// Critical to prevent inadvertant spread to transparent code
         /// </SecurityNote>
         [SecurityCritical]
-        private static IPimcManager _pimcManager;
+        private static IPimcManager2 _pimcManager;
 
         /// <SecurityNote>
         /// Critical to prevent inadvertant spread to transparent code
         /// </SecurityNote>
         [SecurityCritical]
         [ThreadStatic]
-        private static IPimcManager _pimcManagerThreadStatic;
+        private static IPimcManager2 _pimcManagerThreadStatic;
 
             
         /// <summary>
@@ -50,12 +50,12 @@ namespace MS.Win32.Penimc
 
 
         /// <summary>
-        /// Returns IPimcManager interface.  Creates this object the first time per thread.
+        /// Returns IPimcManager2 interface.  Creates this object the first time per thread.
         /// </summary>
         /// <SecurityNote>
         /// Critical  - returns critial data _pimcManager.
         /// </SecurityNote>
-        internal static IPimcManager PimcManager
+        internal static IPimcManager2 PimcManager
         {
             [SecurityCritical]
             get
@@ -75,7 +75,7 @@ namespace MS.Win32.Penimc
         /// Critical calls interop code that uses suppress unmanaged code security attributes
         /// </SecurityNote>
         [SecurityCritical]
-        private static IPimcManager CreatePimcManager()
+        private static IPimcManager2 CreatePimcManager()
         {
             // Instantiating PimcManager using "new PimcManager()" results
             // in calling CoCreateInstanceForApp from an immersive process
@@ -83,13 +83,13 @@ namespace MS.Win32.Penimc
             // in ---- for that call. Hence we call CoCreateInstance directly.
             // Note: Normally WPF is not supported for immersive processes
             // but designer is an exception.
-            Guid clsid = Guid.Parse(PimcConstants.PimcManagerCLSID);
-            Guid iid = Guid.Parse(PimcConstants.IPimcManagerIID);
+            Guid clsid = Guid.Parse(PimcConstants.PimcManager2CLSID);
+            Guid iid = Guid.Parse(PimcConstants.IPimcManager2IID);
             object pimcManagerObj = CoCreateInstance(ref clsid,
                                                      null,
                                                      0x1, /*CLSCTX_INPROC_SERVER*/
                                                      ref iid);
-            return ((IPimcManager)pimcManagerObj);
+            return ((IPimcManager2)pimcManagerObj);
         }
 
 #if OLD_ISF       

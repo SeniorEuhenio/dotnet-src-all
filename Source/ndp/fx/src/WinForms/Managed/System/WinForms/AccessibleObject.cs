@@ -31,6 +31,12 @@ namespace System.Windows.Forms {
     public class AccessibleObject : StandardOleMarshalObject,
                                     IReflect,
                                     IAccessible,
+                                    UnsafeNativeMethods.IAccessibleEx,
+                                    UnsafeNativeMethods.IServiceProvider,
+                                    UnsafeNativeMethods.IRawElementProviderSimple,
+                                    UnsafeNativeMethods.IValueProvider,
+                                    UnsafeNativeMethods.IExpandCollapseProvider,
+                                    UnsafeNativeMethods.IToggleProvider,
                                     UnsafeNativeMethods.IEnumVariant,
                                     UnsafeNativeMethods.IOleWindow {
 
@@ -495,6 +501,205 @@ namespace System.Windows.Forms {
             
             return null;
         }
+
+        //
+        // UIAutomation support helpers
+        //
+
+        internal virtual bool IsIAccessibleExSupported() {
+            // Override this, in your derived class, to enable IAccessibleEx support
+            return false;
+        }
+
+        internal virtual bool IsPatternSupported(int patternId) {
+            // Override this, in your derived class, if you implement UIAutomation patterns 
+            return false;
+        }
+
+        //
+        // Overridable methods for IRawElementProviderSimple interface
+        //
+
+        internal virtual int[] RuntimeId {
+            get {
+                return null;
+            }
+        }
+
+        internal virtual int ProviderOptions {
+            get {
+                return (int)(UnsafeNativeMethods.ProviderOptions.ServerSideProvider | UnsafeNativeMethods.ProviderOptions.UseComThreading);
+            }
+        }
+
+        internal virtual object GetPropertyValue(int propertyID) {
+            return null;
+        }
+
+        //
+        // Overridable methods for IExpandCollapseProvider pattern interface
+        //
+
+        internal virtual void Expand() {
+        }
+
+        internal virtual void Collapse() {
+        }
+
+        internal virtual UnsafeNativeMethods.ExpandCollapseState ExpandCollapseState {
+            get {
+                return UnsafeNativeMethods.ExpandCollapseState.Collapsed;
+            }
+        }
+
+        //
+        // Overridable methods for IToggleProvider pattern interface
+        //
+
+        internal virtual void Toggle() {
+        }
+
+        internal virtual UnsafeNativeMethods.ToggleState ToggleState {
+            get {
+                return UnsafeNativeMethods.ToggleState.ToggleState_Indeterminate;
+            }
+        }
+
+        // Overridable methods for IValueProvider pattern interface
+
+        internal virtual bool IsReadOnly {
+            get {
+                return false;
+            }
+        }
+
+        internal virtual void SetValue(string newValue) {
+            this.Value = newValue;
+        }
+
+        int UnsafeNativeMethods.IServiceProvider.QueryService(ref Guid service, ref Guid riid, out IntPtr ppvObject) {
+
+            int hr = NativeMethods.E_NOINTERFACE;
+            ppvObject = IntPtr.Zero;
+
+            if (IsIAccessibleExSupported()) {
+                if (service.Equals(UnsafeNativeMethods.guid_IAccessibleEx) &&
+                    riid.Equals(UnsafeNativeMethods.guid_IAccessibleEx)) {
+                    // We want to return the internal, secure, object, which we don't have access here
+                    // Return non-null, which will be interpreted in internal method, to mean returning casted object to IAccessibleEx
+
+                    ppvObject = Marshal.GetComInterfaceForObject(this, typeof(UnsafeNativeMethods.IAccessibleEx));
+                    hr = NativeMethods.S_OK;
+                }
+            }
+
+            return hr;
+        }
+
+        object UnsafeNativeMethods.IAccessibleEx.GetObjectForChild(int idChild) {
+            // No need to implement this for patterns and properties
+            return null;
+        }
+
+        int UnsafeNativeMethods.IAccessibleEx.GetIAccessiblePair(out object ppAcc, out int pidChild) {
+
+            // No need to implement this for patterns and properties
+            ppAcc = null;
+            pidChild = 0;
+            return NativeMethods.E_POINTER;
+        }
+
+        int[] UnsafeNativeMethods.IAccessibleEx.GetRuntimeId() {
+            return RuntimeId;
+        }
+
+        int UnsafeNativeMethods.IAccessibleEx.ConvertReturnedElement(object pIn, out object ppRetValOut) {
+
+            // No need to implement this for patterns and properties
+            ppRetValOut = null;
+            return NativeMethods.E_NOTIMPL;
+        }
+
+        //
+        // IRawElementProviderSimple interface
+        //
+
+        UnsafeNativeMethods.ProviderOptions UnsafeNativeMethods.IRawElementProviderSimple.ProviderOptions {
+            get {
+                return (UnsafeNativeMethods.ProviderOptions) ProviderOptions;
+            }
+        }
+
+        UnsafeNativeMethods.IRawElementProviderSimple UnsafeNativeMethods.IRawElementProviderSimple.HostRawElementProvider {
+            get {
+                return null;
+            }
+        }
+
+        object UnsafeNativeMethods.IRawElementProviderSimple.GetPatternProvider(int patternId) {
+            if (IsPatternSupported(patternId)) {
+                return this;
+            }
+            else {
+                return null;
+            }
+        }
+
+        object UnsafeNativeMethods.IRawElementProviderSimple.GetPropertyValue(int propertyID) {
+            return GetPropertyValue(propertyID);
+        }
+
+        //
+        // IExpandCollapseProvider interface
+        //
+
+        void UnsafeNativeMethods.IExpandCollapseProvider.Expand() {
+            Expand();
+        }
+        void UnsafeNativeMethods.IExpandCollapseProvider.Collapse() {
+            Collapse();
+        }
+
+        UnsafeNativeMethods.ExpandCollapseState UnsafeNativeMethods.IExpandCollapseProvider.ExpandCollapseState {
+            get {
+                return ExpandCollapseState;
+            }
+        }
+
+        //
+        // IValueProvider interface
+        //
+
+        bool UnsafeNativeMethods.IValueProvider.IsReadOnly {
+            get {
+                return IsReadOnly;
+            }
+        }
+
+        string UnsafeNativeMethods.IValueProvider.Value {
+            get {
+                return Value;
+            }
+        }
+
+        void UnsafeNativeMethods.IValueProvider.SetValue(string newValue) {
+            SetValue(newValue);
+        }
+
+        //
+        // IToggleProvider implementation
+        //
+
+        void UnsafeNativeMethods.IToggleProvider.Toggle() {
+            Toggle();
+        }
+
+        UnsafeNativeMethods.ToggleState UnsafeNativeMethods.IToggleProvider.ToggleState {
+            get {
+                return ToggleState;
+            }
+        }
+
 
         /// <include file='doc\AccessibleObject.uex' path='docs/doc[@for="AccessibleObject.IAccessible.accDoDefaultAction"]/*' />
         /// <internalonly/>
@@ -2090,6 +2295,12 @@ namespace System.Windows.Forms {
     internal sealed class InternalAccessibleObject : StandardOleMarshalObject, 
                                     UnsafeNativeMethods.IAccessibleInternal,
                                     System.Reflection.IReflect,
+                                    UnsafeNativeMethods.IServiceProvider,
+                                    UnsafeNativeMethods.IAccessibleEx,
+                                    UnsafeNativeMethods.IRawElementProviderSimple,
+                                    UnsafeNativeMethods.IValueProvider,
+                                    UnsafeNativeMethods.IExpandCollapseProvider,
+                                    UnsafeNativeMethods.IToggleProvider,
                                     UnsafeNativeMethods.IEnumVariant,
                                     UnsafeNativeMethods.IOleWindow {
 
@@ -2097,6 +2308,15 @@ namespace System.Windows.Forms {
         private UnsafeNativeMethods.IEnumVariant publicIEnumVariant; // AccessibleObject as IEnumVariant
         private UnsafeNativeMethods.IOleWindow publicIOleWindow;     // AccessibleObject as IOleWindow
         private IReflect publicIReflect;                             // AccessibleObject as IReflect
+
+        private UnsafeNativeMethods.IServiceProvider publicIServiceProvider;             // AccessibleObject as IServiceProvider
+        private UnsafeNativeMethods.IAccessibleEx publicIAccessibleEx;                   // AccessibleObject as IAccessibleEx
+
+        // UIAutomation
+        private UnsafeNativeMethods.IRawElementProviderSimple publicIRawElementProviderSimple;    // AccessibleObject as IRawElementProviderSimple
+        private UnsafeNativeMethods.IValueProvider publicIValueProvider;                          // AccessibleObject as IValueProvider
+        private UnsafeNativeMethods.IExpandCollapseProvider publicIExpandCollapseProvider;        // AccessibleObject as IExpandCollapseProvider
+        private UnsafeNativeMethods.IToggleProvider publicIToggleProvider;                        // AccessibleObject as IToggleProvider
 
         /// <summary>
         ///     Create a new wrapper. Protect this with UnmanagedCode Permission
@@ -2110,6 +2330,12 @@ namespace System.Windows.Forms {
             publicIEnumVariant = (UnsafeNativeMethods.IEnumVariant) accessibleImplemention;
             publicIOleWindow = (UnsafeNativeMethods.IOleWindow) accessibleImplemention;
             publicIReflect = (IReflect) accessibleImplemention;
+            publicIServiceProvider = (UnsafeNativeMethods.IServiceProvider) accessibleImplemention;
+            publicIAccessibleEx = (UnsafeNativeMethods.IAccessibleEx) accessibleImplemention;
+            publicIRawElementProviderSimple = (UnsafeNativeMethods.IRawElementProviderSimple) accessibleImplemention;
+            publicIValueProvider = (UnsafeNativeMethods.IValueProvider) accessibleImplemention;
+            publicIExpandCollapseProvider = (UnsafeNativeMethods.IExpandCollapseProvider) accessibleImplemention;
+            publicIToggleProvider = (UnsafeNativeMethods.IToggleProvider)accessibleImplemention;
             // Note: Deliberately not holding onto AccessibleObject to enforce all access through the interfaces
         }
 
@@ -2326,6 +2552,160 @@ namespace System.Windows.Forms {
             get {
                 IReflect r = publicIReflect;
                 return publicIReflect.UnderlyingSystemType;
+            }
+        }
+
+        //
+        // IServiceProvider implementation
+        //
+
+        int UnsafeNativeMethods.IServiceProvider.QueryService(ref Guid service, ref Guid riid, out IntPtr ppvObject) {
+            IntSecurity.UnmanagedCode.Assert();
+
+            ppvObject = IntPtr.Zero;
+            int hr = publicIServiceProvider.QueryService(ref service, ref riid, out ppvObject);
+            if (hr >= NativeMethods.S_OK) {
+                // we always want to return the internal accessible object
+                ppvObject = Marshal.GetComInterfaceForObject(this, typeof(UnsafeNativeMethods.IAccessibleEx));
+            }
+
+            return hr;
+        }
+
+        //
+        // IAccessibleEx implementation
+        //
+
+        object UnsafeNativeMethods.IAccessibleEx.GetObjectForChild(int idChild) {
+            IntSecurity.UnmanagedCode.Assert();
+            return publicIAccessibleEx.GetObjectForChild(idChild);
+        }
+
+        int UnsafeNativeMethods.IAccessibleEx.GetIAccessiblePair(out object ppAcc, out int pidChild) {
+
+            IntSecurity.UnmanagedCode.Assert();
+            return publicIAccessibleEx.GetIAccessiblePair(out ppAcc, out pidChild);
+
+        }
+
+        int[] UnsafeNativeMethods.IAccessibleEx.GetRuntimeId() {
+
+            IntSecurity.UnmanagedCode.Assert();
+            return publicIAccessibleEx.GetRuntimeId();
+        }
+
+        int UnsafeNativeMethods.IAccessibleEx.ConvertReturnedElement(object pIn, out object ppRetValOut) {
+
+            IntSecurity.UnmanagedCode.Assert();
+            return publicIAccessibleEx.ConvertReturnedElement(pIn, out ppRetValOut);
+        }
+
+        //
+        // IRawElementProviderSimple implementation
+        //
+
+        UnsafeNativeMethods.ProviderOptions UnsafeNativeMethods.IRawElementProviderSimple.ProviderOptions {
+            get {
+                IntSecurity.UnmanagedCode.Assert();
+                return publicIRawElementProviderSimple.ProviderOptions;
+            }
+        }
+
+        UnsafeNativeMethods.IRawElementProviderSimple UnsafeNativeMethods.IRawElementProviderSimple.HostRawElementProvider {
+            get {
+                IntSecurity.UnmanagedCode.Assert();
+                return publicIRawElementProviderSimple.HostRawElementProvider;
+            }
+        }
+
+        object UnsafeNativeMethods.IRawElementProviderSimple.GetPatternProvider(int patternId) {
+            IntSecurity.UnmanagedCode.Assert();
+
+            object obj = publicIRawElementProviderSimple.GetPatternProvider(patternId);
+            if (obj != null) {
+
+                // we always want to return the internal accessible object
+
+                if (patternId == NativeMethods.UIA_ExpandCollapsePatternId) {
+                    return (UnsafeNativeMethods.IExpandCollapseProvider)this;
+                }
+                else if (patternId == NativeMethods.UIA_ValuePatternId) {
+                    return (UnsafeNativeMethods.IValueProvider)this;
+                }
+                else if (patternId == NativeMethods.UIA_TogglePatternId) {
+                    return (UnsafeNativeMethods.IToggleProvider)this;
+                }
+                else {
+                    return null;
+                }
+            }
+            else {
+                return null;
+            }
+        }
+
+        object UnsafeNativeMethods.IRawElementProviderSimple.GetPropertyValue(int propertyID) {
+            IntSecurity.UnmanagedCode.Assert();
+            return publicIRawElementProviderSimple.GetPropertyValue(propertyID);
+        }
+
+        //
+        // IValueProvider implementation
+        //
+
+        bool UnsafeNativeMethods.IValueProvider.IsReadOnly {
+            get {
+                IntSecurity.UnmanagedCode.Assert();
+                return publicIValueProvider.IsReadOnly;
+            }
+        }
+
+        string UnsafeNativeMethods.IValueProvider.Value {
+            get {
+                IntSecurity.UnmanagedCode.Assert();
+                return publicIValueProvider.Value;
+            }
+        }
+
+        void UnsafeNativeMethods.IValueProvider.SetValue(string newValue) {
+            IntSecurity.UnmanagedCode.Assert();
+            publicIValueProvider.SetValue(newValue);
+        }
+
+        //
+        // IExpandCollapseProvider implementation
+        //
+
+        void UnsafeNativeMethods.IExpandCollapseProvider.Expand() {
+            IntSecurity.UnmanagedCode.Assert();
+            publicIExpandCollapseProvider.Expand();
+        }
+
+        void UnsafeNativeMethods.IExpandCollapseProvider.Collapse() {
+            IntSecurity.UnmanagedCode.Assert();
+            publicIExpandCollapseProvider.Collapse();
+        }
+
+        UnsafeNativeMethods.ExpandCollapseState UnsafeNativeMethods.IExpandCollapseProvider.ExpandCollapseState {
+            get {
+                IntSecurity.UnmanagedCode.Assert();
+                return publicIExpandCollapseProvider.ExpandCollapseState;
+            }
+        }
+
+        //
+        // IToggleProvider implementation
+        //
+
+        void UnsafeNativeMethods.IToggleProvider.Toggle() {
+            IntSecurity.UnmanagedCode.Assert();
+            publicIToggleProvider.Toggle();
+        }
+
+        UnsafeNativeMethods.ToggleState UnsafeNativeMethods.IToggleProvider.ToggleState {
+            get {
+                IntSecurity.UnmanagedCode.Assert();
+                return publicIToggleProvider.ToggleState;
             }
         }
 

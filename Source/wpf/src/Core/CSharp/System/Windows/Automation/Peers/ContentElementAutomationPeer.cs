@@ -261,6 +261,14 @@ namespace System.Windows.Automation.Peers
         }
 
         /// <summary>
+        /// <see cref="AutomationPeer.GetLiveSettingCore"/>
+        /// </summary>
+        override protected AutomationLiveSetting GetLiveSettingCore()
+        {
+            return AutomationProperties.GetLiveSetting(_owner);
+        }
+
+        /// <summary>
         /// <see cref="AutomationPeer.GetClickablePointCore"/>
         /// </summary>
         override protected Point GetClickablePointCore()

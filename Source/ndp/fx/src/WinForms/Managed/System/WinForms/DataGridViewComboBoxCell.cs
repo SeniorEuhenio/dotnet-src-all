@@ -2276,6 +2276,14 @@ namespace System.Windows.Forms
                                         DataGridViewComboBoxCellRenderer.DrawReadOnlyButton(g, valBounds, comboBoxState);
                                         DataGridViewComboBoxCellRenderer.DrawDropDownButton(g, dropRect, ComboBoxState.Normal);
                                     }
+
+                                    if (SystemInformation.HighContrast && !LocalAppContextSwitches.UseLegacyAccessibilityFeatures)
+                                    {
+                                        // In the case of ComboBox style, background is not filled in, 
+                                        // in the case of DrawReadOnlyButton uses theming API to render CP_READONLY COMBOBOX part that renders the background,
+                                        // this API does not have "selected" state, thus always uses BackColor
+                                        br = this.DataGridView.GetCachedBrush(cellStyle.BackColor);
+                                    }
                                 }
                                 else
                                 {

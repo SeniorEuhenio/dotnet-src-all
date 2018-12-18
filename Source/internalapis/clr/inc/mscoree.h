@@ -506,7 +506,7 @@ extern "C"{
 /* [local] */ 
 
 #ifndef USE_DEPRECATED_CLR_API_WITHOUT_WARNING
-#define DEPRECATED_CLR_API_MESG "This API has been deprecated. Refer to http://go.microsoft.com/fwlink/?LinkId=143720 for more details."
+#define DEPRECATED_CLR_API_MESG "This API has been deprecated. Refer to https://go.microsoft.com/fwlink/?LinkId=143720 for more details."
 #define DECLARE_DEPRECATED __declspec(deprecated(DEPRECATED_CLR_API_MESG))
 #define DEPRECATED_CLR_STDAPI EXTERN_C DECLARE_DEPRECATED HRESULT STDAPICALLTYPE
 #else // USE_DEPRECATED_CLR_API_WITHOUT_WARNING

@@ -3875,6 +3875,8 @@ namespace System.Windows.Forms {
             private ToolStripItem ownerItem = null; // The associated ToolStripItem for this AccessibleChild (if any)
           
             private  AccessibleStates additionalState = AccessibleStates.None;  // Test hook for the designer
+
+            private int[] runtimeId = null; // Used by UIAutomation
             // constructors
 
             /// <include file='doc\ToolStripItem.uex' path='docs/doc[@for="ToolStripItemAccessibleObject.ToolStripItemAccessibleObject"]/*' />
@@ -3952,7 +3954,41 @@ namespace System.Windows.Forms {
                     
                 }
             }
-         
+            
+            internal override int[] RuntimeId {
+                get {
+                    if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                        if (runtimeId == null) {
+                            // we need to provide a unique ID
+                            // others are implementing this in the same manner
+                            // first item is static - 0x2a
+                            // second item can be anything, but here it is a hash. For toolstrip hash is unique even with child controls. Hwnd  is not.
+
+                            runtimeId = new int[2];
+                            runtimeId[0] = 0x2a;
+                            runtimeId[1] = ownerItem.GetHashCode();
+                        }
+                        return runtimeId;
+                    }
+                    else {
+                        return base.RuntimeId;
+                    }
+                }
+            }
+
+            internal override object GetPropertyValue(int propertyID) {
+
+                if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                    if (propertyID == NativeMethods.UIA_NamePropertyId) {
+                        return Name;
+                    }
+                    else if (propertyID == NativeMethods.UIA_IsExpandCollapsePatternAvailablePropertyId) {
+                        return (Object)this.IsPatternSupported(NativeMethods.UIA_ExpandCollapsePatternId);
+                    }
+                }
+                return base.GetPropertyValue(propertyID);
+            }
+
             /// <include file='doc\ToolStripItem.uex' path='docs/doc[@for="ToolStripItemAccessibleObject.Name"]/*' />
             /// <devdoc>
             /// <para>[To be supplied.]</para>
@@ -4012,6 +4048,14 @@ namespace System.Windows.Forms {
                     
                     
                     if (!ownerItem.Enabled) {
+                        // VSO 436154 - Disabled menu items that are selected must have focus
+                        // state so that Narrator can announce them.
+                        if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                            if (ownerItem.Selected && ownerItem is ToolStripMenuItem) {
+                                return AccessibleStates.Focused;
+                            }
+                        }
+                        
                         return AccessibleStates.Unavailable | additionalState;
                     }
                     

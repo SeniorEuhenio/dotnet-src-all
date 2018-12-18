@@ -25,7 +25,7 @@ namespace System.Net.Sockets {
     /// </devdoc>
 
 
-    public class Socket : IDisposable
+    public partial class Socket : IDisposable
     {
         internal const int DefaultCloseTimeout = -1; // don't change for default, otherwise breaking change
 

@@ -2744,7 +2744,13 @@ namespace System.Windows.Forms {
                     string text = link.Owner.Text;
                     int charStart = LinkLabel.ConvertToCharIndex(link.Start, text);
                     int charEnd = LinkLabel.ConvertToCharIndex(link.Start + link.Length, text);
-                    return text.Substring(charStart, charEnd - charStart);
+                    string name = text.Substring(charStart, charEnd - charStart);
+                    if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures && link.Owner.UseMnemonic) {
+                        // return the same value as the tooltip shows.
+                        name = WindowsFormsUtils.TextWithoutMnemonics(name);
+                    } 
+
+                    return name;
                 }
                 set {
                     base.Name = value;
@@ -2782,7 +2788,14 @@ namespace System.Windows.Forms {
             public override string Value {
                 [SecurityPermission(SecurityAction.Demand, Flags = SecurityPermissionFlag.UnmanagedCode)]
                 get {
-                    return Name;
+                    if (LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                        return Name;
+                    }
+                    else {                  
+                        // Narrator announces Link's text twice, once as a Name property and once as a Value, thus removing value.
+                        // Value is optional for this role (Link).
+                        return string.Empty;
+                    }
                 }
             }
 

@@ -68,8 +68,6 @@ namespace System.Windows.Forms {
         private static bool multiMonitorSupport = (UnsafeNativeMethods.GetSystemMetrics(NativeMethods.SM_CMONITORS) != 0);
         private static Screen[] screens;
 
-        internal WindowsGraphics measurementGraphics;
-
         internal Screen(IntPtr monitor) : this(monitor, IntPtr.Zero) {
         }
 
@@ -99,7 +97,6 @@ namespace System.Windows.Forms {
 
                 if (hdc == IntPtr.Zero) {
                     screenDC = UnsafeNativeMethods.CreateDC(deviceName);
-                    measurementGraphics = WindowsGraphics.CreateMeasurementWindowsGraphics(screenDC);
                 }
             }
             hmonitor = monitor;
@@ -110,22 +107,6 @@ namespace System.Windows.Forms {
             if (hdc != screenDC) {
                 UnsafeNativeMethods.DeleteDC(new HandleRef(null, screenDC));
             }
-        }
-
-        internal static WindowsGraphics GetMeasurementsGraphicsForHandleRef(HandleRef hWndHandleRef) {
-            IntPtr monitor = SafeNativeMethods.MonitorFromWindow(hWndHandleRef, MONITOR_DEFAULTTONEAREST);
-            NativeMethods.MONITORINFOEX info = new NativeMethods.MONITORINFOEX();
-            if (SafeNativeMethods.GetMonitorInfo(new HandleRef(null, monitor), info)) {
-                string deviceName = new string(info.szDevice);
-                deviceName = deviceName.TrimEnd((char)0);
-
-                foreach (Screen s in Screen.AllScreens) {
-                    if (string.Compare(deviceName, s.DeviceName, StringComparison.InvariantCulture) == 0) {
-                        return s.measurementGraphics;
-                    }
-                }
-            }
-            return null;
         }
 
         /// <include file='doc\Screen.uex' path='docs/doc[@for="Screen.AllScreens"]/*' />

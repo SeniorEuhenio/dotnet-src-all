@@ -940,7 +940,7 @@ namespace System.Windows.Markup
                     readerSettings.BaseUri = BaseUriHelper.PackAppBaseUri;
                 }
 
-                var reader = new Baml2006Reader(stream, new Baml2006SchemaContext(readerSettings.LocalAssembly), readerSettings, parent);
+                var reader = new Baml2006ReaderInternal(stream, new Baml2006SchemaContext(readerSettings.LocalAssembly), readerSettings, parent);
 
                 // We don't actually use the GeneratedInternalTypeHelper any more.
                 // But for v3 compat, don't allow loading of internals in PT unless there is one.

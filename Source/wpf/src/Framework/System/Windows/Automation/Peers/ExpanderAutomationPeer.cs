@@ -35,6 +35,34 @@ namespace System.Windows.Automation.Peers
             return AutomationControlType.Group;
         }
         
+        /// Go through the children and if we find the templated toggle button set its event source to this AutomationPeer
+        protected override List<AutomationPeer> GetChildrenCore()
+        {
+            List<AutomationPeer> children = base.GetChildrenCore();
+            ToggleButton expanderToggleButton = ((Expander)Owner).ExpanderToggleButton;
+
+            if (!CoreAppContextSwitches.UseLegacyAccessibilityFeatures && children != null)
+            {
+                foreach (UIElementAutomationPeer peer in children)
+                {
+                    if (peer.Owner == expanderToggleButton)
+                    {
+                        peer.EventsSource = this;
+                        break;
+                    }
+                }
+            }
+
+            return children;
+        }
+
+        /// The expander should have Automation Keyboard focus whenever the actual focus is set in the toggle button
+        override protected bool HasKeyboardFocusCore()
+        {
+            return ((!CoreAppContextSwitches.UseLegacyAccessibilityFeatures && ((Expander)Owner).IsExpanderToggleButtonFocused) 
+                    || base.HasKeyboardFocusCore());
+        }
+        
         ///
         override public object GetPattern(PatternInterface pattern)
         {

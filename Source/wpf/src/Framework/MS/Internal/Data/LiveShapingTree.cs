@@ -24,6 +24,19 @@ namespace MS.Internal.Data
 
         internal LiveShapingList List { get { return _list; } }
 
+        internal LiveShapingBlock PlaceholderBlock
+        {
+            get
+            {
+                if (_placeholderBlock == null)
+                {
+                    _placeholderBlock = new LiveShapingBlock(false);
+                    _placeholderBlock.Parent = this;
+                }
+                return _placeholderBlock;
+            }
+        }
+
         internal override RBNode<LiveShapingItem> NewNode()
         {
             return new LiveShapingBlock();
@@ -176,5 +189,6 @@ namespace MS.Internal.Data
         #endif // LiveShapingInstrumentation
 
         LiveShapingList _list;      // my owner
+        LiveShapingBlock _placeholderBlock; // used to handle a race condition arising in live sorting
     }
 }

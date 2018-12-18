@@ -5895,6 +5895,10 @@ namespace System.Windows.Forms {
                             if (newValue != oldValue) {
                                 ItemCheckedEventArgs e = new ItemCheckedEventArgs(Items[nmlv->iItem]);
                                 OnItemChecked(e);
+                                if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                                    AccessibilityNotifyClients(AccessibleEvents.StateChange, nmlv->iItem);
+                                    AccessibilityNotifyClients(AccessibleEvents.NameChange, nmlv->iItem);
+                                }
                             }
 
                             int oldState = nmlv->uOldState & NativeMethods.LVIS_SELECTED;

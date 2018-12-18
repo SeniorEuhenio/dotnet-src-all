@@ -109,7 +109,7 @@ namespace System.Management
 				if ((status & 0xfffff000) == 0x80041000)
 					ManagementException.ThrowWithExtendedInfo((ManagementStatus)status);
 				else
-					Marshal.ThrowExceptionForHR(status);
+					Marshal.ThrowExceptionForHR(status, WmiNetUtilsHelper.GetErrorInfo_f());
 			}
 		}
 
@@ -154,7 +154,7 @@ namespace System.Management
 					if ((status & 0xfffff000) == 0x80041000)
 						ManagementException.ThrowWithExtendedInfo((ManagementStatus)status);
 					else
-						Marshal.ThrowExceptionForHR(status);
+						Marshal.ThrowExceptionForHR(status, WmiNetUtilsHelper.GetErrorInfo_f());
 				}
 				//if succeeded and this object has a path, update the path to reflect the new key value
 				//NOTE : we could only do this for key properties but since it's not trivial to find out
@@ -227,7 +227,7 @@ namespace System.Management
 					else if ((status & 0xfffff000) == 0x80041000)
 						ManagementException.ThrowWithExtendedInfo((ManagementStatus)status);
 					else
-						Marshal.ThrowExceptionForHR(status);
+						Marshal.ThrowExceptionForHR(status, WmiNetUtilsHelper.GetErrorInfo_f());
 				}
 
 				return className;

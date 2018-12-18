@@ -77,7 +77,7 @@ namespace System.Windows.Forms.ButtonInternal {
                     }
                 }
             }
-            DrawCheckOnly(e, layout, colors, checkColor, checkBackground, true);
+            DrawCheckOnly(e, layout, colors, checkColor, checkBackground);
     
         }
 
@@ -123,20 +123,20 @@ namespace System.Windows.Forms.ButtonInternal {
             }
         }
 
-        protected void DrawCheckOnly(PaintEventArgs e, LayoutData layout, ColorData colors, Color checkColor, Color checkBackground, bool disabledColors) {
-            DrawCheckOnly(flatCheckSize, Control.Checked, Control.Enabled, Control.CheckState, e.Graphics, layout, colors, checkColor, checkBackground, disabledColors);
+        protected void DrawCheckOnly(PaintEventArgs e, LayoutData layout, ColorData colors, Color checkColor, Color checkBackground) {
+            DrawCheckOnly(flatCheckSize, Control.Checked, Control.Enabled, Control.CheckState, e.Graphics, layout, colors, checkColor, checkBackground);
         }
         
         // used by DataGridViewCheckBoxCell
-        internal static void DrawCheckOnly(int checkSize, bool controlChecked, bool controlEnabled, CheckState controlCheckState, Graphics g, LayoutData layout, ColorData colors, Color checkColor, Color checkBackground, bool disabledColors) {
+        internal static void DrawCheckOnly(int checkSize, bool controlChecked, bool controlEnabled, CheckState controlCheckState, Graphics g, LayoutData layout, ColorData colors, Color checkColor, Color checkBackground) {
 
             // check
             //
             if (controlChecked) {
-                if (!controlEnabled && disabledColors) {
+                if (!controlEnabled) {
                     checkColor = colors.buttonShadow;
                 }
-                else if (controlCheckState == CheckState.Indeterminate && disabledColors) {
+                else if (controlCheckState == CheckState.Indeterminate) {
                     checkColor = SystemInformation.HighContrast ? colors.highlight :
                        colors.buttonShadow;
                 }

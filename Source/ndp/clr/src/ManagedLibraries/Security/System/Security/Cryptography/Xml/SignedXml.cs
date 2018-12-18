@@ -90,6 +90,9 @@ namespace System.Security.Cryptography.Xml
         public const string XmlDsigSHA512Url = "http://www.w3.org/2001/04/xmlenc#sha512";
         public const string XmlDsigRSASHA512Url = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha512";
 
+        internal static readonly string XmlDsigDigestDefault = LocalAppContextSwitches.XmlUseInsecureHashAlgorithms ? XmlDsigSHA1Url : XmlDsigSHA256Url;
+        internal static readonly string XmlDsigRSADefault = LocalAppContextSwitches.XmlUseInsecureHashAlgorithms ? XmlDsigRSASHA1Url : XmlDsigRSASHA256Url;
+
         public const string XmlDsigC14NTransformUrl = "http://www.w3.org/TR/2001/REC-xml-c14n-20010315"; 
         public const string XmlDsigC14NWithCommentsTransformUrl = "http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments"; 
         public const string XmlDsigExcC14NTransformUrl = "http://www.w3.org/2001/10/xml-exc-c14n#";
@@ -363,9 +366,9 @@ namespace System.Security.Cryptography.Xml
                 if (key is DSA) {
                     SignedInfo.SignatureMethod = XmlDsigDSAUrl;
                 } else if (key is RSA) {
-                    // Default to RSA-SHA1
+                    // Default to RSA-SHA256 or RSA-SHA1 depending on context switch
                     if (SignedInfo.SignatureMethod == null) 
-                        SignedInfo.SignatureMethod = XmlDsigRSASHA1Url;
+                        SignedInfo.SignatureMethod = XmlDsigRSADefault;
                 } else {
                     throw new CryptographicException(SecurityResources.GetResourceString("Cryptography_Xml_CreatedKeyFailed"));
                 }
@@ -494,7 +497,7 @@ namespace System.Security.Cryptography.Xml
             while (m_x509Enum.MoveNext()) {
                 X509Certificate2 certificate = (X509Certificate2) m_x509Enum.Current;
                 if (certificate != null)
-                    return certificate.GetAnyPublicKey();
+                    return LocalAppContextSwitches.SignedXmlUseLegacyCertificatePrivateKey ? certificate.PublicKey.Key : certificate.GetAnyPublicKey();
             }
 
             return null;
@@ -861,9 +864,9 @@ namespace System.Security.Cryptography.Xml
                 nodeList.Add(obj.GetXml());
             }
             foreach (Reference reference in sortedReferences) {
-                // If no DigestMethod has yet been set, default it to sha1
+                // If no DigestMethod has yet been set, default it to SHA256 or SHA1 depending on context switch
                 if (reference.DigestMethod == null)
-                    reference.DigestMethod = XmlDsigSHA1Url;
+                    reference.DigestMethod = XmlDsigDigestDefault;
 
                 SignedXmlDebugLog.LogSigningReference(this, reference);
 

@@ -424,6 +424,31 @@ namespace MS.Win32
             return SafeNativeMethodsPrivate.GetCurrentThreadId();
         }
 
+        /// <summary>
+        /// Returns the ID of the session under which the current process is running
+        /// </summary>
+        /// <securitynote>
+        /// safe: exposes non-critical information
+        /// critical: This code eleveates to unmanaged code permission
+        /// </securitynote>
+        /// <returns>
+        /// The session id upon success, null on failure
+        /// </returns>
+        [SecuritySafeCritical]
+        public static int? GetCurrentSessionId()
+        {
+            int? result = null;
+
+            int sessionId;
+            if (SafeNativeMethodsPrivate.ProcessIdToSessionId(
+                GetCurrentProcessId(), out sessionId))
+            {
+                result = sessionId;
+            }
+
+            return result;
+        }
+
         /// <SecurityNote>
         /// This will return a valid handle only if a window on the current thread has capture
         /// else it will return NULL. (Refer to Platform SDK)
@@ -459,12 +484,86 @@ namespace MS.Win32
             return SafeNativeMethodsPrivate.MapVirtualKey(nVirtKey,nMapType);
         }
 #endif
+
+        /// <summary>
+        /// Identifies whether the given workstation session ID has a WTSConnectState value
+        /// of WTSActive, or not.
+        /// </summary>
+        /// <param name="SessionId">
+        /// The ID of the workstation session to query. If this is null,
+        /// then this will default to WTS_CURRENT_SESSION. Note that the ID of the 
+        /// current session will not be queried explicitly. 
+        /// </param>
+        /// <param name="defaultResult">
+        /// The default result to return if this method is unable to identify the connection 
+        /// state of the given session ID.
+        /// </param>
+        /// <returns>
+        /// True if the connection state for <paramref name="SessionId"/> is WTSActive; 
+        /// false otherwise
+        /// <paramref name="defaultResult"/> is returned if WTSQuerySessionInformation 
+        /// fails.
+        /// </returns>
+        /// <securitynote>
+        /// critical: This method elevates to unmanaged-code permission
+        /// safe: Returns safe information
+        /// </securitynote>
+        [SecuritySafeCritical]
+        public static bool IsCurrentSessionConnectStateWTSActive(int? SessionId = null, bool defaultResult = true)
+        {
+            IntPtr buffer = IntPtr.Zero;
+            int bytesReturned;
+
+            int sessionId = SessionId.HasValue ? SessionId.Value : NativeMethods.WTS_CURRENT_SESSION;
+            bool currentSessionConnectState = defaultResult;
+
+            try
+            {
+                if (SafeNativeMethodsPrivate.WTSQuerySessionInformation(
+                    NativeMethods.WTS_CURRENT_SERVER_HANDLE, 
+                    sessionId, 
+                    NativeMethods.WTS_INFO_CLASS.WTSConnectState, 
+                    out buffer, out bytesReturned) && (bytesReturned >= sizeof(int)))
+                {
+                    var data = Marshal.ReadInt32(buffer);
+                    if (Enum.IsDefined(typeof(NativeMethods.WTS_CONNECTSTATE_CLASS), data))
+                    {
+                        var connectState = (NativeMethods.WTS_CONNECTSTATE_CLASS)data;
+                        currentSessionConnectState = (connectState == NativeMethods.WTS_CONNECTSTATE_CLASS.WTSActive);
+                    }
+                }
+            }
+            finally
+            {
+                try
+                {
+                    if (buffer != IntPtr.Zero)
+                    {
+                        SafeNativeMethodsPrivate.WTSFreeMemory(buffer);
+                    }
+                }
+                catch (Exception e) when (e is Win32Exception || e is SEHException)
+                {
+                    // We will do nothing and return defaultResult
+                    //
+                    // Note that we don't want to catch and ignore SystemException types
+                    // like AV, OOM etc. 
+                }
+            }
+
+            return currentSessionConnectState;
+        }
+
         [SuppressUnmanagedCodeSecurity,SecurityCritical(SecurityCriticalScope.Everything)]
         private partial class SafeNativeMethodsPrivate
         {
 
             [DllImport(ExternDll.Kernel32, ExactSpelling = true, CharSet = System.Runtime.InteropServices.CharSet.Auto)]
             public static extern int GetCurrentProcessId();
+
+            [DllImport(ExternDll.Kernel32, ExactSpelling = true, CharSet = CharSet.Auto)]
+            [return:MarshalAs(UnmanagedType.Bool)]
+            public static extern bool ProcessIdToSessionId([In]int dwProcessId, [Out]out int pSessionId);
 
             [DllImport(ExternDll.Kernel32, ExactSpelling = true, CharSet = System.Runtime.InteropServices.CharSet.Auto)]
             public static extern int GetCurrentThreadId();
@@ -566,6 +665,16 @@ namespace MS.Win32
             [DllImport(ExternDll.User32)]
             public static extern int MessageBeep(int uType);
 #endif
+            [DllImport(ExternDll.WtsApi32, SetLastError = true, EntryPoint = "WTSQuerySessionInformation", CharSet = CharSet.Auto)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public static extern bool WTSQuerySessionInformation(
+                [In]IntPtr hServer, 
+                [In] int SessionId, 
+                [In]NativeMethods.WTS_INFO_CLASS WTSInfoClass, 
+                [Out]out IntPtr ppBuffer, [Out]out int BytesReturned);
+
+            [DllImport(ExternDll.WtsApi32, EntryPoint = "WTSFreeMemory", CharSet = CharSet.Auto)]
+            public static extern bool WTSFreeMemory([In]IntPtr pMemory);
         }
     }
 }

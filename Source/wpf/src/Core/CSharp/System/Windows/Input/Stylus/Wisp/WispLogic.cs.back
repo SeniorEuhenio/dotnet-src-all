@@ -1287,6 +1287,14 @@ namespace System.Windows.Input.StylusWisp
                             // (like button clicks).  (DevDiv2 520639)
                             if ((report.Actions & RawStylusActions.Up) != 0 && stylusDevice != null)
                             {
+                                // DDVSO:298355
+                                // A StylusUp to a deactivated window for a pure stylus device (pen, etc)
+                                // could leave the StylusDevice in a bad state since we will never promote
+                                // from raw and run the code to reset (Preview to Main promotion).  As such
+                                // we should reset state here similarly to what we do for TouchDevice.  This
+                                // allows for proper mouse state tracking in the StylusDevice in the future.
+                                stylusDevice.ResetStateForStylusUp();
+
                                 WispStylusTouchDevice touchDevice = stylusDevice.TouchDevice;
                                 // Don't try to deactivate if the device isn't active.  This can happen if
                                 // the window was disabled for the touch-down as well, in which case we

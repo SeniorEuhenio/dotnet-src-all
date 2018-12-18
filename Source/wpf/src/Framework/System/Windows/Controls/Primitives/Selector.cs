@@ -476,35 +476,106 @@ namespace System.Windows.Controls.Primitives
         /// </summary>
         private static void OnSelectedValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
+            if (!FrameworkAppContextSwitches.SelectionPropertiesCanLagBehindSelectionChangedEvent)
+            {
+                Selector s = (Selector)d;
+                ItemInfo info = PendingSelectionByValueField.GetValue(s);
+                if (info != null)
+                {
+                    // There's a pending selection discovered during CoerceSelectedValue.
+                    // If no selection change is active, now's the time to actually select it.
+                    try
+                    {
+                        if (!s.SelectionChange.IsActive)
+                        {
+                            s._cacheValid[(int)CacheBits.SelectedValueDrivesSelection] = true;
+                            s.SelectionChange.SelectJustThisItem(info, assumeInItemsCollection:true);
+                        }
+                    }
+                    finally
+                    {
+                        s._cacheValid[(int)CacheBits.SelectedValueDrivesSelection] = false;
+                        PendingSelectionByValueField.ClearValue(s);
+                    }
+                }
+            }
         }
 
         // Select an item whose value matches the given value
-        private object SelectItemWithValue(object value)
+        private object SelectItemWithValue(object value, bool selectNow)
         {
-            _cacheValid[(int)CacheBits.SelectedValueDrivesSelection] = true;
-
             object item;
 
-            // look through the items for one whose value matches the given value
-            if (HasItems)
+            if (FrameworkAppContextSwitches.SelectionPropertiesCanLagBehindSelectionChangedEvent)
             {
-                int index;
-                item = FindItemWithValue(value, out index);
+                // old ("useless") behavior - retained for app-compat
+                _cacheValid[(int)CacheBits.SelectedValueDrivesSelection] = true;
 
-                // We can assume it's in the collection because we just searched
-                // through the collection to find it.
-                SelectionChange.SelectJustThisItem(NewItemInfo(item, null, index), true /* assumeInItemsCollection */);
+                // look through the items for one whose value matches the given value
+                if (HasItems)
+                {
+                    int index;
+                    item = FindItemWithValue(value, out index);
+
+                    // We can assume it's in the collection because we just searched
+                    // through the collection to find it.
+                    SelectionChange.SelectJustThisItem(NewItemInfo(item, null, index), true /* assumeInItemsCollection */);
+                }
+                else
+                {
+                    // if there are no items, protect SelectedValue from being overwritten
+                    // until items show up.  This enables a SelectedValue set from markup
+                    // to set the initial selection when the items eventually appear.
+                    item = DependencyProperty.UnsetValue;
+                    _cacheValid[(int)CacheBits.SelectedValueWaitsForItems] = true;
+                }
+
+                _cacheValid[(int)CacheBits.SelectedValueDrivesSelection] = false;
             }
             else
             {
-                // if there are no items, protect SelectedValue from being overwritten
-                // until items show up.  This enables a SelectedValue set from markup
-                // to set the initial selection when the items eventually appear.
-                item = DependencyProperty.UnsetValue;
-                _cacheValid[(int)CacheBits.SelectedValueWaitsForItems] = true;
+                // new behavior (DDVSO 96884).  Update SelectedValue before raising SelectionChanged
+
+                // look through the items for one whose value matches the given value
+                if (HasItems)
+                {
+                    int index;
+                    item = FindItemWithValue(value, out index);
+
+                    ItemInfo info = NewItemInfo(item, null, index);
+
+                    if (selectNow)
+                    {
+                        try
+                        {
+                            _cacheValid[(int)CacheBits.SelectedValueDrivesSelection] = true;
+                            // We can assume it's in the collection because we just searched
+                            // through the collection to find it.
+                            SelectionChange.SelectJustThisItem(info, assumeInItemsCollection:true);
+                        }
+                        finally
+                        {
+                            _cacheValid[(int)CacheBits.SelectedValueDrivesSelection] = false;
+                        }
+                    }
+                    else
+                    {
+                        // when called during coercion, don't actually select until
+                        // OnSelectedValueChanged, so that the new SelectedValue is
+                        // fully set before raising the SelectedChanged event (DDVSO 96884)
+                        PendingSelectionByValueField.SetValue(this, info);
+                    }
+                }
+                else
+                {
+                    // if there are no items, protect SelectedValue from being overwritten
+                    // until items show up.  This enables a SelectedValue set from markup
+                    // to set the initial selection when the items eventually appear.
+                    item = DependencyProperty.UnsetValue;
+                    _cacheValid[(int)CacheBits.SelectedValueWaitsForItems] = true;
+                }
             }
 
-            _cacheValid[(int)CacheBits.SelectedValueDrivesSelection] = false;
             return item;
         }
 
@@ -606,7 +677,7 @@ namespace System.Windows.Controls.Primitives
             {
                 // Otherwise, this is a user-initiated change to SelectedValue.
                 // Find the corresponding item.
-                object item = s.SelectItemWithValue(value);
+                object item = s.SelectItemWithValue(value, selectNow:false);
 
                 // if the search fails, coerce the value to null.  Unless there
                 // are no items at all, in which case wait for the items to appear
@@ -1076,7 +1147,7 @@ namespace System.Windows.Controls.Primitives
                 // This sets the selection from SelectedValue when SelectedValue
                 // was set prior to the arrival of any items to select, provided
                 // that SelectedIndex or SelectedItem didn't already do it.
-                SelectItemWithValue(SelectedValue);
+                SelectItemWithValue(SelectedValue, selectNow:true);
             }
 
             switch (e.Action)
@@ -1204,6 +1275,12 @@ namespace System.Windows.Controls.Primitives
                 // if they removed something in a selection, remove it.
                 // When End() commits the changes it will update SelectedIndex.
                 ItemInfo info = NewItemInfo(e.OldItems[0], ItemInfo.SentinelContainer, e.OldStartingIndex);
+
+                // normally info.Container is reset to null (see ItemInfo.Refresh), but
+                // not if the collection didn't tell us the position of the removed
+                // item.  Adjust for that now, so that we don't attempt to set
+                // properties on the SentinelContainer (DDVSO 424259)
+                info.Container = null;
 
                 if (_selectedItems.Contains(info))
                 {
@@ -2166,6 +2243,8 @@ namespace System.Windows.Controls.Primitives
 
         // the container that is being cleared.   It doesn't require much action.
         private DependencyObject _clearingContainer;
+
+        private static readonly UncommonField<ItemInfo> PendingSelectionByValueField = new UncommonField<ItemInfo>();
 
         #endregion
 

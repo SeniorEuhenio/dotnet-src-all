@@ -34,6 +34,11 @@ namespace System
                             LocalAppContext.DefineSwitchDefault(BaseAppContextSwitches.SwitchDoNotUseCulturePreservingDispatcherOperations, true);
                         }
 
+                        if (targetFrameworkVersion <= 40700)
+                        {
+                            LocalAppContext.DefineSwitchDefault(BaseAppContextSwitches.SwitchUseSha1AsDefaultHashAlgorithmForDigitalSignatures, true);
+                        }
+
                         break;
                     }
             }

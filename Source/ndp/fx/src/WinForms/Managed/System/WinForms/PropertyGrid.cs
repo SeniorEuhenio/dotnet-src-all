@@ -89,7 +89,9 @@ namespace System.Windows.Forms {
         private Object[]   currentObjects;
         
         private int                                 paintFrozen;
-        private Color                               lineColor = SystemColors.ControlDark;
+        private Color                               lineColor = SystemInformation.HighContrast ? (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures ? SystemColors.ControlDarkDark : SystemColors.ControlDark )
+                                                                : SystemColors.InactiveBorder;
+        internal bool                               developerOverride = false;
         internal Brush                              lineBrush = null;
         private Color                               categoryForeColor = SystemColors.ControlText;
         private Color                               categorySplitterColor = SystemColors.Control;
@@ -277,7 +279,7 @@ namespace System.Windows.Forms {
                 ResumeLayout(true);
             }
         }
-   
+
         internal IDesignerHost ActiveDesigner {
             get{
                 if (this.designerHost == null) {
@@ -976,6 +978,7 @@ namespace System.Windows.Forms {
             set {
                 if (lineColor != value) {
                     lineColor = value;
+                    developerOverride = true;
                     if (lineBrush != null) {
                         lineBrush.Dispose();
                         lineBrush = null;
@@ -2003,7 +2006,7 @@ namespace System.Windows.Forms {
         }
         */
 
-        private ToolStripButton CreatePushButton(string toolTipText, int imageIndex, EventHandler eventHandler) {
+        private ToolStripButton CreatePushButton(string toolTipText, int imageIndex, EventHandler eventHandler, bool useCheckButtonRole = false) {
             ToolStripButton button = new ToolStripButton();
             button.Text = toolTipText;
             button.AutoToolTip = true;
@@ -2011,6 +2014,13 @@ namespace System.Windows.Forms {
             button.ImageIndex = imageIndex;
             button.Click += eventHandler;
             button.ImageScaling = ToolStripItemImageScaling.SizeToFit;
+
+            if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                if (useCheckButtonRole) {
+                    button.AccessibleRole = AccessibleRole.CheckButton;
+                }
+            }
+
             return button;
         }
         
@@ -3605,6 +3615,12 @@ namespace System.Windows.Forms {
                         else if (gridView.FocusInside) {
                             if (toolStrip.Visible) {
                                 toolStrip.FocusInternal();
+                                if (!LocalAppContextSwitches.UseLegacyAccessibilityFeatures) {
+                                    // we need to select first ToolStrip item, otherwise, ToolStrip container has the focus
+                                    if (toolStrip.Items.Count > 0) {
+                                        toolStrip.SelectNextToolStripItem(null, /*forward =*/ true);
+                                    }
+                                }
                             }
                             else {
                                 return base.ProcessDialogKey(keyData);
@@ -4186,7 +4202,7 @@ namespace System.Windows.Forms {
         }
 
         private void SetToolStripRenderer() {
-            if (DrawFlatToolbar) {
+            if (DrawFlatToolbar || (SystemInformation.HighContrast && !LocalAppContextSwitches.UseLegacyAccessibilityFeatures)) {
                 // use an office look and feel with system colors 
                 ProfessionalColorTable colorTable = new ProfessionalColorTable();
                 colorTable.UseSystemColors = true;
@@ -4269,11 +4285,11 @@ namespace System.Windows.Forms {
                        Debug.Fail("Failed to load category bitmap", e.ToString());
                    }
    
-                   viewSortButtons[ALPHA] = CreatePushButton(SR.GetString(SR.PBRSToolTipAlphabetic), alphaIndex, ehViewType);
-                   viewSortButtons[CATEGORIES] = CreatePushButton(SR.GetString(SR.PBRSToolTipCategorized), categoryIndex, ehViewType);
+                   viewSortButtons[ALPHA] = CreatePushButton(SR.GetString(SR.PBRSToolTipAlphabetic), alphaIndex, ehViewType, true);
+                   viewSortButtons[CATEGORIES] = CreatePushButton(SR.GetString(SR.PBRSToolTipCategorized), categoryIndex, ehViewType, true);
                    
                    // we create a dummy hidden button for view sort
-                   viewSortButtons[NO_SORT] = CreatePushButton("", 0, ehViewType);
+                   viewSortButtons[NO_SORT] = CreatePushButton("", 0, ehViewType, true);
                    viewSortButtons[NO_SORT].Visible = false;
    
                    // add the viewType buttons and a separator
@@ -4308,7 +4324,7 @@ namespace System.Windows.Forms {
                for (i = 0; i < viewTabs.Length; i++) {
                    try {
                        b = viewTabs[i].Bitmap;
-                       viewTabButtons[i] = CreatePushButton(viewTabs[i].TabName, AddImage(b), ehViewTab);
+                       viewTabButtons[i] = CreatePushButton(viewTabs[i].TabName, AddImage(b), ehViewTab, true);
                        if (doAdd) {
                            buttonList.Add(viewTabButtons[i]);
                        }
@@ -4338,7 +4354,7 @@ namespace System.Windows.Forms {
    
                // we recreate this every time to ensure it's at the end
                //
-               btnViewPropertyPages = CreatePushButton(SR.GetString(SR.PBRSToolTipPropertyPages), designpg, ehPP);
+               btnViewPropertyPages = CreatePushButton(SR.GetString(SR.PBRSToolTipPropertyPages), designpg, ehPP, false);
                btnViewPropertyPages.Enabled = false;
                buttonList.Add(btnViewPropertyPages);
    

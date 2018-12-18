@@ -3624,7 +3624,7 @@ namespace System.Windows
             // element was being removed from the tree.  In such cases, just no-op, instead of the old
             // Invariant.Assert.
             // Invariant.Assert(null != oldFrameworkTemplate || null != newFrameworkTemplate);
-            
+
             if((oldFrameworkTemplate==null || !oldFrameworkTemplate.HasLoadedChangeHandler)
                 && (newFrameworkTemplate != null && newFrameworkTemplate.HasLoadedChangeHandler))
             {
@@ -3717,6 +3717,46 @@ namespace System.Windows
             }
         }
 
+        // determine whether the template declares the given property's value
+        // via a dynamic construct - DynamicResource, TemplateBinding, Binding
+        internal static bool IsValueDynamic(
+                DependencyObject container,
+                int childIndex,
+                DependencyProperty dp)
+        {
+            bool isValueDynamic = false;
+
+            FrameworkObject foContainer = new FrameworkObject(container);
+            FrameworkTemplate frameworkTemplate = foContainer.TemplateInternal;
+            if (frameworkTemplate != null)
+            {
+                var childRecordFromChildIndex = frameworkTemplate.ChildRecordFromChildIndex;
+
+                // Check if this Child Index is represented in given data-structure
+                if ((0 <= childIndex) && (childIndex < childRecordFromChildIndex.Count))
+                {
+                    // Fetch the childRecord for the given childIndex
+                    ChildRecord childRecord = childRecordFromChildIndex[childIndex];
+
+                    // Check if this Property is represented in the childRecord
+                    int mapIndex = childRecord.ValueLookupListFromProperty.Search(dp.GlobalIndex);
+                    if (mapIndex >= 0)
+                    {
+                        if (childRecord.ValueLookupListFromProperty.Entries[mapIndex].Value.Count > 0)
+                        {
+                            ChildValueLookup childValue = childRecord.ValueLookupListFromProperty.Entries[mapIndex].Value.List[0];
+                            isValueDynamic =
+                                (childValue.LookupType == ValueLookupType.Resource)         // DynamicResource
+                             || (childValue.LookupType == ValueLookupType.TemplateBinding)  // TemplateBinding
+                             || (childValue.LookupType == ValueLookupType.Simple &&         // Binding et al.
+                                    childValue.Value is BindingBase);
+                        }
+                    }
+                }
+            }
+
+            return isValueDynamic;
+        }
 
         internal static bool GetValueFromTemplatedParent(
                 DependencyObject                container,

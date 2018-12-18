@@ -2623,6 +2623,9 @@ namespace System.Windows.Media
                 throw new ArgumentException(SR.Get(SRID.Visual_HasParent));
             }
 
+            // invalid during a VisualTreeChanged event
+            VisualDiagnostics.VerifyVisualTreeChange(this);
+
             SetFlags(true, VisualFlags.HasChildren);
 
             // Set the parent pointer.
@@ -2660,7 +2663,7 @@ namespace System.Windows.Media
                 {
                     index = DpiIndex.GetValue(this);
                 }
-                
+
                 child.RecursiveSetDpiScaleVisualFlags(new DpiRecursiveChangeArgs(new DpiFlags(flag1, flag2, index),
                     child.GetDpi(), this.GetDpi()));
             }
@@ -2670,7 +2673,7 @@ namespace System.Windows.Media
             child.FireOnVisualParentChanged(null);
             VisualDiagnostics.OnVisualChildChanged(this, child, true);
         }
-        
+
         /// <summary>
         /// DisconnectChild
         ///
@@ -2690,6 +2693,9 @@ namespace System.Windows.Media
             {
                 throw new ArgumentException(SR.Get(SRID.Visual_NotChild));
             }
+
+            // invalid during a VisualTreeChanged event
+            VisualDiagnostics.VerifyVisualTreeChange(this);
 
             VisualDiagnostics.OnVisualChildChanged(this, child, false);
 
@@ -4736,7 +4742,7 @@ namespace System.Windows.Media
 
             return true;
         }
-        
+
         /// <summary>
         /// Returns the DPI information at which this Visual is rendered.
         /// </summary>
@@ -5005,7 +5011,7 @@ namespace System.Windows.Media
         /// Sets the DPI scale Visual flags on the current visual.
         /// </summary>
         internal void SetDpiScaleVisualFlags(DpiRecursiveChangeArgs args)
-        {   
+        {
             _flags = args.DpiScaleFlag1 ? (_flags | VisualFlags.DpiScaleFlag1) : (_flags & ~VisualFlags.DpiScaleFlag1);
             _flags = args.DpiScaleFlag2 ? (_flags | VisualFlags.DpiScaleFlag2) : (_flags & ~VisualFlags.DpiScaleFlag2);
             if (args.DpiScaleFlag1 && args.DpiScaleFlag2)
