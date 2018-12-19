@@ -5,3 +5,6 @@ Normal (unmodified) .NET repositories published by Microsoft commited as branche
 Goal is to have possibility for any diff operations on changes between .NET versions.
 
 All source code copyrights: Microsoft Corporation
+
+
+No changes to code are allowed.
